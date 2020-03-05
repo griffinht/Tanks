@@ -1,13 +1,37 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Tanks!</title>
-    </head>
-    <body>
-        <canvas id="canvas"></canvas>
-        <script>
-console.log("whats up");
-
-        </script>
-    </body>
+  <head>
+    <title>Tanks!</title>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+    <script>
+var webSocket = null;
+var connected = false;
+function connect() {
+  console.log("Connecting to server...");
+  webSocket = new WebSocket("ws://localhost:2000");
+  webSocket.onopen = function(e) {
+    webSocket.send("hello");
+    connected = true;
+    console.log("Connected to server");
+  }
+  webSocket.onclose = function(e) {
+    connected = false;
+    console.log("Connection closed");
+  }
+  webSocket.onmessage = function(e) {
+    console.log(event.data);
+  }
+}
+function send(string) {
+  if(connected) {
+    webSocket.send(string);
+  } else {
+    return "Error: Not connected";
+  }
+}
+connect();
+    </script>
+  </body>
 </html>
