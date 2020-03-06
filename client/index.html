@@ -7,17 +7,14 @@
     <canvas id="canvas"></canvas>
     <script>
 var webSocket = null;
-var connected = false;
+
 function connect() {
   console.log("Connecting to server...");
   webSocket = new WebSocket("ws://localhost:2000");
   webSocket.onopen = function(e) {
-    webSocket.send("hello");
-    connected = true;
     console.log("Connected to server");
   }
   webSocket.onclose = function(e) {
-    connected = false;
     console.log("Connection closed");
   }
   webSocket.onmessage = function(e) {
@@ -25,7 +22,7 @@ function connect() {
   }
 }
 function send(string) {
-  if(connected) {
+  if(webSocket.readyState == WebSocket.OPEN) {
     webSocket.send(string);
   } else {
     return "Error: Not connected";

@@ -9,12 +9,12 @@ public class Tanks {
 
     public static void main(String[] args) {
         long start = System.nanoTime();
-        System.out.println("Starting server on port " + PORT);
+        Logger.log("Starting server on port " + PORT);
 
         Server server = new Server(PORT);
         new Thread(server).start();
 
-        System.out.println("Started server on port " + PORT + " in " + (float)(System.nanoTime()/start)/1000000+"ms");
+        Logger.log("Started server on port " + PORT + " in " + (float)(System.nanoTime()/start)/1000000+"ms");
         while(true) {
             try {
                 InputStreamReader inputStreamReader = new InputStreamReader(System.in);
@@ -22,12 +22,12 @@ public class Tanks {
                 String input = bufferedReader.readLine();
                 switch (input.toLowerCase()) {
                     case "stop":
-                        System.out.println("Stopping server...");
+                        Logger.log("Stopping server...");
                         server.stop();
-                        System.out.println("Server stopped");
+                        Logger.log("Server stopped");
                         return;
                     default:
-                        System.out.println("Unknown command \""+input+"\"");
+                        Logger.log("Unknown command \""+input+"\"");
                 }
             } catch (IOException e) {
                 e.printStackTrace();

@@ -10,7 +10,7 @@ public class Server implements Runnable {
     protected final int PORT;
 
     protected ServerSocket server;
-    private Map<UUID, WorkerRunnable> clients = new HashMap<>();
+    private Map<UUID, Client> clients = new HashMap<>();
     protected boolean stopped = false;
     protected Thread thread;
 
@@ -32,20 +32,20 @@ public class Server implements Runnable {
         // Main connections loop
         while (!stopped) {
             try {
-                new Thread(new WorkerRunnable(server.accept())).start();
-                System.out.println("new client");
+                new Client(server.accept(), UUID.randomUUID());
+                Logger.log("new client");
                 //Client client = new Client(server.accept(), UUID.randomUUID());
                 //clients.put(client.getUUID(), client);
                 //System.out.println("New client with id "+client.getUUID());
             } catch (IOException e) {
                 if (stopped) {
-                    System.out.println("Server stopped on exception");
+                    Logger.log("Server stopped on exception");
                     return;
                 }
                 throw new RuntimeException("Error accepting client connection", e);
             }
         }
-        System.out.println("Server stopped");
+        Logger.log("Server stopped");
     }
 
     synchronized void stop() {

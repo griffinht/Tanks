@@ -1,8 +1,10 @@
 package net.stzups.tanks;
 
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
-public class Logger {
+class Logger {
 
     static void log(Object msg) {
         log(msg, LoggerType.INFO);
@@ -167,6 +169,6 @@ public class Logger {
     }
 
     private static String getTime() {
-        return new Timestamp(System.currentTimeMillis()).toString();
+        return new SimpleDateFormat("HH.mm.ss").format(new Date(System.currentTimeMillis()));
     }
 }
