@@ -44,7 +44,6 @@ class Client implements Runnable {
                     }
                     lastPing = System.currentTimeMillis();
                     sendPacket((byte) 0x9, "");
-                    Logger.log("pinged");
                 } catch (InterruptedException e) {
                     closeConnection();
                 }

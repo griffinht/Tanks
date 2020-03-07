@@ -5,10 +5,7 @@
   </head>
   <body>
     <canvas id="canvas"></canvas>
-    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
     <script>
-/*var socket = io("ws://45.36.37.61:2000");
-socket.send("hello");*/
 var webSocket = null;
 
 function connect() {
@@ -18,15 +15,17 @@ function connect() {
     console.log("Connected to server");
   }
   webSocket.onclose = function(e) {
-    console.log("Connection closed");
+    console.log("Connection closed, attempting to reconnect...");
+    reconnect = setTimeout(connect, 1000);
   }
   webSocket.onmessage = function(e) {
     console.log(event.data);
   }
 }
-function send(string) {
+
+function send(payload) {
   if(webSocket.readyState == WebSocket.OPEN) {
-    webSocket.send(string);
+    webSocket.send(payload);
   } else {
     return "Error: Not connected";
   }
