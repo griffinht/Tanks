@@ -1,8 +1,5 @@
 package net.stzups.tanks;
 
-import com.sun.deploy.trace.LoggerTraceListener;
-import sun.rmi.runtime.Log;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -10,7 +7,10 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayDeque;
 import java.util.Base64;
+import java.util.Collections;
+import java.util.Queue;
 import java.util.Scanner;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -19,12 +19,14 @@ import java.util.regex.Pattern;
 class Client implements Runnable {
     private UUID uuid;
     private Socket client;
-    private boolean running;
+    private long lastPing = System.currentTimeMillis();
+    private int ping = 0;
+    private Queue<byte[]> queue = Collections.asLifoQueue(new ArrayDeque<>());
+    private boolean connected = true;
 
     Client(Socket socket, UUID uuid) {
         this.client = socket;
         this.uuid = uuid;
-        running = true;
         new Thread(this).start();
     }
 
@@ -33,9 +35,24 @@ class Client implements Runnable {
     }
 
     public void run() {
-        try {
-            InputStream inputStream = client.getInputStream();
-            OutputStream outputStream = client.getOutputStream();
+        Thread manager = new Thread(() -> {
+            while(!Thread.currentThread().isInterrupted() && connected) {
+                try {
+                    Thread.sleep(1000);
+                    if (ping == -1) {
+                        closeConnection();
+                    }
+                    lastPing = System.currentTimeMillis();
+                    sendPacket((byte) 0x9, "");
+                    Logger.log("pinged");
+                } catch (InterruptedException e) {
+                    closeConnection();
+                }
+            }
+        });
+        manager.start();
+        try (InputStream inputStream = client.getInputStream();
+             OutputStream outputStream = client.getOutputStream()){
 
             try (Scanner scanner = new Scanner(inputStream, "UTF-8")){
                 String data = scanner.useDelimiter("\\r\\n\\r\\n").next();
@@ -52,60 +69,75 @@ class Client implements Runnable {
                                 + "\r\n\r\n").getBytes(StandardCharsets.UTF_8);
                         outputStream.write(response, 0, response.length);
 
-                        while(running) {
+                        connection:
+                        while(connected) {
                             if (inputStream.available() > 0) {
                                 byte[] head = new byte[2];
                                 inputStream.read(head, 0, 2);
-                                Logger.log("first byte: "+readBytesToString(head[0]));
-                                if (((head[0] >> 7) & 1 ) == 1) { // First bit - FIN
-                                    Logger.log("FIN");
-                                } else {
+                                if (((head[0] >> 7) & 1 ) != 1) { // FIN bit todo handle non FIN
                                     Logger.log("not FIN");
                                 }
-                                switch (head[0] & 0x0F) { // Last 4 bits - opcode
-                                    case 0:
+                                byte[] decoded;
+                                if (((head[1] >> 7) & 1) == 1) { // Mask bit
+                                    switch (head[1] + 0x80) {
+                                        case 126:
+                                            inputStream.skip(2); //todo read these?
+                                            break;
+                                        case 127:
+                                            inputStream.skip(4);
+                                            break;
+                                    }
+                                    byte[] key = new byte[4];
+                                    inputStream.read(key, 0, 4);
+                                    byte[] encoded = new byte[inputStream.available()];
+                                    decoded = new byte[encoded.length];
+                                    inputStream.read(encoded);
+                                    for (int i = 0; i < encoded.length; i++) {
+                                        decoded[i] = (byte) (encoded[i] ^ key[i & 0x3]);
+                                    }
+                                } else {
+                                    byte[] packet = new byte[inputStream.available()];
+                                    inputStream.read(packet);
+                                    throw new RuntimeException("Received unmasked data from client " + getUUID() + ", full packet: " + readBytesToString(head) + " " + readBytesToString(packet));
+                                }
+
+                                switch (head[0] & 0x0F) { // Opcode bits
+                                    case 0x0: // continuation frame
                                         Logger.log("continuation frame");
                                         break;
-                                    case 1:
+                                    case 0x1: // text frame
                                         Logger.log("text frame");
-                                        switch (head[1] + 0x80) {
-                                            case 126:
-                                                inputStream.skip(2); //todo read these?
-                                                break;
-                                            case 127:
-                                                inputStream.skip(4);
-                                                break;
-                                        }
-                                        byte[] key = new byte[4];
-                                        inputStream.read(key, 0, 4);
-                                        byte[] encoded = new byte[inputStream.available()];
-                                        byte[] decoded = new byte[encoded.length];
-                                        inputStream.read(encoded);
-                                        for (int i = 0; i < encoded.length; i++) {
-                                            decoded[i] = (byte) (encoded[i] ^ key[i & 0x3]);
-                                        }
                                         Logger.log(new String(decoded));
                                         break;
-                                    case 2:
+                                    case 0x2: // binary frame
                                         Logger.log("binary frame");
                                         break;
-                                    case 8:
-                                        Logger.log("Connection close");
-                                        running = false;
-                                        break;
-                                    case 9:
+                                    case 0x8: // connection close
+                                        break connection;
+                                    case 0x9: // ping, shouldn't ever receive one
                                         Logger.log("ping");
                                         break;
-                                    case 10:
-                                        Logger.log("pong");
+                                    case 0xA: // pong from client
+                                        long time = System.currentTimeMillis();
+                                        ping = (int) (time - lastPing);
+                                        lastPing = -1;
+                                        sendString("ping:" + ping);
                                         break;
-                                    default:
+                                    default: // error
                                         byte[] packet = new byte[inputStream.available()];
                                         inputStream.read(packet);
-                                        throw new RuntimeException("Unrecognized opcode ( "+ readBytesToString((byte) (head[0] & 0x0F)).substring(4) + " ), full packet: " + readBytesToString(head) + " " + readBytesToString(packet));
+                                        throw new RuntimeException("Unrecognized opcode ( "+ readBytesToString((byte) (head[0] & 0x0F)).substring(4) + " ) from client " + getUUID() + ", full packet: " + readBytesToString(head) + " " + readBytesToString(packet));
+                                }
+                            }
+
+                            if (connected) {
+                                while (!queue.isEmpty()) {
+                                    outputStream.write(queue.poll());
                                 }
                             }
                         }
+
+                    } else {
                         Logger.log("No matches for " + match.pattern() + " in " + data, LoggerType.WARNING);
                     }
                 } else {
@@ -114,11 +146,41 @@ class Client implements Runnable {
             }
         } catch (IOException | NoSuchAlgorithmException e) {
             e.printStackTrace();
+        } finally {
+            closeConnection();
+            Logger.log("Closed connection");
         }
     }
 
-    private String readBytesToString(byte[] bytes) {
+    static private byte[] getFramedPacket(byte opcode, String payload) {
+        byte[] data;
+        int offset;
+
+        if (payload.length() <= 125) {
+             offset = 2;
+             data = new byte[offset + payload.length()];
+             data[1] = (byte) (payload.length());
+        } else if (payload.length() > 126 && payload.length() < 65535) {
+            offset = 4;
+            data = new byte[offset + payload.length()];
+            data[1] = 126;
+        } else {
+            offset = 6;
+            data = new byte[offset + payload.length()];
+        }
+
+        data[0] = (byte) (0x80 ^ opcode);
+
+        for (int i = 0; i < payload.length(); i++) {
+            data[offset + i] = (byte) payload.charAt(i);
+        }
+
+        return data;
+    }
+
+    static private String readBytesToString(byte[] bytes) {
         StringBuilder string = new StringBuilder();
+
         for (byte b : bytes) {
             string.append((b >> 7) & 1);
             string.append((b >> 6) & 1);
@@ -133,6 +195,7 @@ class Client implements Runnable {
             string.append(b);
             string.append(") ");
         }
+
         if (string.length() > 0) {
             return string.substring(0, string.length() - 1);
         } else {
@@ -140,7 +203,20 @@ class Client implements Runnable {
         }
     }
 
-    private String readBytesToString(byte b) {
+    static private String readBytesToString(byte b) {
         return readBytesToString(new byte[]{b});
+    }
+
+    void sendPacket(byte opcode, String payload) {
+        queue.add(getFramedPacket(opcode, payload));
+    }
+
+    void sendString(String payload) {
+        sendPacket((byte) 0x1, payload);
+    }
+
+    void closeConnection() {
+        sendPacket((byte) 0x8, "");
+        connected = false;
     }
 }
