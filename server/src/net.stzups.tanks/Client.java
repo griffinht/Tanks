@@ -56,15 +56,7 @@ class Client implements Runnable {
                             if (inputStream.available() > 0) {
                                 byte[] head = new byte[2];
                                 inputStream.read(head, 0, 2);
-                                Logger.log("first byte: "+
-                                        ((head[0] >> 7) & 1)
-                                        +((head[0] >> 6) & 1)
-                                        +((head[0] >> 5) & 1)
-                                        +((head[0] >> 4) & 1)
-                                        +((head[0] >> 3) & 1)
-                                        +((head[0] >> 2) & 1)
-                                        +((head[0] >> 1) & 1)
-                                        +(head[0] & 1));
+                                Logger.log("first byte: "+readBytesToString(head[0]));
                                 if (((head[0] >> 7) & 1 ) == 1) { // First bit - FIN
                                     Logger.log("FIN");
                                 } else {
@@ -99,6 +91,7 @@ class Client implements Runnable {
                                         break;
                                     case 8:
                                         Logger.log("Connection close");
+                                        running = false;
                                         break;
                                     case 9:
                                         Logger.log("ping");
@@ -107,11 +100,12 @@ class Client implements Runnable {
                                         Logger.log("pong");
                                         break;
                                     default:
-                                        throw new RuntimeException("Unrecognized opcode " + (head[0] & 0x0F));
+                                        byte[] packet = new byte[inputStream.available()];
+                                        inputStream.read(packet);
+                                        throw new RuntimeException("Unrecognized opcode ( "+ readBytesToString((byte) (head[0] & 0x0F)).substring(4) + " ), full packet: " + readBytesToString(head) + " " + readBytesToString(packet));
                                 }
                             }
                         }
-                    } else {
                         Logger.log("No matches for " + match.pattern() + " in " + data, LoggerType.WARNING);
                     }
                 } else {
@@ -121,5 +115,32 @@ class Client implements Runnable {
         } catch (IOException | NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
+    }
+
+    private String readBytesToString(byte[] bytes) {
+        StringBuilder string = new StringBuilder();
+        for (byte b : bytes) {
+            string.append((b >> 7) & 1);
+            string.append((b >> 6) & 1);
+            string.append((b >> 5) & 1);
+            string.append((b >> 4) & 1);
+            string.append((b >> 3) & 1);
+            string.append((b >> 2) & 1);
+            string.append((b >> 1) & 1);
+            string.append(b & 1);
+            string.append(" ");
+            string.append(" (");
+            string.append(b);
+            string.append(") ");
+        }
+        if (string.length() > 0) {
+            return string.substring(0, string.length() - 1);
+        } else {
+            return string.toString();
+        }
+    }
+
+    private String readBytesToString(byte b) {
+        return readBytesToString(new byte[]{b});
     }
 }

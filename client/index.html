@@ -5,7 +5,10 @@
   </head>
   <body>
     <canvas id="canvas"></canvas>
+    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
     <script>
+/*var socket = io("ws://45.36.37.61:2000");
+socket.send("hello");*/
 var webSocket = null;
 
 function connect() {
