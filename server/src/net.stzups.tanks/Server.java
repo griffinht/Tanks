@@ -3,7 +3,9 @@ package net.stzups.tanks;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -35,7 +37,7 @@ public class Server implements Runnable {
             try {
                 Socket socket = serverSocket.accept();
                 UUID uuid = UUID.randomUUID();
-                clients.put(uuid, new Client(socket, uuid));
+                clients.put(uuid, new Client(this, socket, uuid));
 
                 //Client client = new Client(server.accept(), UUID.randomUUID());
                 //clients.put(client.getUUID(), client);
@@ -60,6 +62,41 @@ public class Server implements Runnable {
             this.serverSocket.close();
         } catch (IOException e) {
             throw new RuntimeException("Error closing server", e);
+        }
+    }
+
+    void onTextPacket(Client client, String payload) {
+        Logger.log(client.getSocket().getInetAddress() + ": " + payload);
+        sendTextExcept(Collections.singletonList(client), payload);
+    }
+
+    Client getClient(UUID uuid) { //throw client not registered?
+        return clients.get(uuid);
+    }
+
+    void sendText(List<Client> recipients, String payload) {
+        if (recipients == null) {
+            for (Client client : clients.values()) {
+                client.sendText(payload);
+            }
+        } else {
+            for (Client client : recipients) {
+                client.sendText(payload);
+            }
+        }
+    }
+
+    void sendTextExcept(List<Client> recipients, String payload) {
+        if (recipients == null) {
+            for (Client client : clients.values()) {
+                client.sendText(payload);
+            }
+        } else {
+            for (Client client : clients.values()) {
+                if (!recipients.contains(client)) {
+                    client.sendText(payload);
+                }
+            }
         }
     }
 }

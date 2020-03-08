@@ -21,6 +21,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class Client implements Runnable {
+    Server server;
+
     private UUID uuid;
     private Socket socket;
     private long lastPing = System.currentTimeMillis();
@@ -28,7 +30,8 @@ class Client implements Runnable {
     private Queue<byte[]> queue = Collections.asLifoQueue(new ArrayDeque<>());
     private boolean connected = true;
 
-    Client(Socket socket, UUID uuid) {
+    Client(Server server, Socket socket, UUID uuid) {
+        this.server = server;
         this.socket = socket;
         this.uuid = uuid;
         new Thread(this).start();
@@ -116,7 +119,7 @@ class Client implements Runnable {
                                         Logger.log("continuation frame");
                                         break;
                                     case 0x1: // text frame
-                                        Logger.log(socket.getInetAddress() + ": " + new String(decoded));
+                                        server.onTextPacket(this, new String(decoded));
                                         break;
                                     case 0x2: // binary frame
                                         Logger.log("binary frame");
@@ -132,7 +135,7 @@ class Client implements Runnable {
                                         long time = System.currentTimeMillis();
                                         ping = (int) (time - lastPing);
                                         lastPing = -1;
-                                        sendString("ping:" + ping);
+                                        sendText("ping:" + ping);
                                         break;
                                     default: // error
                                         byte[] packet = new byte[inputStream.available()];
@@ -142,7 +145,7 @@ class Client implements Runnable {
                             }
 
                             if (connected) {
-                                while (!queue.isEmpty()) {
+                                while (queue.peek() != null) {
                                     outputStream.write(queue.poll());
                                 }
                             }
@@ -242,7 +245,7 @@ class Client implements Runnable {
         queue.add(getFramedPacket(opcode, payload));
     }
 
-    void sendString(String payload) {
+    void sendText(String payload) {
         sendPacket((byte) 0x1, payload);
     }
 
