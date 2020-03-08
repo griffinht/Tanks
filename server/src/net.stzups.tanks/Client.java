@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -30,10 +31,16 @@ class Client implements Runnable {
     private Queue<byte[]> queue = Collections.asLifoQueue(new ArrayDeque<>());
     private boolean connected = true;
 
-    Client(Server server, Socket socket, UUID uuid) {
+    Client(Server server, Socket socket) {
         this.server = server;
         this.socket = socket;
-        this.uuid = uuid;
+        this.uuid = UUID.randomUUID();
+        System.out.println("putting: "+server.getClientsMap().size());
+        InetAddress inetAddress = this.socket.getInetAddress();
+        if (server.getClientsMap().containsKey(inetAddress))
+            server.getClientsMap().get(inetAddress).close();
+        server.getClientsMap().put(this.socket.getInetAddress(), this);
+        System.out.println("put: "+server.getClientsMap().size());
         new Thread(this).start();
     }
 
@@ -249,10 +256,16 @@ class Client implements Runnable {
         sendPacket((byte) 0x1, payload);
     }
 
+    boolean isConnected() {
+        return connected;
+    }
+
     void close() {
         sendPacket((byte) 0x8, "");
         connected = false;
         Logger.log("Closed connection for client from " + socket.getInetAddress().getHostAddress());
-        server.getClientsMap().remove(uuid);
+        System.out.println("old size "+server.getClientsMap().size());
+        server.getClientsMap().remove(socket.getInetAddress());
+        System.out.println("new size "+server.getClientsMap().size());
     }
 }

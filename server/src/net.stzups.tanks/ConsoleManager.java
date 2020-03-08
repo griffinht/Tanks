@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Collection;
-import java.util.UUID;
 
 class ConsoleManager {
     static void manage() {
@@ -28,32 +27,15 @@ class ConsoleManager {
                         break;
                     case "kick":
                         if (input.length > 1) {
-                            UUID uuid;
-                            boolean kick = false;
-
-                            try {
-                                uuid = UUID.fromString(input[1]);
-                                if (Tanks.server.getClientsMap().containsKey(uuid)) {
-                                    Tanks.server.getClient(uuid).close();
-                                    Logger.log("Kicked " + uuid);
-                                    kick = true;
-                                }
-                                Logger.log("Could not find client matching " + input[1]);
-                            } catch (IllegalArgumentException ignored) {
-                            }
-
                             for (Client client : Tanks.server.getClients()) {
-                                if (client.getSocket().getInetAddress().getHostAddress().equals(input[1])) {
-                                    kick = true;
+                                if (client.getSocket().getInetAddress().getHostAddress().equals(input[1]) || client.getUUID().toString().equals(input[1])) {
                                     client.close();
                                     Logger.log("Kicked " + client.getUUID());
                                     break;
                                 }
                             }
 
-                            if (!kick) {
-                                Logger.log("Could not find client matching " + input[1]);
-                            }
+                            Logger.log("Could not find client matching " + input[1]);
                         } else {
                             Logger.log("Needs one argument");
                         }

@@ -1,8 +1,8 @@
 package net.stzups.tanks;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -15,7 +15,7 @@ public class Server implements Runnable {
     private final int PORT;
 
     private ServerSocket serverSocket;
-    private Map<UUID, Client> clients = new HashMap<>();
+    private Map<InetAddress, Client> clients = new HashMap<>();
     private boolean stopped = false;
 
     Server(int port) {
@@ -33,14 +33,12 @@ public class Server implements Runnable {
         // Main connections loop
         while (!stopped) {
             try {
-                Socket socket = serverSocket.accept();
-                UUID uuid = UUID.randomUUID();
-                clients.put(uuid, new Client(this, socket, uuid));
+                new Client(this, serverSocket.accept());
+                System.out.println("found new client, adding");
             } catch (IOException e) {
                 if (stopped) {
                     Logger.log("Server stopped on exception");
-                    List<Client> clientList = new ArrayList<>(clients.values()); // Avoid concurrent modification
-                    for (Client client : clientList) {
+                    for (Client client : new ArrayList<>(clients.values())) {
                         client.close();
                     }
                     return;
@@ -60,15 +58,15 @@ public class Server implements Runnable {
         }
     }
 
-    Client getClient(UUID uuid) { //throw client not registered?
-        return clients.get(uuid);
+    Client getClient(InetAddress inetAddress) { //throw client not registered?
+        return clients.get(inetAddress);
     }
 
     Collection<Client> getClients() {
         return clients.values();
     }
 
-    Map<UUID, Client> getClientsMap() {
+    Map<InetAddress, Client> getClientsMap() {
         return clients;
     }
 
