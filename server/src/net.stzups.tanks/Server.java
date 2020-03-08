@@ -10,7 +10,7 @@ import java.util.UUID;
 public class Server implements Runnable {
     protected final int PORT;
 
-    protected ServerSocket server;
+    protected ServerSocket serverSocket;
     private Map<UUID, Client> clients = new HashMap<>();
     protected boolean stopped = false;
     protected Thread thread;
@@ -25,7 +25,7 @@ public class Server implements Runnable {
         }
         // Open new socket
         try {
-            server = new ServerSocket(PORT);
+            serverSocket = new ServerSocket(PORT);
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException("Could not open on port " + PORT);
@@ -33,10 +33,10 @@ public class Server implements Runnable {
         // Main connections loop
         while (!stopped) {
             try {
-                Socket socket = server.accept();
+                Socket socket = serverSocket.accept();
                 UUID uuid = UUID.randomUUID();
                 clients.put(uuid, new Client(socket, uuid));
-                Logger.log("New client connected from IP address " + socket.getInetAddress());
+
                 //Client client = new Client(server.accept(), UUID.randomUUID());
                 //clients.put(client.getUUID(), client);
                 //System.out.println("New client with id "+client.getUUID());
@@ -57,7 +57,7 @@ public class Server implements Runnable {
     synchronized void stop() {
         stopped = true;
         try {
-            this.server.close();
+            this.serverSocket.close();
         } catch (IOException e) {
             throw new RuntimeException("Error closing server", e);
         }

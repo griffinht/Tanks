@@ -22,20 +22,24 @@ import java.util.regex.Pattern;
 
 class Client implements Runnable {
     private UUID uuid;
-    private Socket client;
+    private Socket socket;
     private long lastPing = System.currentTimeMillis();
     private int ping = 0;
     private Queue<byte[]> queue = Collections.asLifoQueue(new ArrayDeque<>());
     private boolean connected = true;
 
     Client(Socket socket, UUID uuid) {
-        this.client = socket;
+        this.socket = socket;
         this.uuid = uuid;
         new Thread(this).start();
     }
 
     UUID getUUID() {
         return uuid;
+    }
+
+    Socket getSocket() {
+        return socket;
     }
 
     public void run() {
@@ -54,8 +58,9 @@ class Client implements Runnable {
             }
         });
         manager.start();
-        try (InputStream inputStream = client.getInputStream();
-             OutputStream outputStream = client.getOutputStream()){
+
+        try (InputStream inputStream = socket.getInputStream();
+             OutputStream outputStream = socket.getOutputStream()){
 
             try (Scanner scanner = new Scanner(inputStream, "UTF-8")){
                 String data = scanner.useDelimiter("\\r\\n\\r\\n").next();
@@ -73,6 +78,7 @@ class Client implements Runnable {
                                 + "\r\n\r\n").getBytes(StandardCharsets.UTF_8);
                         outputStream.write(response, 0, response.length);
 
+                        Logger.log("Client connected from IP address " + socket.getInetAddress());
                         connection:
                         while(connected) {
                             if (inputStream.available() > 0) {
@@ -110,12 +116,14 @@ class Client implements Runnable {
                                         Logger.log("continuation frame");
                                         break;
                                     case 0x1: // text frame
-                                        Logger.log(new String(decoded));
+                                        Logger.log(socket.getInetAddress() + ": " + new String(decoded));
                                         break;
                                     case 0x2: // binary frame
                                         Logger.log("binary frame");
                                         break;
                                     case 0x8: // connection close
+                                        Logger.log("Client disconnected for from address " + socket.getInetAddress());
+                                        close();
                                         break connection;
                                     case 0x9: // ping, shouldn't ever receive one
                                         Logger.log("ping");
@@ -172,9 +180,6 @@ class Client implements Runnable {
             }
         } catch (IOException | NoSuchAlgorithmException e) {
             e.printStackTrace();
-        } finally {
-            close();
-            Logger.log("Closed connection for client "+getUUID());
         }
     }
 
@@ -242,7 +247,10 @@ class Client implements Runnable {
     }
 
     void close() {
-        sendPacket((byte) 0x8, "");
-        connected = false;
+        if (connected) { // Only disconnect if not already connected
+            sendPacket((byte) 0x8, "");
+            connected = false;
+            Logger.log("Closed connection for client from " + socket.getInetAddress());
+        }
     }
 }
