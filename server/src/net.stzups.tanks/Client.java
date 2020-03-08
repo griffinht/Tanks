@@ -1,15 +1,19 @@
 package net.stzups.tanks;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayDeque;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Queue;
 import java.util.Scanner;
 import java.util.UUID;
@@ -40,12 +44,12 @@ class Client implements Runnable {
                 try {
                     Thread.sleep(1000);
                     if (ping == -1) {
-                        closeConnection();
+                        close();
                     }
                     lastPing = System.currentTimeMillis();
                     sendPacket((byte) 0x9, "");
                 } catch (InterruptedException e) {
-                    closeConnection();
+                    close();
                 }
             }
         });
@@ -58,13 +62,14 @@ class Client implements Runnable {
                 Matcher get = Pattern.compile("^GET").matcher(data);
 
                 if (get.find()) {
-                    Matcher match = Pattern.compile("Sec-WebSocket-Key: (.*)").matcher(data);
-                    if (match.find()) {
+                    Matcher webSocket = Pattern.compile("Sec-WebSocket-Key: (.*)").matcher(data);
+
+                    if (webSocket.find()) {
                         byte[] response = ("HTTP/1.1 101 Switching Protocols\r\n"
                                 + "Connection: Upgrade\r\n"
                                 + "Upgrade: websocket\r\n"
                                 + "Sec-WebSocket-Accept: "
-                                + Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-1").digest((match.group(1) + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").getBytes(StandardCharsets.UTF_8)))
+                                + Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-1").digest((webSocket.group(1) + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").getBytes(StandardCharsets.UTF_8)))
                                 + "\r\n\r\n").getBytes(StandardCharsets.UTF_8);
                         outputStream.write(response, 0, response.length);
 
@@ -105,7 +110,6 @@ class Client implements Runnable {
                                         Logger.log("continuation frame");
                                         break;
                                     case 0x1: // text frame
-                                        Logger.log("text frame");
                                         Logger.log(new String(decoded));
                                         break;
                                     case 0x2: // binary frame
@@ -137,7 +141,30 @@ class Client implements Runnable {
                         }
 
                     } else {
-                        Logger.log("No matches for " + match.pattern() + " in " + data, LoggerType.WARNING);
+                        Matcher path = Pattern.compile("(?<=GET /)\\S+").matcher(data);
+                        String foundPath;
+
+                        if (path.find()) {
+                            foundPath = path.group();
+                        } else {
+                            foundPath = "index.html";
+                        }
+
+
+                        File file = new File("client/" + foundPath);
+
+                        if(file.exists()) {
+                            outputStream.write(("HTTP/1.1 200 OK\r\n"
+                                    + "Server: Tanks\r\n"
+                                    + "Date: " + new Date() + "\r\n"
+                                    + "Content-type: " + Files.probeContentType(Paths.get(file.getCanonicalPath())) + "\r\n"
+                                    + "Content-length: " + file.length() + "\r\n"
+                                    + "\r\n").getBytes(StandardCharsets.UTF_8));
+                            Files.copy(file.toPath(), outputStream);
+                            //outputStream.flush(); todo necesary?
+                        } else {
+                            outputStream.write(("HTTP/1.1 404 Not Found").getBytes(StandardCharsets.UTF_8));
+                        }
                     }
                 } else {
                     Logger.log("No matches for " + get.pattern() + " in " + data, LoggerType.WARNING);
@@ -146,8 +173,8 @@ class Client implements Runnable {
         } catch (IOException | NoSuchAlgorithmException e) {
             e.printStackTrace();
         } finally {
-            closeConnection();
-            Logger.log("Closed connection");
+            close();
+            Logger.log("Closed connection for client "+getUUID());
         }
     }
 
@@ -214,7 +241,7 @@ class Client implements Runnable {
         sendPacket((byte) 0x1, payload);
     }
 
-    void closeConnection() {
+    void close() {
         sendPacket((byte) 0x8, "");
         connected = false;
     }

@@ -2,6 +2,7 @@ package net.stzups.tanks;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -32,14 +33,19 @@ public class Server implements Runnable {
         // Main connections loop
         while (!stopped) {
             try {
-                new Client(server.accept(), UUID.randomUUID());
-                Logger.log("new client");
+                Socket socket = server.accept();
+                UUID uuid = UUID.randomUUID();
+                clients.put(uuid, new Client(socket, uuid));
+                Logger.log("New client connected from IP address " + socket.getInetAddress());
                 //Client client = new Client(server.accept(), UUID.randomUUID());
                 //clients.put(client.getUUID(), client);
                 //System.out.println("New client with id "+client.getUUID());
             } catch (IOException e) {
                 if (stopped) {
                     Logger.log("Server stopped on exception");
+                    for (Client client : clients.values()) {
+                        client.close();
+                    }
                     return;
                 }
                 throw new RuntimeException("Error accepting client connection", e);
