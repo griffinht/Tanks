@@ -10,21 +10,17 @@ import java.util.Map;
 import java.util.UUID;
 
 public class Server implements Runnable {
-    protected final int PORT;
+    private final int PORT;
 
-    protected ServerSocket serverSocket;
+    private ServerSocket serverSocket;
     private Map<UUID, Client> clients = new HashMap<>();
-    protected boolean stopped = false;
-    protected Thread thread;
+    private boolean stopped = false;
 
     Server(int port) {
         this.PORT = port;
     }
 
     public void run() {
-        synchronized (this) {
-            this.thread = Thread.currentThread();
-        }
         // Open new socket
         try {
             serverSocket = new ServerSocket(PORT);
