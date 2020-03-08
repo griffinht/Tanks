@@ -21,7 +21,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class Client implements Runnable {
-    Server server;
+    private Server server;
 
     private UUID uuid;
     private Socket socket;
@@ -111,7 +111,7 @@ class Client implements Runnable {
                                 } else {
                                     byte[] packet = new byte[inputStream.available()];
                                     inputStream.read(packet);
-                                    throw new RuntimeException("Received unmasked data from client " + getUUID() + ", full packet: " + readBytesToString(head) + " " + readBytesToString(packet));
+                                    throw new RuntimeException("Received unmasked data from client " + uuid + ", full packet: " + readBytesToString(head) + " " + readBytesToString(packet));
                                 }
 
                                 switch (head[0] & 0x0F) { // Opcode bits
@@ -250,10 +250,9 @@ class Client implements Runnable {
     }
 
     void close() {
-        if (connected) { // Only disconnect if not already connected
-            sendPacket((byte) 0x8, "");
-            connected = false;
-            Logger.log("Closed connection for client from " + socket.getInetAddress());
-        }
+        sendPacket((byte) 0x8, "");
+        connected = false;
+        Logger.log("Closed connection for client from " + socket.getInetAddress());
+        server.getClientsMap().remove(uuid);
     }
 }

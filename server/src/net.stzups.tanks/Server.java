@@ -3,6 +3,7 @@ package net.stzups.tanks;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -34,10 +35,6 @@ public class Server implements Runnable {
                 Socket socket = serverSocket.accept();
                 UUID uuid = UUID.randomUUID();
                 clients.put(uuid, new Client(this, socket, uuid));
-
-                //Client client = new Client(server.accept(), UUID.randomUUID());
-                //clients.put(client.getUUID(), client);
-                //System.out.println("New client with id "+client.getUUID());
             } catch (IOException e) {
                 if (stopped) {
                     Logger.log("Server stopped on exception");
@@ -61,13 +58,21 @@ public class Server implements Runnable {
         }
     }
 
+    Client getClient(UUID uuid) { //throw client not registered?
+        return clients.get(uuid);
+    }
+
+    Collection<Client> getClients() {
+        return clients.values();
+    }
+
+    Map<UUID, Client> getClientsMap() {
+        return clients;
+    }
+
     void onTextPacket(Client client, String payload) {
         Logger.log(client.getSocket().getInetAddress() + ": " + payload);
         sendTextExcept(Collections.singletonList(client), payload);
-    }
-
-    Client getClient(UUID uuid) { //throw client not registered?
-        return clients.get(uuid);
     }
 
     void sendText(List<Client> recipients, String payload) {
