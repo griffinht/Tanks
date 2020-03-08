@@ -81,7 +81,7 @@ class Client implements Runnable {
                                 + "\r\n\r\n").getBytes(StandardCharsets.UTF_8);
                         outputStream.write(response, 0, response.length);
 
-                        Logger.log("Client connected from IP address " + socket.getInetAddress());
+                        Logger.log("Client connected from IP address " + socket.getInetAddress().getHostAddress());
                         connection:
                         while(connected) {
                             if (inputStream.available() > 0) {
@@ -125,7 +125,7 @@ class Client implements Runnable {
                                         Logger.log("binary frame");
                                         break;
                                     case 0x8: // connection close
-                                        Logger.log("Client disconnected for from address " + socket.getInetAddress());
+                                        Logger.log("Client disconnected for from address " + socket.getInetAddress().getHostAddress());
                                         close();
                                         break connection;
                                     case 0x9: // ping, shouldn't ever receive one
@@ -252,7 +252,7 @@ class Client implements Runnable {
     void close() {
         sendPacket((byte) 0x8, "");
         connected = false;
-        Logger.log("Closed connection for client from " + socket.getInetAddress());
+        Logger.log("Closed connection for client from " + socket.getInetAddress().getHostAddress());
         server.getClientsMap().remove(uuid);
     }
 }
