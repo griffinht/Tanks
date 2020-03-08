@@ -12,6 +12,6 @@ public class Tanks {
         new Thread(server).start();
         new Thread(ConsoleManager::manage).start();
 
-        Logger.log("Started server on port " + PORT + " in " + (float)(System.nanoTime()/start)/1000000+"ms");
+        Logger.log("Started server on port " + PORT + " in " + (System.nanoTime()-start)/1000000+"ms");
     }
 }
