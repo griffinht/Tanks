@@ -162,7 +162,7 @@ class Client implements Runnable {
                         }
 
 
-                        File file = new File("client/" + foundPath);
+                        File file = new File("resources/client/" + foundPath);
 
                         if(file.exists()) {
                             outputStream.write(("HTTP/1.1 200 OK\r\n"

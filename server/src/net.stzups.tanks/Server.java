@@ -3,6 +3,7 @@ package net.stzups.tanks;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -38,7 +39,8 @@ public class Server implements Runnable {
             } catch (IOException e) {
                 if (stopped) {
                     Logger.log("Server stopped on exception");
-                    for (Client client : clients.values()) {
+                    List<Client> clientList = new ArrayList<>(clients.values()); // Avoid concurrent modification
+                    for (Client client : clientList) {
                         client.close();
                     }
                     return;
