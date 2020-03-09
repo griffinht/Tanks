@@ -21,7 +21,7 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class Client implements Runnable {
+class Connection implements Runnable {
 
     private Server server;
     private UUID uuid;
@@ -31,7 +31,7 @@ class Client implements Runnable {
     private Queue<byte[]> queue = Collections.asLifoQueue(new ArrayDeque<>());
     private boolean connected = true;
 
-    Client(Server server, Socket socket) {
+    Connection(Server server, Socket socket) {
         this.server = server;
         this.socket = socket;
         this.uuid = UUID.randomUUID();
@@ -185,7 +185,7 @@ class Client implements Runnable {
                         }
                     }
                 } else {
-                    Logger.log("No matches for " + get.pattern() + " in " + data, LoggerType.WARNING);
+                    outputStream.write(("HTTP/1.1 400 Bad Request").getBytes(StandardCharsets.UTF_8));
                 }
             }
         } catch (IOException | NoSuchAlgorithmException e) {
@@ -264,8 +264,6 @@ class Client implements Runnable {
         sendPacket((byte) 0x8, "");
         connected = false;
         Logger.log("Closed connection for client from " + socket.getInetAddress().getHostAddress());
-        System.out.println("old size "+server.getClientsMap().size());
         server.getClientsMap().remove(socket.getInetAddress());
-        System.out.println("new size "+server.getClientsMap().size());
     }
 }

@@ -15,7 +15,7 @@ public class Server implements Runnable {
     private final int PORT;
 
     private ServerSocket serverSocket;
-    private Map<InetAddress, Client> clients = new HashMap<>();
+    private Map<InetAddress, Connection> clients = new HashMap<>();
     private boolean stopped = false;
 
     Server(int port) {
@@ -33,13 +33,13 @@ public class Server implements Runnable {
         // Main connections loop
         while (!stopped) {
             try {
-                new Client(this, serverSocket.accept());
+                new Connection(this, serverSocket.accept());
                 System.out.println("found new client, adding");
             } catch (IOException e) {
                 if (stopped) {
                     Logger.log("Server stopped on exception");
-                    for (Client client : new ArrayList<>(clients.values())) {
-                        client.close();
+                    for (Connection connection : new ArrayList<>(clients.values())) {
+                        connection.close();
                     }
                     return;
                 }
@@ -58,44 +58,44 @@ public class Server implements Runnable {
         }
     }
 
-    Client getClient(InetAddress inetAddress) { //throw client not registered?
+    Connection getClient(InetAddress inetAddress) { //throw client not registered?
         return clients.get(inetAddress);
     }
 
-    Collection<Client> getClients() {
+    Collection<Connection> getClients() {
         return clients.values();
     }
 
-    Map<InetAddress, Client> getClientsMap() {
+    Map<InetAddress, Connection> getClientsMap() {
         return clients;
     }
 
-    void onTextPacket(Client client, String payload) {
-        Logger.log(client.getSocket().getInetAddress() + ": " + payload);
-        sendTextExcept(Collections.singletonList(client), payload);
+    void onTextPacket(Connection connection, String payload) {
+        Logger.log(connection.getSocket().getInetAddress() + ": " + payload);
+        sendTextExcept(Collections.singletonList(connection), payload);
     }
 
-    void sendText(List<Client> recipients, String payload) {
+    void sendText(List<Connection> recipients, String payload) {
         if (recipients == null) {
-            for (Client client : clients.values()) {
-                client.sendText(payload);
+            for (Connection connection : clients.values()) {
+                connection.sendText(payload);
             }
         } else {
-            for (Client client : recipients) {
-                client.sendText(payload);
+            for (Connection connection : recipients) {
+                connection.sendText(payload);
             }
         }
     }
 
-    void sendTextExcept(List<Client> recipients, String payload) {
+    void sendTextExcept(List<Connection> recipients, String payload) {
         if (recipients == null) {
-            for (Client client : clients.values()) {
-                client.sendText(payload);
+            for (Connection connection : clients.values()) {
+                connection.sendText(payload);
             }
         } else {
-            for (Client client : clients.values()) {
-                if (!recipients.contains(client)) {
-                    client.sendText(payload);
+            for (Connection connection : clients.values()) {
+                if (!recipients.contains(connection)) {
+                    connection.sendText(payload);
                 }
             }
         }

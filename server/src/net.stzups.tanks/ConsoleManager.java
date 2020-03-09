@@ -19,18 +19,18 @@ class ConsoleManager {
                         Logger.log("Server stopped");
                         return;
                     case "list":
-                        Collection<Client> clients = Tanks.server.getClients();
-                        Logger.log("Listing " + clients.size() + " clients");
-                        for (Client client : clients) {
-                            Logger.log(client.getUUID() + " : " + client.getSocket().getInetAddress().getHostAddress());
+                        Collection<Connection> connections = Tanks.server.getClients();
+                        Logger.log("Listing " + connections.size() + " clients");
+                        for (Connection connection : connections) {
+                            Logger.log(connection.getUUID() + " : " + connection.getSocket().getInetAddress().getHostAddress());
                         }
                         break;
                     case "kick":
                         if (input.length > 1) {
-                            for (Client client : Tanks.server.getClients()) {
-                                if (client.getSocket().getInetAddress().getHostAddress().equals(input[1]) || client.getUUID().toString().equals(input[1])) {
-                                    client.close();
-                                    Logger.log("Kicked " + client.getUUID());
+                            for (Connection connection : Tanks.server.getClients()) {
+                                if (connection.getSocket().getInetAddress().getHostAddress().equals(input[1]) || connection.getUUID().toString().equals(input[1])) {
+                                    connection.close();
+                                    Logger.log("Kicked " + connection.getUUID());
                                     break;
                                 }
                             }
