@@ -22,8 +22,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class Client implements Runnable {
-    private Server server;
 
+    private Server server;
     private UUID uuid;
     private Socket socket;
     private long lastPing = System.currentTimeMillis();
