@@ -1,7 +1,7 @@
 package net.stzups.tanks;
 
 public class Tanks {
-    private static final int PORT = 2000;
+    private static final int PORT = 80;
     static Server server = new Server(PORT);
 
     public static void main(String[] args) {

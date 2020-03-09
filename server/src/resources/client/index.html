@@ -10,7 +10,7 @@ var webSocket = null;
 
 function connect() {
   console.log("Connecting to server...");
-  webSocket = new WebSocket("ws://localhost:2000");
+  webSocket = new WebSocket("ws://localhost:80");
   webSocket.onopen = function(e) {
     console.log("Connected to server");
   }
