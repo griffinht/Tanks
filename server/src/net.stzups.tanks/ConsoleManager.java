@@ -40,7 +40,6 @@ class ConsoleManager {
                                     break;
                                 }
                             }
-
                             logger.info("Could not find client matching " + input[1]);
                         } else {
                             logger.info("Needs one argument");

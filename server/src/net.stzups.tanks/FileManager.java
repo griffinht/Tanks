@@ -37,11 +37,11 @@ class FileManager {
                                     }
                                 }
                             } else {
-                                logger.info("Couldn't create file at " + file.getAbsolutePath());
+                                logger.warning("Couldn't create file at " + file.getAbsolutePath());
                             }
                         } else {
                             if (!file.mkdir()) {
-                                logger.info("Couldn't create folder at " + file.getAbsolutePath());
+                                logger.warning("Couldn't create folder at " + file.getAbsolutePath());
                             }
                         }
                     } else if (file.isFile()) {

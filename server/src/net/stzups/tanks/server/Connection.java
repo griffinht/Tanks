@@ -40,12 +40,12 @@ public class Connection implements Runnable {
         this.server = server;
         this.socket = socket;
         this.uuid = UUID.randomUUID();
-        System.out.println("putting: "+server.getClientsMap().size());
+
         InetAddress inetAddress = this.socket.getInetAddress();
         if (server.getClientsMap().containsKey(inetAddress))
             server.getClientsMap().get(inetAddress).close();
         server.getClientsMap().put(this.socket.getInetAddress(), this);
-        System.out.println("put: "+server.getClientsMap().size());
+
         new Thread(this).start();
     }
 
@@ -137,8 +137,8 @@ public class Connection implements Runnable {
                                         logger.info("binary frame");
                                         break;
                                     case 0x8: // connection close
-                                        logger.info("Client disconnected for from address " + socket.getInetAddress().getHostAddress());
-                                        close();
+                                        logger.info("Client disconnected from IP address " + socket.getInetAddress().getHostAddress());
+                                        close(true);
                                         break connection;
                                     case 0x9: // ping, shouldn't ever receive one
                                         logger.info("ping");
@@ -195,7 +195,9 @@ public class Connection implements Runnable {
         } catch (IOException | NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
-        //todo close connection here
+        if (connected) {
+            close(true);
+        }
     }
 
     static private byte[] getFramedPacket(byte opcode, String payload) {
@@ -266,9 +268,14 @@ public class Connection implements Runnable {
     }
 
     public void close() {
+        close(false);
+    }
+
+    public void close(boolean quiet) {
         sendPacket((byte) 0x8, "");
         connected = false;
-        logger.info("Closed connection for client from " + socket.getInetAddress().getHostAddress());
+        if (!quiet)
+            logger.info("Closed connection for client from " + socket.getInetAddress().getHostAddress());
         server.getClientsMap().remove(socket.getInetAddress());
     }
 }

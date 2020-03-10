@@ -9,7 +9,7 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
-public class LoggerHandler {
+class LoggerHandler {
 
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Tanks.class.getName());
 
@@ -21,11 +21,11 @@ public class LoggerHandler {
         consoleHandler.setFormatter(new Formatter() {
             @Override
             public String format(LogRecord record) {
+                String level = (record.getLevel() == Level.INFO) ? "" : "[" + record.getLevel() + "]";
                 return "["
                         + new SimpleDateFormat("HH:mm:ss").format(new Timestamp(System.currentTimeMillis()))
-                        + "] ["
-                        + record.getLevel()
                         + "] "
+                        + level
                         + record.getMessage()
                         + System.lineSeparator();
             }

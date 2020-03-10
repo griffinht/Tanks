@@ -38,10 +38,9 @@ public class Server implements Runnable {
         while (!stopped) {
             try {
                 new Connection(this, serverSocket.accept());
-                System.out.println("found new client, adding");
             } catch (IOException e) {
                 if (stopped) {
-                    logger.info("Server stopped on exception");
+                    logger.info("Closing " + clients.size() + " connections...");
                     for (Connection connection : new ArrayList<>(clients.values())) {
                         connection.close();
                     }
