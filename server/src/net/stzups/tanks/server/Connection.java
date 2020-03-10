@@ -1,4 +1,6 @@
-package net.stzups.tanks;
+package net.stzups.tanks.server;
+
+import net.stzups.tanks.Tanks;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,10 +20,13 @@ import java.util.Date;
 import java.util.Queue;
 import java.util.Scanner;
 import java.util.UUID;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class Connection implements Runnable {
+public class Connection implements Runnable {
+
+    private static final Logger logger = Logger.getLogger(Tanks.class.getName());
 
     private Server server;
     private UUID uuid;
@@ -44,11 +49,11 @@ class Connection implements Runnable {
         new Thread(this).start();
     }
 
-    UUID getUUID() {
+    public UUID getUUID() {
         return uuid;
     }
 
-    Socket getSocket() {
+    public Socket getSocket() {
         return socket;
     }
 
@@ -88,14 +93,14 @@ class Connection implements Runnable {
                                 + "\r\n\r\n").getBytes(StandardCharsets.UTF_8);
                         outputStream.write(response, 0, response.length);
 
-                        Logger.log("Client connected from IP address " + socket.getInetAddress().getHostAddress());
+                        logger.info("Client connected from IP address " + socket.getInetAddress().getHostAddress());
                         connection:
                         while(connected) {
                             if (inputStream.available() > 0) {
                                 byte[] head = new byte[2];
                                 inputStream.read(head, 0, 2);
                                 if (((head[0] >> 7) & 1 ) != 1) { // FIN bit todo handle non FIN
-                                    Logger.log("not FIN");
+                                    logger.info("not FIN");
                                 }
                                 byte[] decoded;
                                 if (((head[1] >> 7) & 1) == 1) { // Mask bit
@@ -123,20 +128,20 @@ class Connection implements Runnable {
 
                                 switch (head[0] & 0x0F) { // Opcode bits
                                     case 0x0: // continuation frame
-                                        Logger.log("continuation frame");
+                                        logger.info("continuation frame");
                                         break;
                                     case 0x1: // text frame
                                         server.onTextPacket(this, new String(decoded));
                                         break;
                                     case 0x2: // binary frame
-                                        Logger.log("binary frame");
+                                        logger.info("binary frame");
                                         break;
                                     case 0x8: // connection close
-                                        Logger.log("Client disconnected for from address " + socket.getInetAddress().getHostAddress());
+                                        logger.info("Client disconnected for from address " + socket.getInetAddress().getHostAddress());
                                         close();
                                         break connection;
                                     case 0x9: // ping, shouldn't ever receive one
-                                        Logger.log("ping");
+                                        logger.info("ping");
                                         break;
                                     case 0xA: // pong from client
                                         long time = System.currentTimeMillis();
@@ -260,10 +265,10 @@ class Connection implements Runnable {
         return connected;
     }
 
-    void close() {
+    public void close() {
         sendPacket((byte) 0x8, "");
         connected = false;
-        Logger.log("Closed connection for client from " + socket.getInetAddress().getHostAddress());
+        logger.info("Closed connection for client from " + socket.getInetAddress().getHostAddress());
         server.getClientsMap().remove(socket.getInetAddress());
     }
 }

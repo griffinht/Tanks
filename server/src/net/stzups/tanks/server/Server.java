@@ -1,4 +1,6 @@
-package net.stzups.tanks;
+package net.stzups.tanks.server;
+
+import net.stzups.tanks.Tanks;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -9,16 +11,18 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 public class Server implements Runnable {
 
     private final int PORT;
+    private static final Logger logger = java.util.logging.Logger.getLogger(Tanks.class.getName());
 
     private ServerSocket serverSocket;
     private Map<InetAddress, Connection> clients = new HashMap<>();
     private boolean stopped = false;
 
-    Server(int port) {
+    public Server(int port) {
         this.PORT = port;
     }
 
@@ -37,7 +41,7 @@ public class Server implements Runnable {
                 System.out.println("found new client, adding");
             } catch (IOException e) {
                 if (stopped) {
-                    Logger.log("Server stopped on exception");
+                    logger.info("Server stopped on exception");
                     for (Connection connection : new ArrayList<>(clients.values())) {
                         connection.close();
                     }
@@ -46,10 +50,10 @@ public class Server implements Runnable {
                 throw new RuntimeException("Error accepting client connection", e);
             }
         }
-        Logger.log("Server stopped");
+        logger.info("Server stopped");
     }
 
-    synchronized void stop() {
+    public synchronized void stop() {
         stopped = true;
         try {
             this.serverSocket.close();
@@ -62,7 +66,7 @@ public class Server implements Runnable {
         return clients.get(inetAddress);
     }
 
-    Collection<Connection> getClients() {
+    public Collection<Connection> getClients() {
         return clients.values();
     }
 
@@ -71,7 +75,7 @@ public class Server implements Runnable {
     }
 
     void onTextPacket(Connection connection, String payload) {
-        Logger.log(connection.getSocket().getInetAddress() + ": " + payload);
+        logger.info(connection.getSocket().getInetAddress() + ": " + payload);
         sendTextExcept(Collections.singletonList(connection), payload);
     }
 

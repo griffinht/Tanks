@@ -10,8 +10,12 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.logging.Logger;
 
 class FileManager {
+
+    private static final Logger logger = java.util.logging.Logger.getLogger(Tanks.class.getName());
+
     static void load() {
         try (JarFile jarFile = new JarFile(new File(Tanks.class.getProtectionDomain().getCodeSource().getLocation().toURI()))) {
             String root = Tanks.class.getProtectionDomain().getCodeSource().getLocation().toURI().toString();
@@ -33,11 +37,11 @@ class FileManager {
                                     }
                                 }
                             } else {
-                                Logger.log("Couldn't create file at " + file.getAbsolutePath());
+                                logger.info("Couldn't create file at " + file.getAbsolutePath());
                             }
                         } else {
                             if (!file.mkdir()) {
-                                Logger.log("Couldn't create folder at " + file.getAbsolutePath());
+                                logger.info("Couldn't create folder at " + file.getAbsolutePath());
                             }
                         }
                     } else if (file.isFile()) {

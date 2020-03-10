@@ -1,11 +1,17 @@
 package net.stzups.tanks;
 
+import net.stzups.tanks.server.Connection;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Collection;
+import java.util.logging.Logger;
 
 class ConsoleManager {
+
+    private static final Logger logger = java.util.logging.Logger.getLogger(Tanks.class.getName());
+
     static void manage() {
         while (true) {
             try {
@@ -14,15 +20,15 @@ class ConsoleManager {
                 String[] input = bufferedReader.readLine().split("\\s");
                 switch (input[0].toLowerCase()) {
                     case "stop":
-                        Logger.log("Stopping server...");
+                        logger.info("Stopping server...");
                         Tanks.server.stop();
-                        Logger.log("Server stopped");
+                        logger.info("Server stopped");
                         return;
                     case "list":
                         Collection<Connection> connections = Tanks.server.getClients();
-                        Logger.log("Listing " + connections.size() + " clients");
+                        logger.info("Listing " + connections.size() + " clients");
                         for (Connection connection : connections) {
-                            Logger.log(connection.getUUID() + " : " + connection.getSocket().getInetAddress().getHostAddress());
+                            logger.info(connection.getUUID() + " : " + connection.getSocket().getInetAddress().getHostAddress());
                         }
                         break;
                     case "kick":
@@ -30,18 +36,18 @@ class ConsoleManager {
                             for (Connection connection : Tanks.server.getClients()) {
                                 if (connection.getSocket().getInetAddress().getHostAddress().equals(input[1]) || connection.getUUID().toString().equals(input[1])) {
                                     connection.close();
-                                    Logger.log("Kicked " + connection.getUUID());
+                                    logger.info("Kicked " + connection.getUUID());
                                     break;
                                 }
                             }
 
-                            Logger.log("Could not find client matching " + input[1]);
+                            logger.info("Could not find client matching " + input[1]);
                         } else {
-                            Logger.log("Needs one argument");
+                            logger.info("Needs one argument");
                         }
                         break;
                     default:
-                        Logger.log("Unknown command \"" + input[0] + "\"");
+                        logger.info("Unknown command \"" + input[0] + "\"");
                 }
             } catch (IOException e) {
                 e.printStackTrace();
