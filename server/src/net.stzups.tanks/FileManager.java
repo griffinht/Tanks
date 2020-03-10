@@ -1,10 +1,12 @@
 package net.stzups.tanks;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -36,6 +38,20 @@ class FileManager {
                         } else {
                             if (!file.mkdir()) {
                                 Logger.log("Couldn't create folder at " + file.getAbsolutePath());
+                            }
+                        }
+                    } else if (file.isFile()) {
+                        try (InputStream existingInputStream = new FileInputStream(file);
+                        InputStream originalInputStream = jarFile.getInputStream(entry)) {
+                            byte[] existingFile = new byte[existingInputStream.available()];
+                            byte[] originalFile = new byte[originalInputStream.available()];
+                            existingInputStream.read(existingFile);
+                            originalInputStream.read(originalFile);
+
+                            if (!(existingFile.length == originalFile.length || Arrays.equals(existingFile, originalFile))) {
+                                try (FileOutputStream fileOutputStream = new FileOutputStream(file, false)) {
+                                    fileOutputStream.write(originalFile);
+                                }
                             }
                         }
                     }

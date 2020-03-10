@@ -179,7 +179,6 @@ class Connection implements Runnable {
                                     + "Content-length: " + file.length() + "\r\n"
                                     + "\r\n").getBytes(StandardCharsets.UTF_8));
                             Files.copy(file.toPath(), outputStream);
-                            //outputStream.flush(); todo necesary?
                         } else {
                             outputStream.write(("HTTP/1.1 404 Not Found").getBytes(StandardCharsets.UTF_8));
                         }
@@ -191,6 +190,7 @@ class Connection implements Runnable {
         } catch (IOException | NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
+        //todo close connection here
     }
 
     static private byte[] getFramedPacket(byte opcode, String payload) {
