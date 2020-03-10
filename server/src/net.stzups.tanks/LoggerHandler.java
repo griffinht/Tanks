@@ -15,9 +15,11 @@ class LoggerHandler {
 
     static Logger setLogger() {
         Handler consoleHandler = new ConsoleHandler();
+
         logger.setUseParentHandlers(false);
         logger.addHandler(consoleHandler);
         consoleHandler.setLevel(Level.ALL);
+
         consoleHandler.setFormatter(new Formatter() {
             @Override
             public String format(LogRecord record) {
@@ -30,6 +32,7 @@ class LoggerHandler {
                         + System.lineSeparator();
             }
         });
+
         return logger;
     }
 }
