@@ -1,5 +1,6 @@
 package net.stzups.tanks.server;
 
+import net.stzups.tanks.FileManager;
 import net.stzups.tanks.Tanks;
 
 import java.io.File;
@@ -28,6 +29,8 @@ public class Connection implements Runnable {
 
     private static final Logger logger = Logger.getLogger(Tanks.class.getName());
 
+    private FileManager fileManager;
+
     private Server server;
     private UUID uuid;
     private Socket socket;
@@ -36,7 +39,9 @@ public class Connection implements Runnable {
     private Queue<byte[]> queue = Collections.asLifoQueue(new ArrayDeque<>());
     private boolean connected = true;
 
-    Connection(Server server, Socket socket) {
+    Connection(Server server, Socket socket, FileManager fileManager) {
+        this.fileManager = fileManager;
+
         this.server = server;
         this.socket = socket;
         this.uuid = UUID.randomUUID();
@@ -173,20 +178,23 @@ public class Connection implements Runnable {
                             foundPath = "index.html";
                         }
 
+                        long start = System.nanoTime();
+                        byte[] fileContents = fileManager.getFileContents("resources/client/" + foundPath);
 
-                        File file = new File("resources/client/" + foundPath);
-
-                        if(file.exists()) {
+                        if(fileContents.length > 0) {
                             outputStream.write(("HTTP/1.1 200 OK\r\n"
                                     + "Server: Tanks\r\n"
                                     + "Date: " + new Date() + "\r\n"
-                                    + "Content-type: " + Files.probeContentType(Paths.get(file.getCanonicalPath())) + "\r\n"
-                                    + "Content-length: " + file.length() + "\r\n"
+                                    + "Content-type: "
+                                    + Files.probeContentType(Paths.get(fileManager.getFile("resources/client/" + foundPath).getCanonicalPath()))
+                                    + "\r\n"
+                                    + "Content-length: " + fileContents.length + "\r\n"
                                     + "\r\n").getBytes(StandardCharsets.UTF_8));
-                            Files.copy(file.toPath(), outputStream);
+                            outputStream.write(fileContents);
                         } else {
                             outputStream.write(("HTTP/1.1 404 Not Found").getBytes(StandardCharsets.UTF_8));
                         }
+                        System.out.println("Served in " + (float)(System.nanoTime()-start)/1000000 + "ms");
                     }
                 } else {
                     outputStream.write(("HTTP/1.1 400 Bad Request").getBytes(StandardCharsets.UTF_8));
@@ -195,6 +203,7 @@ public class Connection implements Runnable {
         } catch (IOException | NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
+
         if (connected) {
             close(true);
         }

@@ -8,11 +8,16 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.logging.Logger;
 
-class FileManager {
+public class FileManager {
+
+    Map<String, File> cachedFiles = new HashMap<>();
+    Map<String, byte[]> cachedFilesContents = new HashMap<>();
 
     private static final Logger logger = java.util.logging.Logger.getLogger(Tanks.class.getName());
 
@@ -39,10 +44,8 @@ class FileManager {
                             } else {
                                 logger.warning("Couldn't create file at " + file.getAbsolutePath());
                             }
-                        } else {
-                            if (!file.mkdir()) {
-                                logger.warning("Couldn't create folder at " + file.getAbsolutePath());
-                            }
+                        } else if (!file.mkdir()) {
+                            logger.warning("Couldn't create folder at " + file.getAbsolutePath());
                         }
                     } else if (file.isFile()) {
                         try (InputStream existingInputStream = new FileInputStream(file);
@@ -64,5 +67,35 @@ class FileManager {
         } catch (URISyntaxException | IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public File getFile(String request) {
+        if (cachedFiles.containsKey(request)) {
+            return cachedFiles.get(request);
+        } else {
+            return new File(request);
+        }
+    }
+
+    public byte[] getFileContents(String request) {
+        if (cachedFilesContents.containsKey(request)) {
+            return cachedFilesContents.get(request);
+        } else {
+            File file = getFile(request);
+
+            if (file.exists()) {
+                try (InputStream inputStream = new FileInputStream(file)) {
+                    byte[] read = new byte[inputStream.available()];
+                    inputStream.read(read);
+                    cachedFilesContents.put(request, read);
+
+                    return read;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return new byte[0];
     }
 }

@@ -1,5 +1,6 @@
 package net.stzups.tanks.server;
 
+import net.stzups.tanks.FileManager;
 import net.stzups.tanks.Tanks;
 
 import java.io.IOException;
@@ -18,12 +19,15 @@ public class Server implements Runnable {
     private final int PORT;
     private static final Logger logger = java.util.logging.Logger.getLogger(Tanks.class.getName());
 
+    private FileManager fileManager;
+
     private ServerSocket serverSocket;
     private Map<InetAddress, Connection> clients = new HashMap<>();
     private boolean stopped = false;
 
     public Server(int port) {
         this.PORT = port;
+        fileManager = new FileManager();
     }
 
     public void run() {
@@ -37,7 +41,7 @@ public class Server implements Runnable {
         // Main connections loop
         while (!stopped) {
             try {
-                new Connection(this, serverSocket.accept());
+                new Connection(this, serverSocket.accept(), fileManager);
             } catch (IOException e) {
                 if (stopped) {
                     logger.info("Closing " + clients.size() + " connections...");
@@ -74,7 +78,7 @@ public class Server implements Runnable {
     }
 
     void onTextPacket(Connection connection, String payload) {
-        logger.info(connection.getSocket().getInetAddress() + ": " + payload);
+        logger.info(connection.getSocket().getInetAddress().getHostAddress() + ": " + payload);
         sendTextExcept(Collections.singletonList(connection), payload);
     }
 
