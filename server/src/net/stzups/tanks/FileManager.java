@@ -1,5 +1,6 @@
 package net.stzups.tanks;
 
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -16,8 +17,8 @@ import java.util.logging.Logger;
 
 public class FileManager {
 
-    Map<String, File> cachedFiles = new HashMap<>();
-    Map<String, byte[]> cachedFilesContents = new HashMap<>();
+    private Map<String, File> cachedFiles = new HashMap<>();
+    private Map<String, byte[]> cachedFilesContents = new HashMap<>();
 
     private static final Logger logger = java.util.logging.Logger.getLogger(Tanks.class.getName());
 
@@ -52,8 +53,10 @@ public class FileManager {
                         InputStream originalInputStream = jarFile.getInputStream(entry)) {
                             byte[] existingFile = new byte[existingInputStream.available()];
                             byte[] originalFile = new byte[originalInputStream.available()];
-                            existingInputStream.read(existingFile);
-                            originalInputStream.read(originalFile);
+                            if (existingInputStream.read(existingFile) == -1
+                            ||  originalInputStream.read(originalFile) == -1) {
+                                throw new EOFException("Couldn't read while checking " + file.getAbsolutePath() + " with existing resources in jar");
+                            }
 
                             if (!(existingFile.length == originalFile.length || Arrays.equals(existingFile, originalFile))) {
                                 try (FileOutputStream fileOutputStream = new FileOutputStream(file, false)) {
@@ -73,7 +76,9 @@ public class FileManager {
         if (cachedFiles.containsKey(request)) {
             return cachedFiles.get(request);
         } else {
-            return new File(request);
+            File file = new File(request);
+            cachedFiles.put(request, file);
+            return file;
         }
     }
 
@@ -86,10 +91,13 @@ public class FileManager {
             if (file.exists()) {
                 try (InputStream inputStream = new FileInputStream(file)) {
                     byte[] read = new byte[inputStream.available()];
-                    inputStream.read(read);
-                    cachedFilesContents.put(request, read);
+                    if (inputStream.read(read) == -1) {
+                        throw new EOFException();
+                    } else {
+                        cachedFilesContents.put(request, read);
 
-                    return read;
+                        return read;
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
