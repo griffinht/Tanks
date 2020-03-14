@@ -30,7 +30,7 @@ var domElements = {
 var ctx = domElements.canvas.getContext("2d");
 
 function initialize() {
-  
+  loader = new ConnectLoader();
 }
 
 window.onload = function(e) {
@@ -41,7 +41,7 @@ window.onload = function(e) {
 function connect() {
   console.log("Connecting to server...");
   new Promise((resolve, reject) => {
-    new ConnectLoader().update();
+    loader.update();
   });
   webSocket = new WebSocket("ws://localhost:80");
   
@@ -71,25 +71,31 @@ function send(payload) {
 class ConnectLoader { //todo unnecessary class?
   constructor() {
     this.dots = 0;
+    this.running = false;
   }
   
-  update() {
-    if (webSocket == null || webSocket.readyState != WebSocket.OPEN) {
-      if (this.dots > 3) {
-        this.dots = 0;
-      }
+  update(go) {
+    if (!this.running || go) {
+      this.running = true;
+      if (webSocket == null || webSocket.readyState != WebSocket.OPEN) {
+        if (this.dots > 3) {
+          this.dots = 0;
+        }
+        
+        let dot = "";
+        for (let i = 0; i < this.dots; i++) {
+          dot = dot + ".";
+        }
+        
+        domElements.status.innerHTML = "connecting" + dot;
       
-      let dot = "";
-      for (let i = 0; i < this.dots; i++) {
-        dot = dot + ".";
+        this.dots++;
+        setTimeout(() => {
+          this.update(true);
+        }, 250);
+      } else {
+        this.running = false;
       }
-      
-      domElements.status.innerHTML = "connecting" + dot;
-    
-      this.dots++;
-      setTimeout(() => {
-        this.update();
-      }, 250);
     }
   }
 }
