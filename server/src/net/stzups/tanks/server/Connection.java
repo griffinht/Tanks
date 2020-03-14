@@ -158,8 +158,7 @@ public class Connection implements Runnable {
                         } else {
                             foundPath = "index.html";
                         }
-
-                        long start = System.nanoTime();
+                        
                         byte[] fileContents = fileManager.getFileContents("resources/client/" + foundPath);
 
                         if(fileContents.length > 0) {
@@ -175,7 +174,6 @@ public class Connection implements Runnable {
                         } else {
                             outputStream.write(("HTTP/1.1 404 Not Found").getBytes(StandardCharsets.UTF_8));
                         }
-                        System.out.println("Served in " + (float)(System.nanoTime()-start)/1000000 + "ms");
                     }
                 } else {
                     outputStream.write(("HTTP/1.1 400 Bad Request").getBytes(StandardCharsets.UTF_8));
