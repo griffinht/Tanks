@@ -6,6 +6,10 @@
 * {
     padding: 0;
     margin: 0;
+    font-size: max(40pt, 2vw);
+    font-family: monospace;
+    
+    touch-action: manipulation;
 }
 
 body {
@@ -20,25 +24,56 @@ body {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    min-width: 20em;
-    max-width: 40em;
+    max-width: 36rem;
     margin: 0 auto;
     position: relative;
     background-color: green;
-   
+   padding: 0;
 }
 
 #loader * {
     height: 100%;
     width: 100%;
-    margin: 1em;
+    margin: 1rem;
+    margin-left: auto;
+    margin-right: auto;
     text-align: center;
     outline: 0;
+    display: block;
 }
 
 #loader input {
-    min-width: 15em;
-    max-width: 30em;
+    font-family: Courier;
+}
+
+#loader #nickname {
+    width: 50%;
+    max-width: 20rem;
+}
+
+#loader #playButton {
+    padding-left: .5em;
+    padding-right: .5em;
+    width: auto;
+}
+
+#loader span {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    height: 0;
+}
+
+#loader p:not(#status) {
+    font-weight: normal;
+    font-size: 20vw;
+    font-family: Courier;
+}
+
+#content {
+    overflow: hidden;
+    position: fixed;
 }
         </style>
     </head>
@@ -47,7 +82,8 @@ body {
             <p>Tanks!</p>
             <input id="nickname" type="text" placeholder="nickname" autocomplete="off">
             <p id="status">please enable javascript to connect</p>
-            <input id="playButton" type="button" value="Play">
+            <span></span>
+                <input id="playButton" type="button" value="Play">
         </div>
         <div id="content">
             <canvas id="canvas"></canvas>
@@ -114,6 +150,8 @@ class ConnectLoader { //todo unnecessary class?
         if (!this.running || go) {
             this.running = true;
             if (webSocket == null || webSocket.readyState != WebSocket.OPEN) {
+                this.status.style.display = "block";
+                domElements.playButton.style.display = "none";
                 if (this.dots > 3) {
                     this.dots = 0;
                 }
