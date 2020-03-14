@@ -158,7 +158,7 @@ public class Connection implements Runnable {
                         } else {
                             foundPath = "index.html";
                         }
-                        
+
                         byte[] fileContents = fileManager.getFileContents("resources/client/" + foundPath);
 
                         if(fileContents.length > 0) {
