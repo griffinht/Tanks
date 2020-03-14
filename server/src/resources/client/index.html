@@ -3,14 +3,51 @@
     <head>
         <title>Tanks!</title>
         <style>
+* {
+    padding: 0;
+    margin: 0;
+}
 
+body {
+    padding: 1em;
+}
+
+#playButton {
+    display: none;
+}
+
+#loader {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    min-width: 20em;
+    max-width: 40em;
+    margin: 0 auto;
+    position: relative;
+    background-color: green;
+   
+}
+
+#loader * {
+    height: 100%;
+    width: 100%;
+    margin: 1em;
+    text-align: center;
+    outline: 0;
+}
+
+#loader input {
+    min-width: 15em;
+    max-width: 30em;
+}
         </style>
     </head>
     <body>
         <div id="loader">
-            <h1>Tanks!</h1>
+            <p>Tanks!</p>
+            <input id="nickname" type="text" placeholder="nickname" autocomplete="off">
             <p id="status">please enable javascript to connect</p>
-            <input type="button" value="Play"></input>
+            <input id="playButton" type="button" value="Play">
         </div>
         <div id="content">
             <canvas id="canvas"></canvas>
@@ -20,9 +57,7 @@ var webSocket = null;
 var loader;
 
 var domElements = {
-    status:document.getElementById("status"),
-    play:document.getElementById("play"),
-    loader:document.getElementById("loader"),
+    playButton:document.getElementById("playButton"),
     content:document.getElementById("content"),
     canvas:document.getElementById("canvas")
 }
@@ -47,7 +82,7 @@ function connect() {
 
     webSocket.onopen = function(e) {
         console.log("Connected to server");
-        domElements.status.innerHTML = "connected";
+        loader.onOpen();
     }
 
     webSocket.onclose = function(e) {
@@ -72,6 +107,7 @@ class ConnectLoader { //todo unnecessary class?
     constructor() {
         this.dots = 0;
         this.running = false;
+        this.status = document.getElementById("status");
     }
   
     update(go) {
@@ -87,7 +123,7 @@ class ConnectLoader { //todo unnecessary class?
                     dot = dot + ".";
                 }
                 
-                domElements.status.innerHTML = "connecting" + dot;
+                this.status.innerHTML = "connecting" + dot;
               
                 this.dots++;
                 setTimeout(() => {
@@ -97,6 +133,12 @@ class ConnectLoader { //todo unnecessary class?
                 this.running = false;
             }
         }
+    }
+    
+    onOpen() {
+        this.status.innerHTML = "connected";
+        this.status.style.display = "none";
+        domElements.playButton.style.display = "block";
     }
 }
 
