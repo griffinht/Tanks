@@ -49,8 +49,7 @@ body {
 }
 
 #loader #nickname {
-    width: 50%;
-    max-width: 20rem;
+    width: 13rem;
 }
 
 #loader #playButton {
@@ -83,7 +82,7 @@ body {
     <body>
         <div id="loader">
             <p>Tanks!</p>
-            <input id="nickname" type="text" placeholder="nickname" autocomplete="off" spellcheck="off">
+            <input id="nickname" type="text" placeholder="nickname" autocomplete="off" spellcheck="false" maxlength="20">
             <p id="status">please enable javascript to connect</p>
             <span></span>
             <input id="playButton" type="button" value="Play">
