@@ -6,7 +6,7 @@
 * {
     padding: 0;
     margin: 0;
-    font-size: max(40pt, 2vw);
+    font-size: min(5vw, 5vh);
     font-family: monospace;
     
     touch-action: manipulation;
@@ -14,27 +14,29 @@
 
 body {
     padding: 1em;
-}
-
-#playButton {
-    display: none;
+    background-color: #2c8520;
 }
 
 #loader {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    max-width: 36rem;
     margin: 0 auto;
     position: relative;
-    background-color: green;
-   padding: 0;
+    background-color: #42cf30;
+    margin: 1em;
+    vertical-align: bottom;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    max-height: calc(100vh - 2em);
+    width: calc(100vw - 2em);
 }
 
 #loader * {
     height: 100%;
     width: 100%;
-    margin: 1rem;
+    margin: .5rem;
     margin-left: auto;
     margin-right: auto;
     text-align: center;
@@ -55,6 +57,7 @@ body {
     padding-left: .5em;
     padding-right: .5em;
     width: auto;
+    display: none;
 }
 
 #loader span {
@@ -67,7 +70,7 @@ body {
 
 #loader p:not(#status) {
     font-weight: normal;
-    font-size: 20vw;
+    font-size: 4rem;
     font-family: Courier;
 }
 
@@ -80,10 +83,10 @@ body {
     <body>
         <div id="loader">
             <p>Tanks!</p>
-            <input id="nickname" type="text" placeholder="nickname" autocomplete="off">
+            <input id="nickname" type="text" placeholder="nickname" autocomplete="off" spellcheck="off">
             <p id="status">please enable javascript to connect</p>
             <span></span>
-                <input id="playButton" type="button" value="Play">
+            <input id="playButton" type="button" value="Play">
         </div>
         <div id="content">
             <canvas id="canvas"></canvas>
@@ -92,13 +95,13 @@ body {
 var webSocket = null;
 var loader;
 
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
+
 var domElements = {
     playButton:document.getElementById("playButton"),
-    content:document.getElementById("content"),
-    canvas:document.getElementById("canvas")
+    content:document.getElementById("content")
 }
-
-var ctx = domElements.canvas.getContext("2d");
 
 function initialize() {
     loader = new ConnectLoader();
@@ -157,11 +160,13 @@ class ConnectLoader { //todo unnecessary class?
                 }
             
                 let dot = "";
+                let begin = "";
                 for (let i = 0; i < this.dots; i++) {
                     dot = dot + ".";
+                    begin = begin + "&nbsp";
                 }
                 
-                this.status.innerHTML = "connecting" + dot;
+                this.status.innerHTML = begin + "connecting" + dot;
               
                 this.dots++;
                 setTimeout(() => {
