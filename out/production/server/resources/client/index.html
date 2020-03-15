@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Tanks!</title>
+    <style>
+    
+    </style>
+  </head>
+  <body>
+    <div id="loader">
+      <h1>Tanks!</h1>
+      <p id="status">please enable javascript to connect</p>
+      <input type="button" value="Play"></input>
+    </div>
+    <div id="content">
+      <canvas id="canvas"></canvas>
+    </div>
+    <script>
+var webSocket = null;
+var loader;
+
+var domElements = {
+  status:document.getElementById("status"),
+  play:document.getElementById("play"),
+  loader:document.getElementById("loader"),
+  content:document.getElementById("content"),
+  canvas:document.getElementById("canvas")
+}
+
+var ctx = domElements.canvas.getContext("2d");
+
+function initialize() {
+  loader = new ConnectLoader();
+}
+
+window.onload = function(e) {
+
+  connect();
+}
+
+function connect() {
+  console.log("Connecting to server...");
+  new Promise((resolve, reject) => {
+    loader.update();
+  });
+  webSocket = new WebSocket("ws://localhost:80");
+  
+  webSocket.onopen = function(e) {
+    console.log("Connected to server");
+    domElements.status.innerHTML = "connected";
+  }
+  
+  webSocket.onclose = function(e) {
+    console.log("Connection closed, attempting to reconnect...");
+    reconnect = setTimeout(connect, 1000);
+  }
+  
+  webSocket.onmessage = function(e) {
+    console.log(event.data);
+  }
+}
+
+function send(payload) {
+  if(webSocket.readyState == WebSocket.OPEN) {
+    webSocket.send(payload);
+  } else {
+    return "Error: Not connected";
+  }
+}
+
+class ConnectLoader { //todo unnecessary class?
+  constructor() {
+    this.dots = 0;
+    this.running = false;
+  }
+  
+  update(go) {
+    if (!this.running || go) {
+      this.running = true;
+      if (webSocket == null || webSocket.readyState != WebSocket.OPEN) {
+        if (this.dots > 3) {
+          this.dots = 0;
+        }
+        
+        let dot = "";
+        for (let i = 0; i < this.dots; i++) {
+          dot = dot + ".";
+        }
+        
+        domElements.status.innerHTML = "connecting" + dot;
+      
+        this.dots++;
+        setTimeout(() => {
+          this.update(true);
+        }, 250);
+      } else {
+        this.running = false;
+      }
+    }
+  }
+}
+
+initialize();
+    </script>
+  </body>
+</html>

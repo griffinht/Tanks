@@ -76,6 +76,9 @@ body {
 #content {
     overflow: hidden;
     position: fixed;
+    top: 0;
+    left: 0;
+    display: none;
 }
         </style>
     </head>
@@ -88,39 +91,63 @@ body {
             <input id="playButton" type="button" value="Play">
         </div>
         <div id="content">
-            <canvas id="canvas"></canvas>
+            <canvas id="canvas" width="100" height="100"></canvas>
         </div>
         <script>
 var webSocket = null;
-var loader;
+var loaderManager;
+
+var drawing = false;
+
+var loader = document.getElementById("loader");
+var playButton = document.getElementById("playButton");
+var content = document.getElementById("content");
 
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 
-var domElements = {
-    playButton:document.getElementById("playButton"),
-    content:document.getElementById("content")
-}
-
 function initialize() {
-    loader = new ConnectLoader();
+    loaderManager = new ConnectLoader();
+    resize();
 }
 
 window.onload = function(e) {
+    playButton.addEventListener("click", () => {
+        
+        drawing = true;
+        new Promise((resolve, reject) => {
+            loader.style.display = "none";
+            content.style.display = "block";
+            setInterval(() => {
+                if (drawing) {
+                    ctx.fillStyle = "black";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = "white";
+                    ctx.font = "20pt Comic Sans MS";
+                    ctx.fillText("yo", 20, 20);
+                } else {
+                    loader.style.display = "block";
+                    content.style.display = "none";
 
+                    resolve();
+                }
+            }, 0);
+        });
+    });
+    window.addEventListener("resize", resize);
     connect();
 }
 
 function connect() {
     console.log("Connecting to server...");
     new Promise((resolve, reject) => {
-        loader.update();
+        loaderManager.update();
     });
     webSocket = new WebSocket("ws://localhost:80");
 
     webSocket.onopen = function(e) {
         console.log("Connected to server");
-        loader.onOpen();
+        loaderManager.onOpen();
     }
 
     webSocket.onclose = function(e) {
@@ -147,13 +174,13 @@ class ConnectLoader { //todo unnecessary class?
         this.running = false;
         this.status = document.getElementById("status");
     }
-  
+
     update(go) {
         if (!this.running || go) {
             this.running = true;
             if (webSocket == null || webSocket.readyState != WebSocket.OPEN) {
                 this.status.style.display = "block";
-                domElements.playButton.style.display = "none";
+                playButton.style.display = "none";
                 if (this.dots > 3) {
                     this.dots = 0;
                 }
@@ -180,8 +207,19 @@ class ConnectLoader { //todo unnecessary class?
     onOpen() {
         this.status.innerHTML = "connected";
         this.status.style.display = "none";
-        domElements.playButton.style.display = "block";
+        playButton.style.display = "block";
     }
+}
+
+/* 
+canvas 
+*/
+
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    ctx.imageSmoothingEnabled = "false";
 }
 
 initialize();

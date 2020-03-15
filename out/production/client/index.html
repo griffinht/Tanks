@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Tanks!</title>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+    <script>
+/*var socket = io("ws://localhost:2000");
+socket.send("hello");*/
+var webSocket = null;
+
+function connect() {
+  console.log("Connecting to server...");
+  webSocket = new WebSocket("ws://localhost:2000");
+  webSocket.onopen = function(e) {
+    console.log("Connected to server");
+  }
+  webSocket.onclose = function(e) {
+    console.log("Connection closed");
+  }
+  webSocket.onmessage = function(e) {
+    console.log(event.data);
+  }
+}
+function send(string) {
+  if(webSocket.readyState == WebSocket.OPEN) {
+    webSocket.send(string);
+  } else {
+    return "Error: Not connected";
+  }
+}
+connect();
+    </script>
+  </body>
+</html>
