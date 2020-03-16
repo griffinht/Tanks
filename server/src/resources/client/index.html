@@ -117,20 +117,39 @@ function initialize() {
     
     connect();
     setTimeout(() => {
-        tank = new Tank(200, 200, 1.4, ['s','d'], "your mom", 234234, [], 100, 20);
+        tank = new Tank(200, 200, 0, 0, [], "your mom", 234234, [], 100, 20);
     }, 5000);
 }
 
 window.onload = function(e) {
-    canvas.addEventListener("mousemove", function(e){
+    canvas.addEventListener("mousemove", function(e) {
         if (typeof tank !== "undefined") {
             let x = e.clientX - tank.x - (tank.width/2);
             let y = e.clientY - tank.y - (tank.height/2);
             if (x < 0) {
-                tank.rot = Math.atan(y/x) + Math.PI;
+                tank.turretRot = Math.atan(y/x) + Math.PI;
             } else {
-                tank.rot = Math.atan(y/x);
+                tank.turretRot = Math.atan(y/x);
             }
+        }
+    });
+    
+    document.addEventListener("keydown", function(e) {
+        if (typeof tank !== "undefined") {
+            if (!tank.keys.includes(e.key)) {
+                tank.keys.push(e.key);
+            }
+            console.log(tank.keys);
+        }
+    });
+    
+    document.addEventListener("keyup", function(e) {
+        if (typeof tank !== "undefined") {
+            let index = tank.keys[e.key];
+            if (index !== -1) {
+                tank.keys.splice(index, 1);
+            }
+            console.log(tank.keys);
         }
     });
     
@@ -148,35 +167,38 @@ window.onload = function(e) {
                     ctx.save();
                     ctx.fillStyle = "green";
                     tanks.forEach((tank) => {
+                        if (tank.keys.includes("w") && tank.keys.includes("d")) {
+                            tank.rot = 7*Math.PI/4;
+                        } else if (tank.keys.includes("d") && tank.keys.includes("s")) {
+                            tank.rot = Math.PI/4;
+                        } else if (tank.keys.includes("s") && tank.keys.includes("a")) {
+                            tank.rot = 3*Math.PI/4;
+                        } else if (tank.keys.includes("a") && tank.keys.includes("w")) {
+                            tank.rot = 5*Math.PI/4;
+                        } else if (tank.keys.includes("w")) {
+                            tank.rot = 3*Math.PI/2
+                        } else if (tank.keys.includes("d")) {
+                            tank.rot = 0;
+                        } else if (tank.keys.includes("s")) {
+                            tank.rot = Math.PI/2
+                        } else if (tank.keys.includes("a")) {
+                            tank.rot = Math.PI;
+                        }
+                        
                         ctx.save();
                         ctx.translate(tank.x + tank.width/2, tank.y + tank.height/2);
                         ctx.rotate(0);
                         ctx.fillText("drawing " + tank.name, 20, 0);
-                        let rot = 0;
-                        if (tank.keys.includes("w") && tank.keys.includes("d")) {
-                            rot = 7*Math.PI/4;
-                        } else if (tank.keys.includes("d") && tank.keys.includes("s")) {
-                            rot = Math.PI/4;
-                        } else if (tank.keys.includes("s") && tank.keys.includes("a")) {
-                            rot = 3*Math.PI/4;
-                        } else if (tank.keys.include("a") && tank.keys.includes("w")) {
-                            rot = 5*Math.PI/4;
-                        } else if (tank.keys.includes("w")) {
-                            rot = 3*Math.PI/2
-                        } else if (tank.keys.includes("d")) {
-                            rot = 0;
-                        } else if (tank.keys.includes("s")) {
-                            rot = Math.PI/2
-                        } else if (tank.keys.includes("a")) {
-                            rot = Math.PI;
-                        }
                         
                         ctx.save();
-                        ctx.rotate(rot);
-                        ctx.fillStyle = "#1a7022"
-                        ctx.fillRect(-tank.width/2/2, -tank.height/2, tank.width/2, tank.height);
-                        ctx.restore();
+                        
                         ctx.rotate(tank.rot);
+                        ctx.fillStyle = "#1a7022";
+                        ctx.fillRect(-tank.width/2/2, -tank.height/2, tank.width/2, tank.height);
+                        ctx.fillStyle = "purple";
+                        ctx.fillRect(10, 0, 5, 5);
+                        ctx.restore();
+                        ctx.rotate(tank.turretRot);
                         ctx.fillStyle = "#00ff18";
                         ctx.fillRect(0, -2/2, 20, 2);
                         ctx.restore();
@@ -294,10 +316,11 @@ function resize() {
 }
 
 class Tank {
-    constructor(x, y, rot, keys, name, id, bullets, width, height) {
+    constructor(x, y, rot, turretRot, keys, name, id, bullets, width, height) {
         this.x = x;
         this.y = y;
         this.rot = rot;
+        this.turretRot = turretRot;
         this.keys = keys;
         this.name = name;
         this.id = id;
