@@ -81,7 +81,7 @@ public class Connection implements Runnable {
         try (InputStream inputStream = socket.getInputStream();
              OutputStream outputStream = socket.getOutputStream()){
 
-            try (Scanner scanner = new Scanner(inputStream, "UTF-8")){
+            try (Scanner scanner = new Scanner(inputStream, "UTF-8")) {
                 String data = scanner.useDelimiter("\\r\\n\\r\\n").next();
                 Matcher get = Pattern.compile("^GET").matcher(data);
 
@@ -138,7 +138,7 @@ public class Connection implements Runnable {
                                         byte[] packet = new byte[inputStream.available()];
                                         if (inputStream.read(packet) == -1)
                                             throw new IOException("Could not read malformed packet");
-                                        throw new RuntimeException("Unrecognized opcode ( "+ readBytesToString((byte) (head[0] & 0x0F)).substring(4) + " ) from client " + getUUID() + ", full head packet: " + readBytesToString(head) + " ");
+                                        throw new RuntimeException("Unrecognized opcode ( "+ readBytesToString((byte) (head[0] & 0x0F)).substring(4) + " ) from client " + getSocket().getInetAddress().getHostAddress() + ", full head packet: " + readBytesToString(head) + " ");
                                 }
                             }
 
@@ -176,6 +176,7 @@ public class Connection implements Runnable {
                         }
                     }
                 } else {
+                    logger.warning("Bad request from " + socket.getInetAddress().getHostAddress() + ", data: " + System.lineSeparator() + data);
                     outputStream.write(("HTTP/1.1 400 Bad Request").getBytes(StandardCharsets.UTF_8));
                 }
             }
