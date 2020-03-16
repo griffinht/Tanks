@@ -107,6 +107,7 @@ var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 
 var lastFrame = 0;
+var ping = 0;
 
 var tanks = []
 var tank;
@@ -117,8 +118,9 @@ function initialize() {
     
     connect();
     setTimeout(() => {
-        tank = new Tank(200, 200, 0, 0, [], "your mom", 234234, [], 100, 20);
-    }, 5000);
+        //(id, x, y, rot, width, height, turret, bullets, keys, name)
+        tank = new Tank(1234, 200, 200, 0, 100, 20, new Turret(20, 2, 0), [], [], "your mom");
+    }, 1000);
 }
 
 window.onload = function(e) {
@@ -127,9 +129,9 @@ window.onload = function(e) {
             let x = e.clientX - tank.x - (tank.width/2);
             let y = e.clientY - tank.y - (tank.height/2);
             if (x < 0) {
-                tank.turretRot = Math.atan(y/x) + Math.PI;
+                tank.turret.rot = Math.atan(y/x) + Math.PI;
             } else {
-                tank.turretRot = Math.atan(y/x);
+                tank.turret.rot = Math.atan(y/x);
             }
         }
     });
@@ -139,7 +141,6 @@ window.onload = function(e) {
             if (!tank.keys.includes(e.key)) {
                 tank.keys.push(e.key);
             }
-            console.log(tank.keys);
         }
     });
     
@@ -149,11 +150,24 @@ window.onload = function(e) {
             if (index !== -1) {
                 tank.keys.splice(index, 1);
             }
-            console.log(tank.keys);
         }
     });
     
-    playButton.addEventListener("click", () => {
+    canvas.addEventListener("click", function(e) {
+        if (typeof tank !== "undefined") {
+            let x = e.clientX - tank.x - (tank.width/2);
+            let y = e.clientY - tank.y - (tank.height/2);
+            let rot;
+            if (x < 0) {
+                rot = Math.atan(y/x) + Math.PI;
+            } else {
+                rot = Math.atan(y/x) + Math.PI;
+            }
+            tank.bullets.push(new Bullet(tank.x + tank.width/2 + Math.cos(tank.turret.rot) * tank.turret.width, tank.y + tank.height/2 + Math.sin(tank.turret.rot)*tank.turret.width, rot, 0));
+        }
+    });
+    
+    playButton.addEventListener("click", function(e) {
         drawing = true;
         new Promise((resolve, reject) => {
             loader.style.display = "none";
@@ -198,9 +212,9 @@ window.onload = function(e) {
                         ctx.fillStyle = "purple";
                         ctx.fillRect(10, 0, 5, 5);
                         ctx.restore();
-                        ctx.rotate(tank.turretRot);
+                        ctx.rotate(tank.turret.rot);
                         ctx.fillStyle = "#00ff18";
-                        ctx.fillRect(0, -2/2, 20, 2);
+                        ctx.fillRect(0, -tank.turret.height/2, tank.turret.width, tank.turret.height);
                         ctx.restore();
                         tank.bullets.forEach((bullet) => {
                             ctx.save();
@@ -216,7 +230,8 @@ window.onload = function(e) {
                     ctx.restore();
                     ctx.fillStyle = "white";
                     ctx.font = "20pt Comic Sans MS";
-                    ctx.fillText(Math.round(1000/diff) + "fps", 20, 20);
+                    ctx.fillText(Math.round(1000/diff) + "fps", 30, 20);
+                    ctx.fillText(ping + "ms", 60, 20);
                     
                     lastFrame = window.performance.now();
                 } else {
@@ -236,7 +251,7 @@ function connect() {
     new Promise((resolve, reject) => {
         loaderManager.update();
     });
-    webSocket = new WebSocket("ws://localhost:80");
+    webSocket = new WebSocket("ws://45.36.37.61:80");
 
     webSocket.onopen = function(e) {
         console.log("Connected to server");
@@ -316,17 +331,18 @@ function resize() {
 }
 
 class Tank {
-    constructor(x, y, rot, turretRot, keys, name, id, bullets, width, height) {
+    constructor(id, x, y, rot, width, height, turret, bullets, keys, name) {
+        this.id = id;
         this.x = x;
         this.y = y;
         this.rot = rot;
-        this.turretRot = turretRot;
-        this.keys = keys;
-        this.name = name;
-        this.id = id;
-        this.bullets = bullets;
         this.width = width;
         this.height = height;
+        this.turret = turret;
+        this.bullets = bullets;
+        this.keys = keys;
+        this.name = name;
+        
         tanks[id] = this;
     }
     
@@ -336,10 +352,6 @@ class Tank {
         this.rot = rot;
         this.keys = keys;
     }
-    
-    shoot(rot) {
-        this.bullets.push(new Bullet(this.x, this.y, rot, 0));
-    }
 }
 
 class Bullet {
@@ -348,6 +360,14 @@ class Bullet {
         this.y = y;
         this.rot = rot;
         this.hits = hits;
+    }
+}
+
+class Turret {
+    constructor(width, height, rot) {
+        this.width = width;
+        this.height = height;
+        this.rot = rot;
     }
 }
 
