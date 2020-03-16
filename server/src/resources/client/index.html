@@ -114,11 +114,27 @@ var tank;
 function initialize() {
     loaderManager = new ConnectLoader();
     resize();
+    
+    connect();
+    setTimeout(() => {
+        tank = new Tank(200, 200, 1.4, ['s','d'], "your mom", 234234, [], 100, 20);
+    }, 5000);
 }
 
 window.onload = function(e) {
+    canvas.addEventListener("mousemove", function(e){
+        if (typeof tank !== "undefined") {
+            let x = e.clientX - tank.x - (tank.width/2);
+            let y = e.clientY - tank.y - (tank.height/2);
+            if (x < 0) {
+                tank.rot = Math.atan(y/x) + Math.PI;
+            } else {
+                tank.rot = Math.atan(y/x);
+            }
+        }
+    });
+    
     playButton.addEventListener("click", () => {
-        
         drawing = true;
         new Promise((resolve, reject) => {
             loader.style.display = "none";
@@ -133,11 +149,36 @@ window.onload = function(e) {
                     ctx.fillStyle = "green";
                     tanks.forEach((tank) => {
                         ctx.save();
-                        ctx.translate(tank.x + 10/2, tank.y + 10/2);
+                        ctx.translate(tank.x + tank.width/2, tank.y + tank.height/2);
                         ctx.rotate(0);
                         ctx.fillText("drawing " + tank.name, 20, 0);
+                        let rot = 0;
+                        if (tank.keys.includes("w") && tank.keys.includes("d")) {
+                            rot = 7*Math.PI/4;
+                        } else if (tank.keys.includes("d") && tank.keys.includes("s")) {
+                            rot = Math.PI/4;
+                        } else if (tank.keys.includes("s") && tank.keys.includes("a")) {
+                            rot = 3*Math.PI/4;
+                        } else if (tank.keys.include("a") && tank.keys.includes("w")) {
+                            rot = 5*Math.PI/4;
+                        } else if (tank.keys.includes("w")) {
+                            rot = 3*Math.PI/2
+                        } else if (tank.keys.includes("d")) {
+                            rot = 0;
+                        } else if (tank.keys.includes("s")) {
+                            rot = Math.PI/2
+                        } else if (tank.keys.includes("a")) {
+                            rot = Math.PI;
+                        }
+                        
+                        ctx.save();
+                        ctx.rotate(rot);
+                        ctx.fillStyle = "#1a7022"
+                        ctx.fillRect(-tank.width/2/2, -tank.height/2, tank.width/2, tank.height);
+                        ctx.restore();
                         ctx.rotate(tank.rot);
-                        ctx.fillRect(-10/2, -10/2, 10, 10);
+                        ctx.fillStyle = "#00ff18";
+                        ctx.fillRect(0, -2/2, 20, 2);
                         ctx.restore();
                         tank.bullets.forEach((bullet) => {
                             ctx.save();
@@ -162,11 +203,10 @@ window.onload = function(e) {
 
                     resolve();
                 }
-            }, 0);
+            }, 1000/60);
         });
     });
     window.addEventListener("resize", resize);
-    connect();
 }
 
 function connect() {
@@ -209,7 +249,7 @@ class ConnectLoader { //todo unnecessary class?
     update(go) {
         if (!this.running || go) {
             this.running = true;
-            if (webSocket == null || webSocket.readyState != WebSocket.OPEN) {
+            if (webSocket === null || webSocket.readyState !== WebSocket.OPEN) {
                 this.status.style.display = "block";
                 playButton.style.display = "none";
                 if (this.dots > 3) {
@@ -254,14 +294,17 @@ function resize() {
 }
 
 class Tank {
-    constructor(x, y, rot, keys, name, id, bullets) {
+    constructor(x, y, rot, keys, name, id, bullets, width, height) {
         this.x = x;
         this.y = y;
         this.rot = rot;
-        this.go = keys;
+        this.keys = keys;
         this.name = name;
         this.id = id;
         this.bullets = bullets;
+        this.width = width;
+        this.height = height;
+        tanks[id] = this;
     }
     
     move(x, y, rot, keys) {
