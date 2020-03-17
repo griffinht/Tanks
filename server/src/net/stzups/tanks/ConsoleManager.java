@@ -33,14 +33,17 @@ class ConsoleManager {
                         break;
                     case "kick":
                         if (input.length > 1) {
+                            boolean found = false;
                             for (Connection connection : Tanks.server.getClients()) {
                                 if (connection.getSocket().getInetAddress().getHostAddress().equals(input[1]) || connection.getUUID().toString().equals(input[1])) {
                                     connection.close();
                                     logger.info("Kicked " + connection.getUUID());
+                                    found = true;
                                     break;
                                 }
                             }
-                            logger.info("Could not find client matching " + input[1]);
+                            if (!found)
+                                logger.info("Could not find client matching " + input[1]);
                         } else {
                             logger.info("Needs one argument");
                         }
