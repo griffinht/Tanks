@@ -163,7 +163,7 @@ window.onload = function(e) {
             } else {
                 rot = Math.atan(y/x) + Math.PI;
             }
-            tank.bullets.push(new Bullet(tank.x + tank.width/2 + Math.cos(tank.turret.rot) * tank.turret.width, tank.y + tank.height/2 + Math.sin(tank.turret.rot)*tank.turret.width, rot, 0));
+            tank.bullets.push(new Bullet(tank.x + tank.width/2 + (Math.cos(tank.turret.rot) * (tank.turret.width + 10/2)) - 10/2, tank.y + tank.height/2 + (Math.sin(tank.turret.rot) * (tank.turret.width + 10/2)) - 10/2, 10, 10, rot, 0));
         }
     });
     
@@ -218,11 +218,11 @@ window.onload = function(e) {
                         ctx.restore();
                         tank.bullets.forEach((bullet) => {
                             ctx.save();
-                            ctx.translate(bullet.x + 5/2, bullet.y + 5/2);
+                            ctx.translate(bullet.x + bullet.width/2, bullet.y + bullet.height/2);
                             ctx.rotate(0);
                             ctx.fillText("bullet", 20, 0);
                             ctx.rotate(bullet.rot);
-                            ctx.fillRect(-5/2, -5/2, 5, 5);
+                            ctx.fillRect(-bullet.width/2, -bullet.height/2, bullet.width, bullet.height);
                             ctx.restore();
                         });
                     });
@@ -230,8 +230,8 @@ window.onload = function(e) {
                     ctx.restore();
                     ctx.fillStyle = "white";
                     ctx.font = "20pt Comic Sans MS";
-                    ctx.fillText(Math.round(1000/diff) + "fps", 30, 20);
-                    ctx.fillText(ping + "ms", 60, 20);
+                    ctx.fillText(Math.round(1000/diff) + "fps", 10, 30);
+                    ctx.fillText(ping + "ms", 10, 60);
                     
                     lastFrame = window.performance.now();
                 } else {
@@ -355,9 +355,11 @@ class Tank {
 }
 
 class Bullet {
-    constructor(x, y, rot, hits) {
+    constructor(x, y, width, height, rot, hits) {
         this.x = x;
         this.y = y;
+        this.width = width;
+        this.height = height;
         this.rot = rot;
         this.hits = hits;
     }
