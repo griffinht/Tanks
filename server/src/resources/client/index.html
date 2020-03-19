@@ -254,6 +254,10 @@ function connect() {
     webSocket = new WebSocket("ws://45.36.37.61:80");
 
     webSocket.onopen = function(e) {
+        window.onbeforeunload = function(){
+            webSocket.close();
+        }
+
         console.log("Connected to server");
         loaderManager.onOpen();
     }
