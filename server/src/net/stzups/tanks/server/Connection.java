@@ -74,7 +74,6 @@ public class Connection implements Runnable {
     });
 
     public void run() {
-
         try (InputStream inputStream = socket.getInputStream();
              OutputStream outputStream = socket.getOutputStream()){
 
@@ -94,7 +93,20 @@ public class Connection implements Runnable {
                                 + "\r\n\r\n").getBytes(StandardCharsets.UTF_8);
                         outputStream.write(response, 0, response.length);
 
+                        if (server.getClientsMap().containsKey(this.socket.getInetAddress())) {
+                            sendPacket((byte) 0x8, "");
+                            return;
+                            /*logger.warning("removing doop, "+server.getClientsMap().size());
+                            Connection connection = server.getClientsMap().get(this.socket.getInetAddress());
+                            connection.close(true, false);
+                            server.getClientsMap().remove(this.socket.getInetAddress());
+                            logger.warning("removed, now "+server.getClientsMap().size());*/
+                        } else {
+                            logger.warning("do not contain, "+server.getClientsMap().size());
+                        }
+
                         server.getClientsMap().put(this.socket.getInetAddress(), this);
+                        logger.warning("put, now "+server.getClientsMap().size());
                         connected = true;
                         heartbeat.start();
                         logger.info("Client connected from IP address " + socket.getInetAddress().getHostAddress());
@@ -182,7 +194,10 @@ public class Connection implements Runnable {
             e.printStackTrace();
         }
 
-        close(false, true);
+        if (connected) {
+            logger.warning("Client from " + socket.getInetAddress().getHostAddress() + " is still connected (it shouldn't be)");//todo make sure this doesn't happen
+            //close(false, true);
+        }
     }
 
     private static int readLength(byte[] head, InputStream inputStream) throws IOException {
@@ -317,7 +332,7 @@ public class Connection implements Runnable {
         return connected;
     }
 
-    public void close() {
+    public void close() { //todo remove helper methods
         close(true, false);
     }
 
@@ -336,6 +351,8 @@ public class Connection implements Runnable {
                 logger.info("Closed connection for client from " + socket.getInetAddress().getHostAddress());
 
             server.getClientsMap().remove(socket.getInetAddress());
-        }//todo check else
+        } else {
+            logger.warning("Tried to close connection for client from " + socket.getInetAddress().getHostAddress() + " but the connection was already closed (it shouldn't be)");
+        }
     }
 }
