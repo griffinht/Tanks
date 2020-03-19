@@ -6,7 +6,6 @@ import net.stzups.tanks.Tanks;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -36,7 +35,7 @@ public class Connection implements Runnable {
     private long lastPing = System.currentTimeMillis();
     private int ping = 0;
     private Queue<byte[]> queue = Collections.asLifoQueue(new ArrayDeque<>());
-    private boolean connected = true;
+    private boolean connected = false;
 
     Connection(Server server, Socket socket, FileManager fileManager) {
         this.fileManager = fileManager;
@@ -44,11 +43,6 @@ public class Connection implements Runnable {
         this.server = server;
         this.socket = socket;
         this.uuid = UUID.randomUUID();
-
-        InetAddress inetAddress = this.socket.getInetAddress();
-        if (server.getClientsMap().containsKey(inetAddress))
-            server.getClientsMap().get(inetAddress).close();
-        server.getClientsMap().put(this.socket.getInetAddress(), this);
 
         new Thread(this).start();
     }
@@ -61,22 +55,25 @@ public class Connection implements Runnable {
         return socket;
     }
 
-    public void run() {
-        Thread manager = new Thread(() -> {
-            while(!Thread.currentThread().isInterrupted() && connected) {
-                try {
-                    Thread.sleep(1000);
-                    if (ping == -1) {
-                        close();
-                    }
-                    lastPing = System.currentTimeMillis();
-                    sendPacket((byte) 0x9, "");
-                } catch (InterruptedException e) {
-                    close();
+    private Thread heartbeat = new Thread(() -> {
+        while(!Thread.currentThread().isInterrupted() && connected) {
+            try {
+                Thread.sleep(1000);
+                if (ping == -1 || ping > 5000) {
+                    logger.warning("Closing unresponsive connection..."); //todo test
+                    close(true);
                 }
+                lastPing = System.currentTimeMillis();
+                sendPacket((byte) 0x9, "");
+            } catch (InterruptedException e) {
+                return;
             }
-        });
-        manager.start();
+        }
+
+        close(false);
+    });
+
+    public void run() {
 
         try (InputStream inputStream = socket.getInputStream();
              OutputStream outputStream = socket.getOutputStream()){
@@ -97,9 +94,11 @@ public class Connection implements Runnable {
                                 + "\r\n\r\n").getBytes(StandardCharsets.UTF_8);
                         outputStream.write(response, 0, response.length);
 
+                        server.getClientsMap().put(this.socket.getInetAddress(), this);
+                        connected = true;
+                        heartbeat.start();
                         logger.info("Client connected from IP address " + socket.getInetAddress().getHostAddress());
 
-                        connection:
                         while(connected) {
                             if (inputStream.available() > 0) {
                                 byte[] head = new byte[2];
@@ -123,9 +122,8 @@ public class Connection implements Runnable {
                                         logger.info("binary frame"); //todo handle
                                         break;
                                     case 0x8: // connection close
-                                        logger.info("Client disconnected from IP address " + socket.getInetAddress().getHostAddress());
-                                        close(true);
-                                        break connection;
+                                        close(false);
+                                        return;
                                     case 0x9: // ping, shouldn't ever receive one
                                         throw new RuntimeException("Client sent ping, server can't handle");
                                     case 0xA: // pong from client
@@ -184,9 +182,7 @@ public class Connection implements Runnable {
             e.printStackTrace();
         }
 
-        if (connected) {
-            close(true);
-        }
+        close(false, true);
     }
 
     private static int readLength(byte[] head, InputStream inputStream) throws IOException {
@@ -322,14 +318,24 @@ public class Connection implements Runnable {
     }
 
     public void close() {
-        close(false);
+        close(true, false);
     }
 
-    public void close(boolean quiet) {
-        sendPacket((byte) 0x8, "");
-        connected = false;
-        if (!quiet)
-            logger.info("Closed connection for client from " + socket.getInetAddress().getHostAddress());
-        server.getClientsMap().remove(socket.getInetAddress());
+    private void close(boolean kick) {
+        close(kick, false);
+    }
+
+    private void close(boolean kick, boolean quiet) {
+        if (connected) {
+            connected = false;
+            heartbeat.interrupt();
+            if (kick)
+                sendPacket((byte) 0x8, "");
+
+            if (!quiet)
+                logger.info("Closed connection for client from " + socket.getInetAddress().getHostAddress());
+
+            server.getClientsMap().remove(socket.getInetAddress());
+        }//todo check else
     }
 }
