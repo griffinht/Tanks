@@ -188,13 +188,13 @@ public class Connection implements Runnable {
                                     + "Server: Tanks\r\n"
                                     + "Date: " + new Date() + "\r\n"
                                     + "Content-type: "
-                                    + Files.probeContentType(Paths.get(fileManager.getFile("resources/client/" + foundPath).getCanonicalPath()))
+                                    + Files.probeContentType(Paths.get(fileManager.getFile("resources/client/" + foundPath).getCanonicalPath())) //todo strip file ending?
                                     + "\r\n"
                                     + "Content-length: " + fileContents.length + "\r\n"
                                     + "\r\n").getBytes(StandardCharsets.UTF_8));
                             outputStream.write(fileContents);
                         } else {
-                            outputStream.write(("HTTP/1.1 404 Not Found").getBytes(StandardCharsets.UTF_8));
+                            outputStream.write(("HTTP/1.1 404 Not Found\r\n\r\n404 " + foundPath + " not found").getBytes(StandardCharsets.UTF_8));//todo add better 404
                         }
                     }
                 } else {
