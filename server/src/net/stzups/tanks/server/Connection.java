@@ -193,7 +193,7 @@ public class Connection implements Runnable {
                                     + "Content-length: " + fileContents.length + "\r\n"
                                     + "\r\n").getBytes(StandardCharsets.UTF_8));
                             outputStream.write(fileContents);
-                        } else {
+                        } else {//TODO SANITIZE ALL INPUTS
                             outputStream.write(("HTTP/1.1 404 Not Found\r\n\r\n404 " + foundPath + " not found").getBytes(StandardCharsets.UTF_8));//todo add better 404
                         }
                     }
