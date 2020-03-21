@@ -88,7 +88,7 @@ public class FileManager {
         } else {
             File file = getFile(request);
 
-            if (file.exists()) {
+            if (file.exists() && file.isFile()) {
                 try (InputStream inputStream = new FileInputStream(file)) {
                     byte[] read = new byte[inputStream.available()];
                     if (inputStream.read(read) == -1) {

@@ -164,7 +164,19 @@ public class Connection implements Runnable {
                         String foundPath;
 
                         if (path.find()) {
-                            foundPath = path.group();
+                            String fPath = path.group();
+                            if (fPath.contains(".")) {
+                                foundPath = fPath;
+                            } else {//todo get file without file ending
+                                if (fPath.endsWith("/")) {
+                                    foundPath = fPath + "index.html";
+                                } else {
+                                    outputStream.write(("HTTP/1.1 308 Permanent Redirect\r\n"
+                                            + "Location: " + fPath + "/\r\n"
+                                            + "\r\n").getBytes(StandardCharsets.UTF_8));
+                                    return;
+                                }
+                            }
                         } else {
                             foundPath = "index.html";
                         }
