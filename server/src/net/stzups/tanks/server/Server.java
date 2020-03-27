@@ -46,7 +46,7 @@ public class Server implements Runnable {
                 if (stopped) {
                     logger.info("Closing " + clients.size() + " connections...");
                     for (Connection connection : new ArrayList<>(clients.values())) {
-                        connection.close();
+                        connection.close(true);
                     }
                     return;
                 }

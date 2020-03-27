@@ -96,17 +96,9 @@ public class Connection implements Runnable {
                         if (server.getClientsMap().containsKey(this.socket.getInetAddress())) {
                             sendPacket((byte) 0x8, "");
                             return;
-                            /*logger.warning("removing doop, "+server.getClientsMap().size());
-                            Connection connection = server.getClientsMap().get(this.socket.getInetAddress());
-                            connection.close(true, false);
-                            server.getClientsMap().remove(this.socket.getInetAddress());
-                            logger.warning("removed, now "+server.getClientsMap().size());*/
-                        } else {
-                            logger.warning("do not contain, "+server.getClientsMap().size());
                         }
 
                         server.getClientsMap().put(this.socket.getInetAddress(), this);
-                        logger.warning("put, now "+server.getClientsMap().size());
                         connected = true;
                         heartbeat.start();
                         logger.info("Client connected from IP address " + socket.getInetAddress().getHostAddress());
@@ -344,23 +336,14 @@ public class Connection implements Runnable {
         return connected;
     }
 
-    public void close() { //todo remove helper methods
-        close(true, false);
-    }
-
-    private void close(boolean kick) {
-        close(kick, false);
-    }
-
-    private void close(boolean kick, boolean quiet) {
+    public void close(boolean kick) {
         if (connected) {
             connected = false;
             heartbeat.interrupt();
             if (kick)
                 sendPacket((byte) 0x8, "");
 
-            if (!quiet)
-                logger.info("Closed connection for client from " + socket.getInetAddress().getHostAddress());
+            logger.info("Closed connection for client from " + socket.getInetAddress().getHostAddress());
 
             server.getClientsMap().remove(socket.getInetAddress());
         } else {

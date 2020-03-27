@@ -36,7 +36,7 @@ class ConsoleManager {
                             boolean found = false;
                             for (Connection connection : Tanks.server.getClients()) {
                                 if (connection.getSocket().getInetAddress().getHostAddress().equals(input[1]) || connection.getUUID().toString().equals(input[1])) {
-                                    connection.close();
+                                    connection.close(true);
                                     logger.info("Kicked " + connection.getUUID());
                                     found = true;
                                     break;
