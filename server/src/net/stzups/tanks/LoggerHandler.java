@@ -23,7 +23,7 @@ class LoggerHandler {
         consoleHandler.setFormatter(new Formatter() {
             @Override
             public String format(LogRecord record) {
-                String level = (record.getLevel() == Level.INFO) ? "" : "[" + record.getLevel() + "]";
+                String level = (record.getLevel() == Level.INFO) ? "" : "[" + record.getLevel() + "] ";
                 return "["
                         + new SimpleDateFormat("HH:mm:ss").format(new Timestamp(System.currentTimeMillis()))
                         + "] "
