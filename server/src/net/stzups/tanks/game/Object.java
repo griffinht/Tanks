@@ -1,13 +1,13 @@
 package net.stzups.tanks.game;
 
 class Object {
-    float x;
-    float y;
+    double x;
+    double y;
 
-    float speed;
-    float direction;
+    double speed;
+    double direction;
 
-    Object(int x, int y, float speed, float direction) {
+    Object(double x, double y, double speed, double direction) {
         this.x = x;
         this.y = y;
         this.speed = speed;

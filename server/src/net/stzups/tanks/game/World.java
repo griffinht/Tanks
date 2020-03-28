@@ -15,7 +15,7 @@ class World {
         }
     }
 
-    void tick() {
+    void tick(int tick) {
         for (Sector[] sectorsX : sectors) {
             for (Sector sector : sectorsX) {
                 for (Object object : sector.objects) {

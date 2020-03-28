@@ -14,6 +14,7 @@ public class Game implements Runnable {
 
     private boolean running;
     private int ticks = 0;
+    private double tickRate = 0;
     private long lastTick = 0;
 
     Map<Connection, Player> connectionPlayerMap = new HashMap<>();
@@ -35,9 +36,11 @@ public class Game implements Runnable {
                 lastNetworkTick = time;
             }
 
-            System.out.print(ticks + " ticks, " + (int) (1000 / (elapsedTime / 1000000.0)) + "tps, " + elapsedTime / 1000000.0 + "ms per tick\r");
+            tickRate = elapsedTime / 1000000.0;
+
+            //System.out.print(ticks + " ticks, " + (int) (1000 / tickRate) + "tps, " + elapsedTime / 1000000.0 + "ms per tick\r"); todo fix tickrate reporting
             //movement
-            world.tick();
+            world.tick(ticks);
 
 
             ticks++;
