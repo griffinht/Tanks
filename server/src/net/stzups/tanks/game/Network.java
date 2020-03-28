@@ -35,7 +35,7 @@ class Network implements PacketListener {
 
     public void onTextPacket(Connection connection, String payload) {
         if (!game.connectionPlayerMap.containsKey(connection)) {
-            Player player = new Player(connection, payload, 0, 0);
+            Player player = new Player(payload, 0, 0);
             game.connectionPlayerMap.put(connection, player);
             game.world.addObject(player);
             logger.info("New player " + player.getName());
