@@ -20,9 +20,7 @@ class ConsoleManager {
                 String[] input = bufferedReader.readLine().split("\\s");
                 switch (input[0].toLowerCase()) {
                     case "stop":
-                        logger.info("Stopping server...");
-                        Tanks.server.stop();
-                        logger.info("Server stopped");
+                        Tanks.stop();
                         return;
                     case "list":
                         Collection<Connection> connections = Tanks.server.getClients();
