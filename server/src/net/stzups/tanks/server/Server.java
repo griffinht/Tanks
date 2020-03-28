@@ -76,10 +76,16 @@ public class Server implements Runnable {
 
     void addConnection(Connection connection) {
         connections.put(connection.getSocket().getInetAddress(), connection);
+        for (PacketListener packetListener : packetListeners) {
+            packetListener.addConnection(connection);
+        }
     }
 
     void removeConnection(Connection connection) {
         connections.remove(connection.getSocket().getInetAddress());
+        for (PacketListener packetListener : packetListeners) {
+            packetListener.removeConnection(connection);
+        }
     }
 
     void onTextPacket(Connection connection, String payload) {
