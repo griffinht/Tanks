@@ -1,11 +1,13 @@
 package net.stzups.tanks;
 
+import net.stzups.tanks.game.Player;
 import net.stzups.tanks.server.Connection;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Collection;
+import java.util.Map;
 import java.util.logging.Logger;
 
 class ConsoleManager {
@@ -15,7 +17,7 @@ class ConsoleManager {
     static void manage() {
         while (true) {
             try {
-                InputStreamReader inputStreamReader = new InputStreamReader(System.in);
+                InputStreamReader inputStreamReader = new InputStreamReader(System.in);//todo do these need to be closed
                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
                 String[] input = bufferedReader.readLine().split("\\s");
                 switch (input[0].toLowerCase()) {
@@ -23,10 +25,31 @@ class ConsoleManager {
                         Tanks.stop();
                         return;
                     case "list":
-                        Collection<Connection> connections = Tanks.server.getConnections();
-                        logger.info("Listing " + connections.size() + " clients");
-                        for (Connection connection : connections) {
-                            logger.info(connection.getUUID() + " : " + connection.getSocket().getInetAddress().getHostAddress());
+                        if (input.length > 1) {
+                            switch(input[1].toLowerCase()) {
+                                case "players":
+                                    Map<Connection, Player> connectionPlayerMap = Tanks.game.getConnectionPlayerMap();
+                                    logger.info("Listing " + connectionPlayerMap.size() + " players");
+                                    for (Map.Entry<Connection, Player> entry : connectionPlayerMap.entrySet()) {
+                                        logger.info(entry.getKey().getSocket().getInetAddress().getHostAddress() + ": " + entry.getValue().getName());
+                                    }
+                                    break;
+                                case "connections":
+                                    Collection<Connection> connections = Tanks.server.getConnections();
+                                    logger.info("Listing " + connections.size() + " connections");
+                                    for (Connection connection : connections) {
+                                        logger.info(connection.getUUID() + " : " + connection.getSocket().getInetAddress().getHostAddress());
+                                    }
+                                    break;
+                                default:
+                                    logger.info("Valid arguments are players or connections");
+                            }
+                        } else {
+                            Collection<Connection> connections = Tanks.server.getConnections();
+                            logger.info("Listing " + connections.size() + " connections");
+                            for (Connection connection : connections) {
+                                logger.info(connection.getUUID() + " : " + connection.getSocket().getInetAddress().getHostAddress());
+                            }
                         }
                         break;
                     case "kick":

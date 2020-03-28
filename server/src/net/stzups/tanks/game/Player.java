@@ -1,6 +1,6 @@
 package net.stzups.tanks.game;
 
-class Player extends Object {
+public class Player extends Object {
     private String name;
 
     Player(String name, double x, double y) {
@@ -8,7 +8,7 @@ class Player extends Object {
         this.name = name;
     }
 
-    String getName() {
+    public String getName() {
         return name;
     }
 }

@@ -11,7 +11,7 @@ public class Tanks {
     private static final Logger logger = LoggerHandler.setLogger();
 
     public static Server server = new Server(PORT);
-    private static Game game = new Game();
+    static Game game = new Game();
 
 
     public static void main(String[] args) {

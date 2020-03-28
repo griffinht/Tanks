@@ -2,7 +2,9 @@ package net.stzups.tanks.game;
 
 import net.stzups.tanks.server.Connection;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Game implements Runnable {
@@ -50,5 +52,13 @@ public class Game implements Runnable {
     public void stop() {
         running = false;
         network.stop();
+    }
+
+    public Collection<Player> getPlayers() {
+        return connectionPlayerMap.values();
+    }
+
+    public Map<Connection, Player> getConnectionPlayerMap() {
+        return connectionPlayerMap;
     }
 }
