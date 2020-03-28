@@ -8,7 +8,6 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +23,8 @@ public class Server implements Runnable {
     private ServerSocket serverSocket;
     private Map<InetAddress, Connection> clients = new HashMap<>();
     private boolean stopped = false;
+
+    private List<PacketListener> packetListeners = new ArrayList<>();
 
     public Server(int port) {
         this.PORT = port;
@@ -78,8 +79,9 @@ public class Server implements Runnable {
     }
 
     void onTextPacket(Connection connection, String payload) {
-        logger.info(connection.getSocket().getInetAddress().getHostAddress() + ": " + payload);
-        sendTextExcept(Collections.singletonList(connection), payload);
+        for (PacketListener packetListener : packetListeners) {
+            packetListener.onTextPacket(connection, payload);
+        }
     }
 
     void sendText(List<Connection> recipients, String payload) {

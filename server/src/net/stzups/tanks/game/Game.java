@@ -1,7 +1,9 @@
 package net.stzups.tanks.game;
 
-import java.util.ArrayList;
-import java.util.List;
+import net.stzups.tanks.server.Connection;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class Game implements Runnable {
 
@@ -14,7 +16,7 @@ public class Game implements Runnable {
     private int ticks = 0;
     private long lastTick = 0;
 
-    List<Player> players = new ArrayList<>();
+    Map<Connection, Player> connectionPlayerMap = new HashMap<>();
     World world = new World();
 
     public Game() {

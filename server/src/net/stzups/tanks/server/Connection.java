@@ -328,7 +328,7 @@ public class Connection implements Runnable {
         queue.add(getFramedPacket(opcode, payload));
     }
 
-    void sendText(String payload) {
+    public void sendText(String payload) {
         sendPacket((byte) 0x1, payload);
     }
 
