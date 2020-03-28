@@ -9,7 +9,7 @@ public class Game implements Runnable {
 
     private static final int NETWORK_TICK_RATE = 20;
 
-    public Network network = new Network(this);
+    private Network network = new Network(this);
     private long lastNetworkTick = 0;
 
     private boolean running;

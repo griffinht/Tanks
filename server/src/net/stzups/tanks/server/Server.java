@@ -84,6 +84,10 @@ public class Server implements Runnable {
         }
     }
 
+    public void addPacketListener(PacketListener packetListener) {
+        packetListeners.add(packetListener);
+    }
+
     void sendText(List<Connection> recipients, String payload) {
         if (recipients == null) {
             for (Connection connection : clients.values()) {

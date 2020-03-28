@@ -10,7 +10,7 @@ public class Tanks {
     private static final int PORT = 80;
     private static final Logger logger = LoggerHandler.setLogger();
 
-    static Server server = new Server(PORT);
+    public static Server server = new Server(PORT);
     static Game game = new Game();
 
 

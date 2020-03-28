@@ -59,7 +59,7 @@ public class Connection implements Runnable {
         while(!Thread.currentThread().isInterrupted() && connected) {
             try {
                 Thread.sleep(1000);
-                if (ping == -1 || ping > 5000) {
+                if (ping == -1 || ping > 1000) {
                     logger.warning("Closing unresponsive connection..."); //todo test
                     close(true);
                 }
@@ -134,7 +134,6 @@ public class Connection implements Runnable {
                                         long time = System.currentTimeMillis();
                                         ping = (int) (time - lastPing);
                                         lastPing = -1;
-                                        sendText("ping:" + ping);
                                         break;
                                     default: // error
                                         byte[] packet = new byte[inputStream.available()];

@@ -18,13 +18,13 @@ class Network implements PacketListener {
 
     Network(Game game) {
         this.game = game;
+        Tanks.server.addPacketListener(this);
     }
 
     void tick() {
         executorService.submit(() -> {
-            System.out.println("doing network stuff");
             for (Map.Entry<Connection, Player> entry : game.connectionPlayerMap.entrySet()) {
-                entry.getKey().sendText("hello, how do you do?");
+                entry.getKey().sendText("hello " + entry.getValue().getName() + ", how do you do?");
             }
         });
     }
@@ -33,17 +33,11 @@ class Network implements PacketListener {
         executorService.shutdown();
     }
 
-    public void newPlayer(Connection connection, String payload) {
-        System.out.println("network got packet from " + payload);
-        Player player = new Player(connection, "your mom's", 0, 0);
-        game.connectionPlayerMap.put(connection, player);
-        game.world.addObject(player);
-        System.out.println("added new player "+player.getName());
-    }
-
     public void onTextPacket(Connection connection, String payload) {
         if (!game.connectionPlayerMap.containsKey(connection)) {
             Player player = new Player(connection, payload, 0, 0);
+            game.connectionPlayerMap.put(connection, player);
+            game.world.addObject(player);
             logger.info("New player " + player.getName());
         } else {
             Player player = game.connectionPlayerMap.get(connection);
