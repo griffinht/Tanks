@@ -35,13 +35,32 @@ class Network implements PacketListener {
 
     public void onTextPacket(Connection connection, String payload) {
         if (!game.connectionPlayerMap.containsKey(connection)) {
-            Player player = new Player(payload, 0, 0);
-            game.connectionPlayerMap.put(connection, player);
-            game.world.addObject(player);
-            logger.info("New player " + player.getName());
+            if (payload.startsWith("newClient")) {
+                String[] split = payload.split(":", 2);
+                if (split.length == 2) {
+                    Player player = new Player(split[1], 0, 0);
+                    game.connectionPlayerMap.put(connection, player);
+                    game.world.addObject(player);
+                    logger.info("New player " + player.getName());
+                }
+            } else {
+                logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " because the newClient packet was sent incorrectly, received " + payload);
+                connection.close(true);
+            }
         } else {
             Player player = game.connectionPlayerMap.get(connection);
             logger.info(player.getName()+": "+payload);
         }
+    }
+
+    public void removeConnection(Connection connection) {
+        if (game.connectionPlayerMap.containsKey(connection)) {
+            game.world.removeObject(game.connectionPlayerMap.get(connection));
+            game.connectionPlayerMap.remove(connection);
+        }
+    }
+
+    public void addConnection(Connection connection) {
+
     }
 }

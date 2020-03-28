@@ -168,6 +168,7 @@ window.onload = function(e) {
     });
     
     playButton.addEventListener("click", function(e) {
+        send("newClient:" + document.getElementById("nickname").value);
         drawing = true;
         new Promise((resolve, reject) => {
             loader.style.display = "none";
@@ -264,6 +265,9 @@ function connect() {
 
     webSocket.onclose = function(e) {
         console.log("Connection closed, attempting to reconnect...");
+        document.getElementById("status").style.display = "block";
+        document.getElementById("status").innerHTML = "disconnected, attempting to reconnect";
+        playButton.style.display = "none";
         reconnect = setTimeout(connect, 1000);
     }
 

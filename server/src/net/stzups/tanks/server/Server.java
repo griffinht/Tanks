@@ -21,7 +21,7 @@ public class Server implements Runnable {
     private FileManager fileManager;
 
     private ServerSocket serverSocket;
-    private Map<InetAddress, Connection> clients = new HashMap<>();
+    private Map<InetAddress, Connection> connections = new HashMap<>();
     private boolean stopped = false;
 
     private List<PacketListener> packetListeners = new ArrayList<>();
@@ -45,8 +45,8 @@ public class Server implements Runnable {
                 new Connection(this, serverSocket.accept(), fileManager);
             } catch (IOException e) {
                 if (stopped) {
-                    logger.info("Closing " + clients.size() + " connections...");
-                    for (Connection connection : new ArrayList<>(clients.values())) {
+                    logger.info("Closing " + connections.size() + " connections...");
+                    for (Connection connection : new ArrayList<>(connections.values())) {
                         connection.close(true);
                     }
                     return;
@@ -66,16 +66,20 @@ public class Server implements Runnable {
         }
     }
 
-    Connection getClient(InetAddress inetAddress) { //throw client not registered?
-        return clients.get(inetAddress);
+    public Collection<Connection> getConnections() {
+        return connections.values();
     }
 
-    public Collection<Connection> getClients() {
-        return clients.values();
+    boolean containsConnection(Connection connection) {
+        return connections.containsKey(connection.getSocket().getInetAddress());
     }
 
-    Map<InetAddress, Connection> getClientsMap() {
-        return clients;
+    void addConnection(Connection connection) {
+        connections.put(connection.getSocket().getInetAddress(), connection);
+    }
+
+    void removeConnection(Connection connection) {
+        connections.remove(connection.getSocket().getInetAddress());
     }
 
     void onTextPacket(Connection connection, String payload) {
@@ -90,7 +94,7 @@ public class Server implements Runnable {
 
     void sendText(List<Connection> recipients, String payload) {
         if (recipients == null) {
-            for (Connection connection : clients.values()) {
+            for (Connection connection : connections.values()) {
                 connection.sendText(payload);
             }
         } else {
@@ -102,11 +106,11 @@ public class Server implements Runnable {
 
     void sendTextExcept(List<Connection> recipients, String payload) {
         if (recipients == null) {
-            for (Connection connection : clients.values()) {
+            for (Connection connection : connections.values()) {
                 connection.sendText(payload);
             }
         } else {
-            for (Connection connection : clients.values()) {
+            for (Connection connection : connections.values()) {
                 if (!recipients.contains(connection)) {
                     connection.sendText(payload);
                 }

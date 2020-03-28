@@ -23,7 +23,7 @@ class ConsoleManager {
                         Tanks.stop();
                         return;
                     case "list":
-                        Collection<Connection> connections = Tanks.server.getClients();
+                        Collection<Connection> connections = Tanks.server.getConnections();
                         logger.info("Listing " + connections.size() + " clients");
                         for (Connection connection : connections) {
                             logger.info(connection.getUUID() + " : " + connection.getSocket().getInetAddress().getHostAddress());
@@ -32,7 +32,7 @@ class ConsoleManager {
                     case "kick":
                         if (input.length > 1) {
                             boolean found = false;
-                            for (Connection connection : Tanks.server.getClients()) {
+                            for (Connection connection : Tanks.server.getConnections()) {
                                 if (connection.getSocket().getInetAddress().getHostAddress().equals(input[1]) || connection.getUUID().toString().equals(input[1])) {
                                     connection.close(true);
                                     logger.info("Kicked " + connection.getUUID());

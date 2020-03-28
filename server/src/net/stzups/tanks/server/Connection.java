@@ -93,12 +93,12 @@ public class Connection implements Runnable {
                                 + "\r\n\r\n").getBytes(StandardCharsets.UTF_8);
                         outputStream.write(response, 0, response.length);
 
-                        if (server.getClientsMap().containsKey(this.socket.getInetAddress())) {
+                        if (server.containsConnection(this)) {
                             sendPacket((byte) 0x8, "");
                             return;
                         }
 
-                        server.getClientsMap().put(this.socket.getInetAddress(), this);
+                        server.addConnection(this);
                         connected = true;
                         heartbeat.start();
                         logger.info("Client connected from IP address " + socket.getInetAddress().getHostAddress());
@@ -344,7 +344,7 @@ public class Connection implements Runnable {
 
             logger.info("Closed connection for client from " + socket.getInetAddress().getHostAddress());
 
-            server.getClientsMap().remove(socket.getInetAddress());
+            server.removeConnection(this);
         } else {
             logger.warning("Tried to close connection for client from " + socket.getInetAddress().getHostAddress() + " but the connection was already closed (it shouldn't be)");
         }

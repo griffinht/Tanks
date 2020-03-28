@@ -38,4 +38,8 @@ class World {
     void addObject(Object object) {
         sectors[(int)object.x/SECTOR_SIZE][(int)object.y/SECTOR_SIZE].objects.add(object);//todo out of bounds
     }
+
+    void removeObject(Object object) {
+        sectors[(int)object.x/SECTOR_SIZE][(int)object.y/SECTOR_SIZE].objects.remove(object);
+    }
 }
