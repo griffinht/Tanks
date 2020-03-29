@@ -17,6 +17,8 @@ import java.util.logging.Logger;
 
 public class FileManager {
 
+    private static final String SERVER_RESOURCES_PATH = "server";
+
     private Map<String, File> cachedFiles = new HashMap<>();
     private Map<String, byte[]> cachedFilesContents = new HashMap<>();
 
@@ -24,15 +26,13 @@ public class FileManager {
 
     static void load() {
         try (JarFile jarFile = new JarFile(new File(Tanks.class.getProtectionDomain().getCodeSource().getLocation().toURI()))) {
-            String root = Tanks.class.getProtectionDomain().getCodeSource().getLocation().toURI().toString();
-            root = root.substring(0, root.lastIndexOf("/")) + "/resources";
             Enumeration enums = jarFile.entries();
 
             while(enums.hasMoreElements()) {
                 JarEntry entry = (JarEntry) enums.nextElement();
-                File file = new File(entry.getName());
 
-                if (file.toURI().toString().contains(root)) {
+                if (entry.getName().startsWith(SERVER_RESOURCES_PATH)) {
+                    File file = new File("./" + entry.getName().substring(SERVER_RESOURCES_PATH.length()));
                     if (!file.exists()) {
                         if (file.getName().contains(".")) {
                             if (file.createNewFile()) {

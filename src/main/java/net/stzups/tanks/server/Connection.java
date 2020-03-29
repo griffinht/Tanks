@@ -172,14 +172,14 @@ public class Connection implements Runnable {
                             foundPath = "index.html";
                         }
 
-                        byte[] fileContents = fileManager.getFileContents("resources/client/" + foundPath);
+                        byte[] fileContents = fileManager.getFileContents("client/" + foundPath);
 
                         if(fileContents.length > 0) {
                             outputStream.write(("HTTP/1.1 200 OK\r\n"
                                     + "Server: Tanks\r\n"
                                     + "Date: " + new Date() + "\r\n"
                                     + "Content-type: "
-                                    + Files.probeContentType(Paths.get(fileManager.getFile("resources/client/" + foundPath).getCanonicalPath())) //todo strip file ending?
+                                    + Files.probeContentType(Paths.get(fileManager.getFile("client/" + foundPath).getCanonicalPath())) //todo strip file ending?
                                     + "\r\n"
                                     + "Content-length: " + fileContents.length + "\r\n"
                                     + "\r\n").getBytes(StandardCharsets.UTF_8));
