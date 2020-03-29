@@ -8,7 +8,7 @@ class Sector {
     int y;
 
     Block[][] blocks;
-    List<Object> objects = new ArrayList<>();
+    List<Entity> entities = new ArrayList<>();
 
     Sector(int x, int y, int sectorSize) {
         blocks = new Block[sectorSize][sectorSize];

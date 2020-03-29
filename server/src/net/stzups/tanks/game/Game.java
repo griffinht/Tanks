@@ -4,7 +4,6 @@ import net.stzups.tanks.server.Connection;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Game implements Runnable {
@@ -16,7 +15,7 @@ public class Game implements Runnable {
 
     private boolean running;
     private int ticks = 0;
-    private double tickRate = 0;
+    double tickRate = 0;
     private long lastTick = 0;
 
     Map<Connection, Player> connectionPlayerMap = new HashMap<>();

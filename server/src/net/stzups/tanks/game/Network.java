@@ -45,7 +45,7 @@ class Network implements PacketListener {
                 }
             } else {
                 logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " because the newClient packet was sent incorrectly, received " + payload);
-                connection.close(true);
+                //connection.close(true); todo reenable
             }
         } else {
             Player player = game.connectionPlayerMap.get(connection);

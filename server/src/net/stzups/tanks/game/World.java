@@ -18,28 +18,28 @@ class World {
     void tick(int tick) {
         for (Sector[] sectorsX : sectors) {
             for (Sector sector : sectorsX) {
-                for (Object object : sector.objects) {
-                    object.x += object.speed * Math.cos(object.direction);
-                    object.y += object.speed * Math.sin(object.direction);
-                    if ((int)object.x > sector.x * SECTOR_SIZE + SECTOR_SIZE
-                            || object.x < sector.x * SECTOR_SIZE
-                            || (int)object.y > sector.y * SECTOR_SIZE + SECTOR_SIZE
-                            || object.y < sector.y * SECTOR_SIZE) {
-                        Sector s = sectors[(int)object.x/SECTOR_SIZE][(int)object.y/SECTOR_SIZE];
-                        System.out.println("Moving object at (" + object.x + ", " + object.y + ") from sector " + sector.x + ", " + sector.y + " to sector " + s.x + ", " + s.y);
-                        sector.objects.remove(object);
-                        sectors[(int)object.x/SECTOR_SIZE][(int)object.y/SECTOR_SIZE].objects.add(object);//todo out of bounds
+                for (Entity entity : sector.entities) {
+                    entity.x += entity.speed * Math.cos(entity.direction);
+                    entity.y += entity.speed * Math.sin(entity.direction);
+                    if ((int) entity.x > sector.x * SECTOR_SIZE + SECTOR_SIZE
+                            || entity.x < sector.x * SECTOR_SIZE
+                            || (int) entity.y > sector.y * SECTOR_SIZE + SECTOR_SIZE
+                            || entity.y < sector.y * SECTOR_SIZE) {
+                        Sector s = sectors[(int) entity.x/SECTOR_SIZE][(int) entity.y/SECTOR_SIZE];
+                        System.out.println("Moving object at (" + entity.x + ", " + entity.y + ") from sector " + sector.x + ", " + sector.y + " to sector " + s.x + ", " + s.y);
+                        sector.entities.remove(entity);
+                        sectors[(int) entity.x/SECTOR_SIZE][(int) entity.y/SECTOR_SIZE].entities.add(entity);//todo out of bounds
                     }
                 }
             }
         }
     }
 
-    void addObject(Object object) {
-        sectors[(int)object.x/SECTOR_SIZE][(int)object.y/SECTOR_SIZE].objects.add(object);//todo out of bounds
+    void addObject(Entity entity) {
+        sectors[(int) entity.x/SECTOR_SIZE][(int) entity.y/SECTOR_SIZE].entities.add(entity);//todo out of bounds
     }
 
-    void removeObject(Object object) {
-        sectors[(int)object.x/SECTOR_SIZE][(int)object.y/SECTOR_SIZE].objects.remove(object);
+    void removeObject(Entity entity) {
+        sectors[(int) entity.x/SECTOR_SIZE][(int) entity.y/SECTOR_SIZE].entities.remove(entity);
     }
 }
