@@ -168,7 +168,9 @@ window.onload = function(e) {
     });
     
     playButton.addEventListener("click", function(e) {
-        send(JSON.stringify({newClient:document.getElementById("nickname").value, pee:"poo"}));
+        send(JSON.stringify({
+            newClient:{name:document.getElementById("nickname").value}}
+         ));
         drawing = true;
         new Promise((resolve, reject) => {
             loader.style.display = "none";

@@ -3,6 +3,8 @@ package net.stzups.tanks.game;
 import net.stzups.tanks.Tanks;
 import net.stzups.tanks.server.Connection;
 import net.stzups.tanks.server.PacketListener;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -35,18 +37,19 @@ class Network implements PacketListener {
 
     public void onTextPacket(Connection connection, String payload) {
         if (!game.connectionPlayerMap.containsKey(connection)) {
-            if (payload.startsWith("newClient")) {
-                String[] split = payload.split(":", 2);
-                if (split.length == 2) {
-                    Player player = new Player(split[1], 0, 0);
-                    game.connectionPlayerMap.put(connection, player);
-                    game.world.addObject(player);
-                    logger.info("New player " + player.getName());
-                }
-            } else {
-                logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " because the newClient packet was sent incorrectly, received " + payload);
-                //connection.close(true); todo reenable
+            try {
+                JSONObject jsonPayload = new JSONObject(payload);
+                JSONObject newClient = jsonPayload.getJSONObject("newClient");
+                String name = newClient.getString("name");
+                Player player = new Player(name, 0, 0);
+                game.connectionPlayerMap.put(connection, player);
+                game.world.addObject(player);
+                logger.info("New player " + player.getName());
+            } catch (JSONException e) {
+                logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + payload + ", parsing newClient packet caused " + e.getMessage());
+                connection.close(true);
             }
+
         } else {
             Player player = game.connectionPlayerMap.get(connection);
             logger.info(player.getName()+": "+payload);
