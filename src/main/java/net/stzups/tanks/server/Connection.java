@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -276,13 +277,12 @@ public class Connection implements Runnable {
              offset = 2;
              data = new byte[offset + payload.length()];
              data[1] = (byte) (payload.length());
-        } else if (payload.length() > 126 && payload.length() < 65535) {
+        } else {
             offset = 4;
             data = new byte[offset + payload.length()];
             data[1] = 126;
-        } else {
-            offset = 6;
-            data = new byte[offset + payload.length()];
+            data[2] = (byte) (payload.length() >> 8);
+            data[3] = (byte) payload.length();
         }
 
         data[0] = (byte) (0x80 ^ opcode);
