@@ -1,10 +1,11 @@
 package net.stzups.tanks.game;
 
 class World {
-    private static final int SECTOR_SIZE = 16;
-    private static final int WORLD_SECTORS = 100;
+    static final int SECTOR_SIZE = 16;
+    static final int WORLD_SECTORS = 100;
 
     Sector[][] sectors = new Sector[WORLD_SECTORS][WORLD_SECTORS];
+    Sector[][] changedSectors = new Sector[WORLD_SECTORS][WORLD_SECTORS];
 
     World() {
         //populate sectors
@@ -19,12 +20,20 @@ class World {
         for (Sector[] sectorsX : sectors) {
             for (Sector sector : sectorsX) {
                 for (Entity entity : sector.entities) {
-                    entity.x += entity.speed * Math.cos(entity.direction);
-                    entity.y += entity.speed * Math.sin(entity.direction);
-                    if ((int) entity.x > sector.x * SECTOR_SIZE + SECTOR_SIZE
+                    boolean move = false;
+                    if (entity.speed != 0) {
+                        entity.x += entity.speed * Math.cos(entity.direction);
+                        move = true;
+                    }
+                    if (entity.speed != 0) {
+                        entity.y += entity.speed * Math.sin(entity.direction);
+                        move = true;
+                    }
+                    if (move &&
+                            ((int) entity.x > sector.x * SECTOR_SIZE + SECTOR_SIZE
                             || entity.x < sector.x * SECTOR_SIZE
                             || (int) entity.y > sector.y * SECTOR_SIZE + SECTOR_SIZE
-                            || entity.y < sector.y * SECTOR_SIZE) {
+                            || entity.y < sector.y * SECTOR_SIZE)) {
                         Sector s = sectors[(int) entity.x/SECTOR_SIZE][(int) entity.y/SECTOR_SIZE];
                         System.out.println("Moving object at (" + entity.x + ", " + entity.y + ") from sector " + sector.x + ", " + sector.y + " to sector " + s.x + ", " + s.y);
                         sector.entities.remove(entity);

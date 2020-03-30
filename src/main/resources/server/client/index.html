@@ -169,7 +169,12 @@ window.onload = function(e) {
     
     playButton.addEventListener("click", function(e) {
         send(JSON.stringify({
-            newClient:{name:document.getElementById("nickname").value}}
+            newClient:{
+                    name:document.getElementById("nickname").value,
+                    viewportWidth:canvas.width,
+                    viewportHeight:canvas.height
+                }
+            }
          ));
         drawing = true;
         new Promise((resolve, reject) => {
