@@ -7,6 +7,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
@@ -61,7 +62,7 @@ class Network implements PacketListener {
                 String name = newClient.getString("name");
                 int viewportWidth = newClient.getInt("viewportWidth");
                 int viewportHeight = newClient.getInt("viewportHeight");
-                Player player = new Player(name, 0, 0, viewportWidth, viewportHeight);
+                Player player = new Player(UUID.randomUUID(), 0, 0, 0, 0, 0, 10, 20, name, viewportWidth, viewportHeight, new Player.Turret(0, 4, 10));
                 game.connectionPlayerMap.put(connection, player);
                 game.world.addObject(player);
                 logger.info("New player " + player.getName());

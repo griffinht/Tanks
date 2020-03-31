@@ -1,17 +1,27 @@
 package net.stzups.tanks.game;
 
+import java.util.UUID;
+
 class Entity {
-    public double x;
-    public double y;
 
-    public double speed;
-    public double direction;
+    UUID id;
+    double x;
+    double y;
+    double speed;
+    double direction;
+    double rotation;
+    int width;
+    int height;
 
-    Entity(double x, double y, double speed, double direction) {
+    Entity(UUID id, double x, double y, double speed, double direction, double rotation, int width, int height) {
+        this.id = id;
         this.x = x;
         this.y = y;
         this.speed = speed;
         this.direction = direction;
+        this.rotation = rotation;
+        this.width = width;
+        this.height = height;
     }
 
     String serialize() {

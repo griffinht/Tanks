@@ -1,6 +1,18 @@
 package net.stzups.tanks.game;
 
+import java.util.UUID;
+
 public class Player extends Entity {
+    static class Turret {
+        double rotation;
+        int width;
+        int height;
+        Turret (double rotation, int width, int height) {
+            this.rotation = rotation;
+            this.width = width;
+            this.height = height;
+        }
+    }
 
     private static final float MAX_VIEWPORT_WIDTH = 16;
     private static final float MAX_VIEWPORT_HEIGHT = 9;
@@ -9,10 +21,12 @@ public class Player extends Entity {
     private String name;
     int viewportWidth;
     int viewportHeight;
+    Player.Turret turret;
 
-    Player(String name, double x, double y, int viewportWidth, int viewportHeight) {
-        super(x, y, 0, 0);
+    Player(UUID id, double x, double y, double speed, double direction, double rotation, int width, int height, String name, int viewportWidth, int viewportHeight, Player.Turret turret) {
+        super(id, x, y, speed, direction, rotation, width, height);
         this.name = name;
+        this.turret = turret;
         setViewport(viewportWidth, viewportHeight);
     }
 

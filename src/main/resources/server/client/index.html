@@ -109,7 +109,8 @@ var ctx = canvas.getContext("2d");
 var lastFrame = 0;
 var ping = 0;
 
-var tanks = []
+var blocks = [];
+var entities = [];
 var tank;
 
 function initialize() {
@@ -279,7 +280,8 @@ function connect() {
     }
 
     webSocket.onmessage = function(e) {
-        console.log(event.data);
+        console.log(event);
+        console.log(JSON.parse(event.data));
     }
 }
 
