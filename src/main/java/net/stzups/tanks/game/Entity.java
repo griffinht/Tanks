@@ -1,11 +1,11 @@
 package net.stzups.tanks.game;
 
 class Entity {
-    double x;
-    double y;
+    public double x;
+    public double y;
 
-    double speed;
-    double direction;
+    public double speed;
+    public double direction;
 
     Entity(double x, double y, double speed, double direction) {
         this.x = x;
@@ -14,4 +14,7 @@ class Entity {
         this.direction = direction;
     }
 
+    String serialize() {
+        return speed + "," + direction;
+    }
 }

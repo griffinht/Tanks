@@ -30,20 +30,17 @@ class Network implements PacketListener {
             for (Map.Entry<Connection, Player> entry : game.connectionPlayerMap.entrySet()) {
                 Player player = entry.getValue();
                 JSONObject payload = new JSONObject();
-                int x = (int) (player.x - player.viewportWidth / 2.0);
-                x = Math.max(x, 0);
-                int y = (int) (player.y - player.viewportHeight / 2.0);
-                y = Math.max(y, 0);
-                for ( ; x < Math.ceil(player.x + player.viewportWidth / 2.0); x++) {
-                    for ( ; y < Math.ceil(player.y + player.viewportHeight / 2.0); y++) {
-                        System.out.println("checking ("+x+", "+y+")");
-                        if (sectors[x][y] == null) {
-                            JSONObject sector = new JSONObject();
-                            sector.append("blocks", game.world.sectors[x][y].blocks);
-                            sector.append("entities", game.world.sectors[x][y].entities);
-                            sectors[x][y] = sector;
-                        } else {
-                            payload.append(x + "," + y, sectors[x][y]);
+                for (int x = Math.max(0, (int) (player.x - player.viewportWidth / 2.0 / World.SECTOR_SIZE)); x < Math.ceil(player.x + player.viewportWidth / 2.0 / World.SECTOR_SIZE); x++) {
+                    for (int y = Math.max(0, (int) (player.y - player.viewportHeight / 2.0 / World.SECTOR_SIZE)); y < Math.ceil(player.y + player.viewportHeight / 2.0 / World.SECTOR_SIZE); y++) {
+                        Sector sector = game.world.sectors[x][y];
+                        if (sector != null) {
+                            if (sectors[x][y] == null) {
+                                JSONObject jsonSector = sector.serialize();
+                                sectors[x][y] = jsonSector;
+                                payload.append(x + "," + y, jsonSector);
+                            } else {
+                                payload.append(x + "," + y, sectors[x][y]);
+                            }
                         }
                     }
                 }

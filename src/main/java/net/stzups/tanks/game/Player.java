@@ -29,4 +29,9 @@ public class Player extends Entity {
     public String getName() {
         return name;
     }
+
+    @Override
+    String serialize() {
+        return super.serialize() + ",player{" + name + "}";
+    }
 }
