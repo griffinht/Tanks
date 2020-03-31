@@ -37,7 +37,8 @@ public class Server implements Runnable {
             serverSocket = new ServerSocket(PORT);
         } catch (IOException e) {
             e.printStackTrace();
-            throw new RuntimeException("Could not open on port " + PORT);
+            logger.warning("Could not open on port " + PORT);
+            System.exit(0);
         }
         // Main connections loop
         while (!stopped) {
