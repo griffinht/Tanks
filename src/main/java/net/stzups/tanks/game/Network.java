@@ -37,9 +37,9 @@ class Network implements PacketListener {
                             if (sectors[x][y] == null) {
                                 JSONObject jsonSector = sector.serialize();
                                 sectors[x][y] = jsonSector;
-                                payload.append(x + "," + y, jsonSector);
+                                payload.put(x + "," + y, jsonSector);
                             } else {
-                                payload.append(x + "," + y, sectors[x][y]);
+                                payload.put(x + "," + y, sectors[x][y]);
                             }
                         }
                     }

@@ -15,6 +15,6 @@ class Entity {
     }
 
     String serialize() {
-        return speed + "," + direction;
+        return x + "," + y + "," + speed + "," + direction;
     }
 }

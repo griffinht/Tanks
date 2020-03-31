@@ -32,6 +32,6 @@ public class Player extends Entity {
 
     @Override
     String serialize() {
-        return super.serialize() + ",player{" + name + "}";
+        return super.serialize() + ",player:{" + name + "}";
     }
 }
