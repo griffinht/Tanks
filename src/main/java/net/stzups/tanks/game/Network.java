@@ -6,6 +6,7 @@ import net.stzups.tanks.server.PacketListener;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -62,7 +63,7 @@ class Network implements PacketListener {
                 String name = newClient.getString("name");
                 int viewportWidth = newClient.getInt("viewportWidth");
                 int viewportHeight = newClient.getInt("viewportHeight");
-                Player player = new Player(UUID.randomUUID(), 0, 0, 0, 0, 0, 10, 20, name, viewportWidth, viewportHeight, new Player.Turret(0, 4, 10));
+                Player player = new Player(UUID.randomUUID(), 0, 0, 0, 0, 0, 10, 20, name, viewportWidth, viewportHeight, new Player.Turret(0, 4, 10), new ArrayList<>());
                 game.connectionPlayerMap.put(connection, player);
                 game.world.addObject(player);
                 logger.info("New player " + player.getName());

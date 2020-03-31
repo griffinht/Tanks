@@ -11,4 +11,9 @@ public class Bullet extends Entity {
         this.owner = owner;
         this.hits = hits;
     }
+
+    @Override
+    String serialize() {
+        return super.serialize() + "," + hits;
+    }
 }

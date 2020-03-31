@@ -1,5 +1,6 @@
 package net.stzups.tanks.game;
 
+import java.util.List;
 import java.util.UUID;
 
 public class Player extends Entity {
@@ -12,6 +13,10 @@ public class Player extends Entity {
             this.width = width;
             this.height = height;
         }
+
+        String serialize() {
+            return rotation + "," + width + "," + height;
+        }
     }
 
     private static final float MAX_VIEWPORT_WIDTH = 16;
@@ -22,11 +27,13 @@ public class Player extends Entity {
     int viewportWidth;
     int viewportHeight;
     Player.Turret turret;
+    List<Bullet> bullets;
 
-    Player(UUID id, double x, double y, double speed, double direction, double rotation, int width, int height, String name, int viewportWidth, int viewportHeight, Player.Turret turret) {
+    Player(UUID id, double x, double y, double speed, double direction, double rotation, int width, int height, String name, int viewportWidth, int viewportHeight, Player.Turret turret, List<Bullet> bullets) {
         super(id, x, y, speed, direction, rotation, width, height);
         this.name = name;
         this.turret = turret;
+        this.bullets = bullets;
         setViewport(viewportWidth, viewportHeight);
     }
 
@@ -46,6 +53,11 @@ public class Player extends Entity {
 
     @Override
     String serialize() {
-        return super.serialize() + ",player:{" + name + "}";
+        StringBuilder bullets = new StringBuilder();
+        for (Bullet bullet : this.bullets) {
+            bullets.append(",");
+            bullets.append(bullet.serialize());
+        }
+        return super.serialize() + ",player:[" + name + "," + turret.serialize() + "," + bullets.toString() + "]";
     }
 }

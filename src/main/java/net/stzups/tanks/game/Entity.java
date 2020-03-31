@@ -25,6 +25,6 @@ class Entity {
     }
 
     String serialize() {
-        return x + "," + y + "," + speed + "," + direction;
+        return id.toString() + "," + x + "," + y + "," + speed + "," + direction + "," + rotation + "," + width + "," + height;
     }
 }
