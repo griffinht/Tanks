@@ -94,6 +94,7 @@ body {
             <canvas id="canvas" width="100" height="100"></canvas>
         </div>
         <script>
+//todo use const
 var webSocket = null;
 var loaderManager;
 
@@ -111,7 +112,9 @@ var ping = 0;
 
 var blocks = [];
 var entities = [];
-var tank;
+var player;
+
+const SECTOR_SIZE = 16;
 
 function initialize() {
     loaderManager = new ConnectLoader();
@@ -120,51 +123,51 @@ function initialize() {
     connect();
     setTimeout(() => {
         //(id, x, y, rot, width, height, turret, bullets, keys, name)
-        tank = new Tank(1234, 200, 200, 0, 100, 20, new Turret(20, 2, 0), [], [], "your mom");
+        //tank = new Tank(1234, 200, 200, 0, 100, 20, new Turret(20, 2, 0), [], [], "your mom");
     }, 1000);
 }
 
 window.onload = function(e) {
     canvas.addEventListener("mousemove", function(e) {
-        if (typeof tank !== "undefined") {
-            let x = e.clientX - tank.x - (tank.width/2);
-            let y = e.clientY - tank.y - (tank.height/2);
+        if (typeof player !== "undefined") {
+            let x = e.clientX - player.x - (player.width/2);
+            let y = e.clientY - player.y - (player.height/2);
             if (x < 0) {
-                tank.turret.rot = Math.atan(y/x) + Math.PI;
+                player.turret.rot = Math.atan(y/x) + Math.PI;
             } else {
-                tank.turret.rot = Math.atan(y/x);
+                player.turret.rot = Math.atan(y/x);
             }
         }
     });
     
     document.addEventListener("keydown", function(e) {
-        if (typeof tank !== "undefined") {
-            if (!tank.keys.includes(e.key)) {
-                tank.keys.push(e.key);
+        if (typeof player !== "undefined") {
+            if (!player.keys.includes(e.key)) {
+                player.keys.push(e.key);
             }
         }
     });
     
     document.addEventListener("keyup", function(e) {
-        if (typeof tank !== "undefined") {
-            let index = tank.keys[e.key];
+        if (typeof player !== "undefined") {
+            let index = player.keys[e.key];
             if (index !== -1) {
-                tank.keys.splice(index, 1);
+                player.keys.splice(index, 1);
             }
         }
     });
     
     canvas.addEventListener("click", function(e) {
-        if (typeof tank !== "undefined") {
-            let x = e.clientX - tank.x - (tank.width/2);
-            let y = e.clientY - tank.y - (tank.height/2);
+        if (typeof player !== "undefined") {
+            let x = e.clientX - player.x - (player.width/2);
+            let y = e.clientY - player.y - (player.height/2);
             let rot;
             if (x < 0) {
                 rot = Math.atan(y/x) + Math.PI;
             } else {
                 rot = Math.atan(y/x) + Math.PI;
             }
-            tank.bullets.push(new Bullet(tank.x + tank.width/2 + (Math.cos(tank.turret.rot) * (tank.turret.width + 10/2)) - 10/2, tank.y + tank.height/2 + (Math.sin(tank.turret.rot) * (tank.turret.width + 10/2)) - 10/2, 10, 10, rot, 0));
+            player.bullets.push(new Bullet(player.x + player.width/2 + (Math.cos(player.turret.rot) * (player.turret.width + 10/2)) - 10/2, player.y + player.height/2 + (Math.sin(player.turret.rot) * (player.turret.width + 10/2)) - 10/2, 10, 10, rot, 0));
         }
     });
     
@@ -189,7 +192,12 @@ window.onload = function(e) {
                     
                     ctx.save();
                     ctx.fillStyle = "green";
-                    tanks.forEach((tank) => {
+                    blocks.forEach((block) => {
+                        block.draw();
+                    });
+                    entities.forEach((entity) => {
+                        entity.draw();
+                        /*
                         if (tank.keys.includes("w") && tank.keys.includes("d")) {
                             tank.rot = 7*Math.PI/4;
                         } else if (tank.keys.includes("d") && tank.keys.includes("s")) {
@@ -234,6 +242,7 @@ window.onload = function(e) {
                             ctx.fillRect(-bullet.width/2, -bullet.height/2, bullet.width, bullet.height);
                             ctx.restore();
                         });
+                        */
                     });
                     
                     ctx.restore();
@@ -347,14 +356,39 @@ function resize() {
     ctx.imageSmoothingEnabled = "false";
 }
 
-class Tank {
-    constructor(id, x, y, rot, width, height, turret, bullets, keys, name) {
+class Block {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+    
+    draw() {
+        ctx.fillRect(this.x, this.y, 10, 10);
+    }
+}
+
+class Entity {
+    constructor(id, x, y, speed, direction, rotation, width, height) {
         this.id = id;
         this.x = x;
         this.y = y;
-        this.rot = rot;
+        this.speed = speed;
+        this.direction = direction;
         this.width = width;
         this.height = height;
+    }
+    
+    draw() {
+        ctx.save();
+        ctx.rotate(this.rotation);
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+        ctx.restore();
+    }
+}
+
+class Player extends Entity {
+    constructor(id, x, y, speed, direction, rotation, width, height, turret, bullets, keys, name) {
+        super(id, x, y, speed, direction, rotation, width, height);
         this.turret = turret;
         this.bullets = bullets;
         this.keys = keys;
@@ -371,8 +405,9 @@ class Tank {
     }
 }
 
-class Bullet {
-    constructor(x, y, width, height, rot, hits) {
+class Bullet extends Entity {
+    constructor(id, x, y, speed, direction, rotation, width, height, owner, hits) {
+        super(id, x, y, speed, direction, rotation, width, height, owner, hits);
         this.x = x;
         this.y = y;
         this.width = width;
