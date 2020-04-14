@@ -121,10 +121,6 @@ function initialize() {
     resize();
     
     connect();
-    setTimeout(() => {
-        //(id, x, y, rot, width, height, turret, bullets, keys, name)
-        //tank = new Tank(1234, 200, 200, 0, 100, 20, new Turret(20, 2, 0), [], [], "your mom");
-    }, 1000);
 }
 
 window.onload = function(e) {
@@ -172,14 +168,11 @@ window.onload = function(e) {
     });
     
     playButton.addEventListener("click", function(e) {
-        send(JSON.stringify({
-            newClient:{
-                    name:document.getElementById("nickname").value,
-                    viewportWidth:canvas.width,
-                    viewportHeight:canvas.height
-                }
-            }
-         ));
+        send(JSON.stringify(["newPlayer", [
+            document.getElementById("nickname").value, //nickname
+            canvas.width, //viewportWidth
+            canvas.height //viewportHeight
+        ]]));
         drawing = true;
         new Promise((resolve, reject) => {
             loader.style.display = "none";
@@ -271,7 +264,7 @@ function connect() {
     });
     webSocket = new WebSocket("ws://45.36.37.61:80");
 
-    webSocket.onopen = function(e) {
+    webSocket.onopen = function() {
         window.onbeforeunload = function(){
             webSocket.close();
         }
@@ -280,7 +273,7 @@ function connect() {
         loaderManager.onOpen();
     }
 
-    webSocket.onclose = function(e) {
+    webSocket.onclose = function() {
         console.log("Connection closed, attempting to reconnect...");
         document.getElementById("status").style.display = "block";
         document.getElementById("status").innerHTML = "disconnected, attempting to reconnect";
@@ -288,9 +281,16 @@ function connect() {
         reconnect = setTimeout(connect, 1000);
     }
 
-    webSocket.onmessage = function(e) {
-        console.log(event);
-        console.log(JSON.parse(event.data));
+    webSocket.onmessage = function() {
+        let payload = JSON.parse(event.data);
+        if (payload[0] === "newPlayer") {
+            player = payload[1][0];
+        } else if (payload[0] === "play") {
+            
+        } else {
+            console.log("Unrecognized packet from server");
+            console.log(payload);
+        }
     }
 }
 

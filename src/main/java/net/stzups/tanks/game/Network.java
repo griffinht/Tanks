@@ -3,6 +3,7 @@ package net.stzups.tanks.game;
 import net.stzups.tanks.Tanks;
 import net.stzups.tanks.server.Connection;
 import net.stzups.tanks.server.PacketListener;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -58,23 +59,28 @@ class Network implements PacketListener {
     public void onTextPacket(Connection connection, String rawPayload) {
         if (!game.connectionPlayerMap.containsKey(connection)) {
             try {
-                JSONObject payload = new JSONObject(rawPayload);
-                JSONObject newClient = payload.getJSONObject("newClient");
-                String name = newClient.getString("name");
-                int viewportWidth = newClient.getInt("viewportWidth");
-                int viewportHeight = newClient.getInt("viewportHeight");
-                Player player = new Player(UUID.randomUUID(), 0, 0, 0, 0, 0, 10, 20, name, viewportWidth, viewportHeight, new Player.Turret(0, 4, 10), new ArrayList<>());
-                game.connectionPlayerMap.put(connection, player);
-                game.world.addObject(player);
-                logger.info("New player " + player.getName());
+                JSONArray payload = new JSONArray(rawPayload);
+                if (payload.getString(0).equalsIgnoreCase("newPlayer")) {
+                    JSONArray newClient = payload.getJSONArray(1);
+                    String name = newClient.getString(0);
+                    int viewportWidth = newClient.getInt(1);
+                    int viewportHeight = newClient.getInt(2);
+                    Player player = new Player(UUID.randomUUID(), 0, 0, 0, 0, 0, 10, 20, name, viewportWidth, viewportHeight, new Player.Turret(0, 4, 10), new ArrayList<>());
+                    game.connectionPlayerMap.put(connection, player);
+                    game.world.addObject(player);
+                    logger.info("New player " + player.getName());
+
+                    connection.sendText("[newPlayer,[" + player.id + "]");
+                } else {
+                    logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", should have gotten newPlayer, instead got " + payload.getString(0));
+                }
             } catch (JSONException e) {
-                logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", parsing newClient packet caused " + e.getMessage());
+                logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", parsing newPlayer packet caused " + e.getMessage());
                 connection.close(true);
             }
-
         } else {
             Player player = game.connectionPlayerMap.get(connection);
-            logger.info(player.getName()+": "+rawPayload);
+            logger.info(player.getName() + ": " + rawPayload);
         }
     }
 
