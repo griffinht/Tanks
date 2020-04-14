@@ -47,7 +47,7 @@ class Network implements PacketListener {
                         }
                     }
                 }
-                entry.getKey().sendText(payload.toString());
+                entry.getKey().sendText("[\"play\"," + payload.toString() + "]");
             }
         });
     }
@@ -70,7 +70,7 @@ class Network implements PacketListener {
                     game.world.addObject(player);
                     logger.info("New player " + player.getName());
 
-                    connection.sendText("[newPlayer,[" + player.id + "]");
+                    connection.sendText("[\"newPlayer\",\"" + player.id + "\"]");
                 } else {
                     logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", should have gotten newPlayer, instead got " + payload.getString(0));
                 }
