@@ -15,7 +15,7 @@ public class Player extends Entity {
         }
 
         String serialize() {
-            return rotation + "," + width + "," + height;
+            return "[" + rotation + "," + width + "," + height + "]";
         }
     }
 
@@ -58,6 +58,9 @@ public class Player extends Entity {
             bullets.append(",");
             bullets.append(bullet.serialize());
         }
-        return super.serialize() + ",player:[" + name + "," + turret.serialize() + "," + bullets.toString() + "]";
+        if (bullets.length() == 0) {
+            bullets.append("[]");
+        }
+        return "[player," + super.serializeStripped() + "," + name + "," + turret.serialize() + "," + bullets.toString() + "]";
     }
 }

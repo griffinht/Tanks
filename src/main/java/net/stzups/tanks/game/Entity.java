@@ -25,6 +25,10 @@ class Entity {
     }
 
     String serialize() {
+        return "[" + id.toString() + "," + x + "," + y + "," + speed + "," + direction + "," + rotation + "," + width + "," + height + "]";
+    }
+
+    protected String serializeStripped() {
         return id.toString() + "," + x + "," + y + "," + speed + "," + direction + "," + rotation + "," + width + "," + height;
     }
 }

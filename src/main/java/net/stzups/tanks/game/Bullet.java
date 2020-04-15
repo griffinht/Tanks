@@ -14,6 +14,6 @@ public class Bullet extends Entity {
 
     @Override
     String serialize() {
-        return super.serialize() + "," + hits;
+        return "[" + super.serializeStripped() + "," + hits + "]";
     }
 }

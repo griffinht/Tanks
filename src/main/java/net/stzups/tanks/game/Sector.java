@@ -1,6 +1,7 @@
 package net.stzups.tanks.game;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -24,28 +25,33 @@ class Sector {
     }
 
     JSONObject serialize() {
-        JSONObject sector = new JSONObject();
-        JSONArray jsonBlocks = new JSONArray();
-        for (int x = 0; x < blocks.length; x++) {
-            for (int y = 0; y < blocks[x].length; y++) {
-                Block block = blocks[x][y];
-                if (block != null) {
-                    jsonBlocks.put(block.serialize());
+        try {
+            JSONObject sector = new JSONObject();
+            JSONArray jsonBlocks = new JSONArray();
+            for (int x = 0; x < blocks.length; x++) {
+                for (int y = 0; y < blocks[x].length; y++) {
+                    Block block = blocks[x][y];
+                    if (block != null) {
+                        jsonBlocks.put(block.serialize());
+                    }
                 }
             }
-        }
-        if (jsonBlocks.length() > 0) {
-            sector.put("blocks", jsonBlocks);
-        }
+            if (jsonBlocks.length() > 0) {
+                sector.put("blocks", jsonBlocks);
+            }
 
-        JSONArray jsonEntities = new JSONArray();
-        for (Entity entity : entities) {
-            jsonEntities.put(entity.serialize());
-        }
-        if (jsonEntities.length() > 0) {
-            sector.put("entities", jsonEntities);
-        }
+            JSONArray jsonEntities = new JSONArray();
+            for (Entity entity : entities) {
+                jsonEntities.put(new JSONArray(entity.serialize()));
+            }
+            if (jsonEntities.length() > 0) {
+                sector.put("entities", jsonEntities);
+            }
 
-        return sector;
+            return sector;
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return new JSONObject();
     }
 }

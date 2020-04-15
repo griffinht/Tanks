@@ -129,9 +129,9 @@ window.onload = function(e) {
             let x = e.clientX - player.x - (player.width/2);
             let y = e.clientY - player.y - (player.height/2);
             if (x < 0) {
-                player.turret.rot = Math.atan(y/x) + Math.PI;
+                player.turret.rotation = Math.atan(y/x) + Math.PI;
             } else {
-                player.turret.rot = Math.atan(y/x);
+                player.turret.rotation = Math.atan(y/x);
             }
         }
     });
@@ -157,13 +157,13 @@ window.onload = function(e) {
         if (typeof player !== "undefined") {
             let x = e.clientX - player.x - (player.width/2);
             let y = e.clientY - player.y - (player.height/2);
-            let rot;
+            let rotation;
             if (x < 0) {
-                rot = Math.atan(y/x) + Math.PI;
+                rotation = Math.atan(y/x) + Math.PI;
             } else {
-                rot = Math.atan(y/x) + Math.PI;
+                rotation = Math.atan(y/x) + Math.PI;
             }
-            player.bullets.push(new Bullet(player.x + player.width/2 + (Math.cos(player.turret.rot) * (player.turret.width + 10/2)) - 10/2, player.y + player.height/2 + (Math.sin(player.turret.rot) * (player.turret.width + 10/2)) - 10/2, 10, 10, rot, 0));
+            player.bullets.push(new Bullet(player.x + player.width/2 + (Math.cos(player.turret.rotation) * (player.turret.width + 10/2)) - 10/2, player.y + player.height/2 + (Math.sin(player.turret.rotation) * (player.turret.width + 10/2)) - 10/2, 10, 10, rotation, 0));
         }
     });
     
@@ -284,24 +284,40 @@ function connect() {
     }
 
     webSocket.onmessage = function() {
-        try {
-            let payload = JSON.parse(event.data);
-            if (payload[0] === "newPlayer") {
-                playerId = payload[1];
-            } else if (payload[0] === "play") {
-                let newSectors = payload[1];
-                for (let key in newSectors) {
-                    let split = key.split(",", 2);
-                    let x = parseInt(split[0]);
-                    let y = parseInt(split[1]);
-                    
+        let payload = JSON.parse(event.data);
+        if (payload[0] === "newPlayer") {
+            playerId = payload[1];
+        } else if (payload[0] === "play") {
+            let newSectors = payload[1];
+            for (let key in newSectors) {
+                let split = key.split(",", 2);
+                let x = parseInt(split[0]);
+                let y = parseInt(split[1]);
+                if (newSectors[key].entities) {
+                    for (let entityKey in newSectors[key].entities) {
+                        let rawEntity = newSectors[key].entities[entityKey];
+                        let entity;
+                        if (rawEntity[0] === "player") {
+                            entity = Player.deserialize(rawEntity);
+                        } else {
+                            entity = Entity.deserialize(rawEntity);
+                        }
+                        console.log(entity);
+                        if (entity.id == playerId) {
+                            player = entity; //todo setProp
+                        }
+                    }
                 }
-            } else {
-                console.log("Unrecognized packet from server");
-                console.log(payload);
+                if (newSectors[key].blocks) {
+                    for (let blockKey in newSectors[key].blocks) {
+                        let block = newSectors[key].entities[blockKey];
+                        console.log(block);
+                    }
+                }
             }
-        } catch (e) {
-            console.log("Couldn't parse JSON from server, got " + e + ", full payload: " + event.data);
+        } else {
+            console.log("Unrecognized packet from server");
+            console.log(payload);
         }
     }
 }
@@ -396,17 +412,19 @@ class Entity {
         ctx.fillRect(this.x, this.y, this.width, this.height);
         ctx.restore();
     }
+    
+    static deserialize(entity) {
+        return new Entity(entity[0], entity[1], entity[2], entity[3], entity[4], entity[5], entity[6], entity[7]);
+    }
 }
 
 class Player extends Entity {
-    constructor(id, x, y, speed, direction, rotation, width, height, turret, bullets, keys, name) {
+    constructor(id, x, y, speed, direction, rotation, width, height, name, turret, bullets) {
         super(id, x, y, speed, direction, rotation, width, height);
+        this.name = name;
         this.turret = turret;
         this.bullets = bullets;
-        this.keys = keys;
-        this.name = name;
-        
-        tanks[id] = this;
+        this.keys = []
     }
     
     move(x, y, rot, keys) {
@@ -415,25 +433,36 @@ class Player extends Entity {
         this.rot = rot;
         this.keys = keys;
     }
+    
+    static deserialize(entity) {
+        let bullets = [];
+        for (let bullet in entity[11]) {
+            bullets.push(Bullet.deserialize(bullet));
+        }
+        return new Player(entity[1], entity[2], entity[3], entity[4], entity[5], entity[6], entity[7], entity[8], entity[9], Turret.deserialize(entity[10]), bullets);
+    }
 }
 
 class Bullet extends Entity {
     constructor(id, x, y, speed, direction, rotation, width, height, owner, hits) {
-        super(id, x, y, speed, direction, rotation, width, height, owner, hits);
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        this.rot = rot;
+        super(id, x, y, speed, direction, rotation, width, height, owner);
         this.hits = hits;
+    }
+    
+    static deserialize(entity) {
+        return new Bullet(entity[0], entity[1], entity[2], entity[3], entity[4], entity[5], entity[6], entity[7], entity[8]);
     }
 }
 
 class Turret {
-    constructor(width, height, rot) {
+    constructor(rotation, width, height) {
+        this.rotation = rotation;
         this.width = width;
         this.height = height;
-        this.rot = rot;
+    }
+    
+    static deserialize(turret) {
+        return new Turret(turret[0], turret[1], turret[2]);
     }
 }
 

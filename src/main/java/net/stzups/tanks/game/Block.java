@@ -10,6 +10,6 @@ class Block {
     }
 
     String serialize() {
-        return x + "," + y;
+        return "[" + x + "," + y + "]";
     }
 }
