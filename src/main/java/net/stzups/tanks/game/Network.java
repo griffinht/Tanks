@@ -47,7 +47,7 @@ class Network implements PacketListener {
                         }
                     }
                 }
-                entry.getKey().sendText("[\"play\"," + payload.toString() + "]");
+                entry.getKey().sendText("{\"play\":" + payload.toString() + "}");
             }
         });
     }
@@ -59,9 +59,9 @@ class Network implements PacketListener {
     public void onTextPacket(Connection connection, String rawPayload) {
         if (!game.connectionPlayerMap.containsKey(connection)) {
             try {
-                JSONArray payload = new JSONArray(rawPayload);
-                if (payload.getString(0).equalsIgnoreCase("newPlayer")) {
-                    JSONArray newClient = payload.getJSONArray(1);
+                JSONObject payload = new JSONObject(rawPayload);
+                if (payload.has("newPlayer")) {
+                    JSONArray newClient = payload.getJSONArray("newPlayer");
                     String name = newClient.getString(0);
                     int viewportWidth = newClient.getInt(1);
                     int viewportHeight = newClient.getInt(2);
@@ -70,9 +70,9 @@ class Network implements PacketListener {
                     game.world.addObject(player);
                     logger.info("New player " + player.getName());
 
-                    connection.sendText("[\"newPlayer\",\"" + player.id + "\"]");
+                    connection.sendText("{\"newPlayer\":\"" + player.id + "\"}");
                 } else {
-                    logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", should have gotten newPlayer, instead got " + payload.getString(0));
+                    logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", should have gotten newPlayer, instead got " + payload.keySet());
                 }
             } catch (JSONException e) {
                 logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", parsing newPlayer packet caused " + e.getMessage());

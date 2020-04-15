@@ -28,7 +28,7 @@ class Entity {
         return "[" + id.toString() + "," + x + "," + y + "," + speed + "," + direction + "," + rotation + "," + width + "," + height + "]";
     }
 
-    protected String serializeStripped() {
+    String serializeStripped() {
         return id.toString() + "," + x + "," + y + "," + speed + "," + direction + "," + rotation + "," + width + "," + height;
     }
 }
