@@ -21,7 +21,7 @@ public class Server implements Runnable {
     private FileManager fileManager;
 
     private ServerSocket serverSocket;
-    private Map<InetAddress, Connection> connections = new HashMap<>();
+    private List<Connection> connections = new ArrayList<>();
     private boolean stopped = false;
 
     private List<PacketListener> packetListeners = new ArrayList<>();
@@ -47,7 +47,7 @@ public class Server implements Runnable {
             } catch (IOException e) {
                 if (stopped) {
                     logger.info("Closing " + connections.size() + " connections...");
-                    for (Connection connection : new ArrayList<>(connections.values())) {
+                    for (Connection connection : connections) {
                         connection.close(true);
                     }
                     return;
@@ -67,23 +67,33 @@ public class Server implements Runnable {
         }
     }
 
-    public Collection<Connection> getConnections() {
-        return connections.values();
+    public List<Connection> getConnections() {
+        return connections;
     }
 
     boolean containsConnection(Connection connection) {
-        return connections.containsKey(connection.getSocket().getInetAddress());
+        return connections.contains(connection);
+    }
+
+    boolean containsInetAddress(InetAddress inetAddress) {
+        for (Connection connection : connections) {
+            if (connection.getSocket().getInetAddress().equals(inetAddress)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     void addConnection(Connection connection) {
-        connections.put(connection.getSocket().getInetAddress(), connection);
+        connections.add(connection);
         for (PacketListener packetListener : packetListeners) {
             packetListener.addConnection(connection);
         }
     }
 
     void removeConnection(Connection connection) {
-        connections.remove(connection.getSocket().getInetAddress());
+        connections.remove(connection);
         for (PacketListener packetListener : packetListeners) {
             packetListener.removeConnection(connection);
         }
@@ -101,7 +111,7 @@ public class Server implements Runnable {
 
     void sendText(List<Connection> recipients, String payload) {
         if (recipients == null) {
-            for (Connection connection : connections.values()) {
+            for (Connection connection : connections) {
                 connection.sendText(payload);
             }
         } else {
@@ -113,11 +123,11 @@ public class Server implements Runnable {
 
     void sendTextExcept(List<Connection> recipients, String payload) {
         if (recipients == null) {
-            for (Connection connection : connections.values()) {
+            for (Connection connection : connections) {
                 connection.sendText(payload);
             }
         } else {
-            for (Connection connection : connections.values()) {
+            for (Connection connection : connections) {
                 if (!recipients.contains(connection)) {
                     connection.sendText(payload);
                 }

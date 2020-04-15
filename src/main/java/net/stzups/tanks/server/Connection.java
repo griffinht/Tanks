@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 public class Connection implements Runnable {
 
     private static final Logger logger = Logger.getLogger(Tanks.class.getName());
+    private static final boolean ALLOW_MULTIPLE_CONNECTIONS_FROM_SAME_IP_ADDRESS = false;
 
     private FileManager fileManager;
 
@@ -94,7 +95,7 @@ public class Connection implements Runnable {
                                 + "\r\n\r\n").getBytes(StandardCharsets.UTF_8);
                         outputStream.write(response, 0, response.length);
 
-                        if (server.containsConnection(this)) {
+                        if (!ALLOW_MULTIPLE_CONNECTIONS_FROM_SAME_IP_ADDRESS && server.containsInetAddress(socket.getInetAddress())) {
                             sendPacket((byte) 0x8, "");
                             return;
                         }
