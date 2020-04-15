@@ -324,16 +324,12 @@ public class Connection implements Runnable {
         return readBytesToString(new byte[]{b});
     }
 
-    void sendPacket(byte opcode, String payload) {
+    private void sendPacket(byte opcode, String payload) {
         queue.add(getFramedPacket(opcode, payload));
     }
 
     public void sendText(String payload) {
         sendPacket((byte) 0x1, payload);
-    }
-
-    boolean isConnected() {
-        return connected;
     }
 
     public void close(boolean kick) {
