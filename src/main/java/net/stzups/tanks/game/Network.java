@@ -47,7 +47,7 @@ class Network implements PacketListener {
                         }
                     }
                 }
-                entry.getKey().sendText("{\"play\":" + payload.toString() + "}");
+                entry.getKey().sendText("{\"play\":" + payload.toString() + ",\"ping\":" + entry.getKey().getPing() + ",\"time\":" + System.currentTimeMillis() + "}");
             }
         });
     }
@@ -70,17 +70,40 @@ class Network implements PacketListener {
                     game.world.addObject(player);
                     logger.info("New player " + player.getName());
 
-                    connection.sendText("{\"newPlayer\":\"" + player.id + "\"}");
+                    connection.sendText("{\"newPlayer\":[\"" + player.id + "\"," + Game.NETWORK_TICK_RATE + "]}");
                 } else {
                     logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", should have gotten newPlayer, instead got " + payload.keySet());
                 }
+                if (payload.has("time")) {
+                    connection.setPing((int) (System.currentTimeMillis() - payload.getLong("time")));
+                } else {
+                    logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", should have included time, instead got " + payload.keySet());
+                }
             } catch (JSONException e) {
-                logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", parsing newPlayer packet caused " + e.getMessage());
+                logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", parsing packet caused " + e.getMessage());
                 connection.close(true);
             }
         } else {
             Player player = game.connectionPlayerMap.get(connection);
-            logger.info(player.getName() + ": " + rawPayload);
+            //logger.info(player.getName() + ": " + rawPayload);
+            try {
+                JSONObject payload = new JSONObject(rawPayload);
+                if (payload.has("time")) {
+                    connection.setPing((int) (System.currentTimeMillis() - payload.getLong("time")));
+                } else {
+                    logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", should have included time, instead got " + payload.keySet());
+                }
+                if (payload.has("player")) {
+                    //todo
+                }
+                if (payload.has("viewport")) {
+                    JSONArray viewport = payload.getJSONArray("viewport");
+                    player.setViewport(viewport.getInt(0), viewport.getInt(1));
+                }
+            } catch (JSONException e) {
+                logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", parsing packet caused " + e.getMessage());
+                connection.close(true);
+            }
         }
     }
 

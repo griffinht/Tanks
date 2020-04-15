@@ -56,9 +56,9 @@ class ConsoleManager {
                         if (input.length > 1) {
                             boolean found = false;
                             for (Connection connection : Tanks.server.getConnections()) {
-                                if (connection.getSocket().getInetAddress().getHostAddress().equals(input[1]) || connection.getUUID().toString().equals(input[1])) {
+                                if (connection.getSocket().getInetAddress().getHostAddress().equals(input[1]) || (connection.getUUID() != null && connection.getUUID().toString().equals(input[1]))) {
                                     connection.close(true);
-                                    logger.info("Kicked " + connection.getUUID());
+                                    logger.info("Kicked " + connection.getUUID() + " (" + connection.getSocket().getInetAddress().getHostAddress() + ")");
                                     found = true;
                                     break;
                                 }

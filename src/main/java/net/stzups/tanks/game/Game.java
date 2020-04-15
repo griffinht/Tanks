@@ -8,7 +8,7 @@ import java.util.Map;
 
 public class Game implements Runnable {
 
-    private static final int NETWORK_TICK_RATE = 20;
+    static final int NETWORK_TICK_RATE = 20;
 
     private Network network = new Network(this);
     private long lastNetworkTick = 0;

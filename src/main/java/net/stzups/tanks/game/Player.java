@@ -37,7 +37,7 @@ public class Player extends Entity {
         setViewport(viewportWidth, viewportHeight);
     }
 
-    private void setViewport(int viewportWidth, int viewportHeight) {
+    void setViewport(int viewportWidth, int viewportHeight) {
         if ((float) viewportWidth / (float) viewportHeight >= MAX_VIEWPORT_WIDTH / MAX_VIEWPORT_HEIGHT) {
             this.viewportWidth = (int) (MAX_VIEWPORT_WIDTH * VIEWPORT_SCALE);
             this.viewportHeight = (int) ((float) this.viewportWidth * ((float) viewportHeight / (float) viewportWidth));

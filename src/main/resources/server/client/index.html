@@ -97,6 +97,7 @@ body {
 //todo use const
 var webSocket = null;
 var loaderManager;
+var networkManager;
 
 var drawing = false;
 
@@ -119,12 +120,13 @@ var viewportX = 0;
 var viewportY = 0;
 var viewportWidth = 0; //maybe different from canvas.width in the future?
 var viewportHeight = 0;
-var updateSize = false;
+var updateViewport = false;
 
 const SECTOR_SIZE = 16;
 
 function initialize() {
-    loaderManager = new ConnectLoader();
+    loaderManager = new LoaderManager();
+    networkManager = new NetworkManager();
     resize();
     
     connect();
@@ -175,11 +177,11 @@ window.onload = function(e) {
     });
     
     playButton.addEventListener("click", function(e) {
-        send(JSON.stringify({newPlayer:[
+        send({newPlayer:[
             document.getElementById("nickname").value, //nickname
             canvas.width, //viewportWidth
             canvas.height //viewportHeight
-        ]}));
+        ]});
         drawing = true;
         new Promise((resolve, reject) => {
             loader.style.display = "none";
@@ -293,13 +295,17 @@ function connect() {
         document.getElementById("status").style.display = "block";
         document.getElementById("status").innerHTML = "disconnected, attempting to reconnect";
         playButton.style.display = "none";
+        networkManager.stop();
         reconnect = setTimeout(connect, 1000);
     }
 
     webSocket.onmessage = function() {
         let payload = JSON.parse(event.data);
         if (payload.newPlayer) {
-            playerId = payload.newPlayer;
+            playerId = payload.newPlayer[0];
+            networkManager.start(payload.newPlayer[1]);
+        } else if (payload.ping) {
+            ping = payload.ping;
         } else if (payload.play) {
             let newSectors = payload.play;
             for (let key in newSectors) {
@@ -336,14 +342,15 @@ function connect() {
 }
 
 function send(payload) {
-    if(webSocket.readyState == WebSocket.OPEN) {
-        webSocket.send(payload);
+    if(webSocket.readyState === WebSocket.OPEN) {
+        payload.time = Date.now();
+        webSocket.send(JSON.stringify(payload));
     } else {
         return "Error: Not connected";
     }
 }
 
-class ConnectLoader { //todo unnecessary class?
+class LoaderManager { //todo unnecessary class?
     constructor() {
         this.dots = 0;
         this.running = false;
@@ -386,6 +393,35 @@ class ConnectLoader { //todo unnecessary class?
     }
 }
 
+class NetworkManager {
+    constructor() {
+        this.running = false;
+    }
+    
+    start(tps) {
+        this.running = true;
+        const interval = setInterval(() => {
+            if (this.running && webSocket.readyState === WebSocket.OPEN) {
+                let payload = {time:window.performance.now()};
+                if (player) {
+                    payload.player = player;
+                }
+                if (updateViewport) {
+                    updateViewport = false;
+                    payload.viewport = [viewportWidth, viewportHeight];
+                }
+                send(payload);
+            } else {
+                clearInterval(interval);
+            }
+        }, 1000/tps);
+    }
+    
+    stop() {
+        this.running = true;
+    }
+}
+
 /* 
 canvas 
 */
@@ -395,7 +431,7 @@ function resize() {
     canvas.height = window.innerHeight;
     viewportWidth = canvas.width;
     viewportHeight = canvas.height;
-    updateSize = true;
+    updateViewport = true;
     
     ctx.imageSmoothingEnabled = "false";
 }

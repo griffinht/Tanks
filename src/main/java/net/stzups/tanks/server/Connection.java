@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -32,9 +31,10 @@ public class Connection implements Runnable {
     private FileManager fileManager;
 
     private Server server;
-    private UUID uuid;
+    private UUID uuid = null;
     private Socket socket;
-    private long lastPing = System.currentTimeMillis();
+    private long lastHeartbeatPing = System.currentTimeMillis();
+    private int heartbeatPing = 0;
     private int ping = 0;
     private Queue<byte[]> queue = Collections.asLifoQueue(new ArrayDeque<>());
     private boolean connected = false;
@@ -44,13 +44,28 @@ public class Connection implements Runnable {
 
         this.server = server;
         this.socket = socket;
-        this.uuid = UUID.randomUUID();
 
         new Thread(this).start();
     }
 
     public UUID getUUID() {
         return uuid;
+    }
+
+    public void setUUID(UUID uuid) {
+        this.uuid = uuid;
+    }
+
+    public int getPing() {
+        return ping;
+    }
+
+    public void setPing(int ping) {
+        if (ping < -1) { // Allow for some incorrect time
+            logger.warning("Closing connection for " + socket.getInetAddress().getHostAddress() + " because of negative ping (" + ping + "ms)");
+            close(true);
+        }
+        this.ping = ping;
     }
 
     public Socket getSocket() {
@@ -60,12 +75,13 @@ public class Connection implements Runnable {
     private Thread heartbeat = new Thread(() -> {
         while(!Thread.currentThread().isInterrupted() && connected) {
             try {
-                Thread.sleep(1000);
-                if (ping == -1 || ping > 1000) {
+                Thread.sleep(5000);
+                if (heartbeatPing == -1 || heartbeatPing > 5000) {
                     logger.warning("Closing unresponsive connection..."); //todo test
                     close(true);
                 }
-                lastPing = System.currentTimeMillis();
+                heartbeatPing = -1;
+                lastHeartbeatPing = System.currentTimeMillis();
                 sendPacket((byte) 0x9, "");
             } catch (InterruptedException e) {
                 return;
@@ -134,8 +150,7 @@ public class Connection implements Runnable {
                                         throw new RuntimeException("Client sent ping, server can't handle");
                                     case 0xA: // pong from client
                                         long time = System.currentTimeMillis();
-                                        ping = (int) (time - lastPing);
-                                        lastPing = -1;
+                                        heartbeatPing = (int) (time - lastHeartbeatPing);
                                         break;
                                     default: // error
                                         byte[] packet = new byte[inputStream.available()];
@@ -258,13 +273,13 @@ public class Connection implements Runnable {
             }
 
             if (length != decoded.length) {
-                throw new RuntimeException("Mismatching payload lengths, (packet length: " + length + ", actual length " + decoded.length + ")");
+                throw new RuntimeException("Mismatching payload lengths, (packet length: " + length + ", actual length " + decoded.length + "), raw payload: " + new String(decoded));
             }
         } else {
             byte[] packet = new byte[inputStream.available()];
             if (inputStream.read(packet) == -1)
                 throw new IOException();
-            throw new RuntimeException("Received unmasked data from client, full HEAD packet: " + readBytesToString(head));
+            throw new RuntimeException("Received unmasked data from client, full head packet: " + readBytesToString(head));
         }
 
         return decoded;
