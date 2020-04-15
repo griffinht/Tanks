@@ -110,7 +110,8 @@ var ctx = canvas.getContext("2d");
 var lastFrame = 0;
 var ping = 0;
 
-var sectors = [];
+var blocks = [];
+var entities = {};
 var player;
 var playerId;
 
@@ -185,12 +186,11 @@ window.onload = function(e) {
                     
                     ctx.save();
                     ctx.fillStyle = "green";
-                    sectors.forEach((sectorX) => {
-                        sectorX.forEach((sector) => {
-                            sector.forEach((thing) => {
-                                thing.draw();
-                            });
-                        });
+                    blocks.forEach((block) => {
+                        block.draw();
+                    });
+                    Object.keys(entities).forEach((key) => {
+                        entities[key].draw();
                     });
                    
                         /*
@@ -302,10 +302,10 @@ function connect() {
                         } else {
                             entity = Entity.deserialize(rawEntity);
                         }
-                        console.log(entity);
                         if (entity.id == playerId) {
                             player = entity; //todo setProp
                         }
+                        entities[entity.id] = entity;
                     }
                 }
                 if (newSectors[key].blocks) {
@@ -402,6 +402,7 @@ class Entity {
         this.y = y;
         this.speed = speed;
         this.direction = direction;
+        this.rotation = rotation;
         this.width = width;
         this.height = height;
     }
