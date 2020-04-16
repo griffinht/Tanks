@@ -8,15 +8,18 @@ import java.util.Map;
 
 public class Game implements Runnable {
 
+    private static int GAME_TICK_RATE = 60;
+    private static double GAME_TICK_INTERVAL = 1000 / (GAME_TICK_RATE / 1000000.0);
     static final int NETWORK_TICK_RATE = 20;
-    private static final int GAME_TICK_RATE = 60;
+    private static double NETWORK_TICK_INTERVAL = 1000 / (NETWORK_TICK_RATE / 1000000.0);
+
 
     private Network network = new Network(this);
     private long lastNetworkTick = 0;
 
     private boolean running;
     private int tick = 0;
-    private double tickRate = 0;
+    private float tps = 0;
     private long lastTick = 0;
 
     Map<Connection, Player> connectionPlayerMap = new HashMap<>();
@@ -30,29 +33,26 @@ public class Game implements Runnable {
         running = true;
 
         while (running) {
-            long time = System.nanoTime();
-            long elapsedTime = time - lastTick;
-            lastTick = time;
-            if ((time - lastNetworkTick) / 1000000 > 1000 / NETWORK_TICK_RATE) {
+            long now = System.nanoTime();
+
+            if (now - lastTick > GAME_TICK_INTERVAL) {
+                long elapsedTime = now - lastTick;
+                tps = (float) (1000 / (elapsedTime / 1000000.0));
+                lastTick = now;
+
+                //System.out.print(tick + " ticks, " + (Math.round(tps * 100) / 100.0) + "tps, " + elapsedTime / 1000000.0 + "ms per tick\r");// todo fix tickrate reporting
+                //movement
+                world.tick(tick);
+
+                tick++;
+            }
+
+            if (now - lastNetworkTick > NETWORK_TICK_INTERVAL) {
                 network.tick(tick);
-                lastNetworkTick = time;
+                lastNetworkTick = now;
             }
 
-            tickRate = elapsedTime / 1000000.0;
-
-            //System.out.print(tick + " ticks, " + (int) (1000 / tickRate) + "tps, " + elapsedTime / 1000000.0 + "ms per tick\r");// todo fix tickrate reporting
-            //movement
-            world.tick(tick);
-
-
-            tick++;
-            if (GAME_TICK_RATE != -1) {
-                try {
-                    Thread.sleep(Math.max(1000 / GAME_TICK_RATE - (int) ((System.nanoTime() - time) / 1000000), 0));
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+            Thread.yield(); //todo idk if this needs to be here, also try to help alleviate cpu hog?
         }
     }
 
@@ -69,7 +69,7 @@ public class Game implements Runnable {
         return connectionPlayerMap;
     }
 
-    double getTickRate() {
-        return tickRate;
+    double getTps() {
+        return tps;
     }
 }

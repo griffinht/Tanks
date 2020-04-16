@@ -48,7 +48,7 @@ class Network implements PacketListener {
                         }
                     }
                 }
-                entry.getKey().sendText("{\"play\":" + payload.toString() + ",\"ping\":" + entry.getKey().getPing() + ",\"time\":" + System.currentTimeMillis() + ",\"tps\":" + ((float) Math.round(1000 / game.getTickRate() * 100) / 100) + "}");
+                entry.getKey().sendText("{\"play\":" + payload.toString() + ",\"ping\":" + entry.getKey().getPing() + ",\"time\":" + System.currentTimeMillis() + ",\"tps\":" + ((float) Math.round(game.getTps() * 100) / 100) + "}");
             }
         });
     }
