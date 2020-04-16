@@ -9,7 +9,7 @@ import java.util.Map;
 public class Game implements Runnable {
 
     static final int NETWORK_TICK_RATE = 20;
-    static final int GAME_TICK_RATE = 60;
+    private static final int GAME_TICK_RATE = 60;
 
     private Network network = new Network(this);
     private long lastNetworkTick = 0;
@@ -46,10 +46,12 @@ public class Game implements Runnable {
 
 
             tick++;
-            try {
-                Thread.sleep(Math.max(1000 / GAME_TICK_RATE - (int) ((System.nanoTime() - time) / 1000000), 0));
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            if (GAME_TICK_RATE != -1) {
+                try {
+                    Thread.sleep(Math.max(1000 / GAME_TICK_RATE - (int) ((System.nanoTime() - time) / 1000000), 0));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
