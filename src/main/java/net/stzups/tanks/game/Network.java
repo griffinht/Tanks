@@ -26,13 +26,14 @@ class Network implements PacketListener {
         Tanks.server.addPacketListener(this);
     }
 
-    void tick() {
+    void tick(int tick) {
         executorService.submit(() -> {
             JSONObject[][] sectors = new JSONObject[World.WORLD_SECTORS][World.WORLD_SECTORS];
 
             for (Map.Entry<Connection, Player> entry : game.connectionPlayerMap.entrySet()) {
                 Player player = entry.getValue();
                 JSONObject payload = new JSONObject();
+                payload.put("tick", tick);
                 for (int x = Math.max(0, (int) (player.x - player.viewportWidth / 2.0 / World.SECTOR_SIZE)); x < Math.ceil(player.x + player.viewportWidth / 2.0 / World.SECTOR_SIZE); x++) {
                     for (int y = Math.max(0, (int) (player.y - player.viewportHeight / 2.0 / World.SECTOR_SIZE)); y < Math.ceil(player.y + player.viewportHeight / 2.0 / World.SECTOR_SIZE); y++) {
                         Sector sector = game.world.sectors[x][y];
@@ -47,7 +48,7 @@ class Network implements PacketListener {
                         }
                     }
                 }
-                entry.getKey().sendText("{\"play\":" + payload.toString() + ",\"ping\":" + entry.getKey().getPing() + ",\"time\":" + System.currentTimeMillis() + "}");
+                entry.getKey().sendText("{\"play\":" + payload.toString() + ",\"ping\":" + entry.getKey().getPing() + ",\"time\":" + System.currentTimeMillis() + ",\"tps\":" + ((float) Math.round(1000 / game.getTickRate() * 100) / 100) + "}");
             }
         });
     }

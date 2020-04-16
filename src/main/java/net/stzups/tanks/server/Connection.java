@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 public class Connection implements Runnable {
 
     private static final Logger logger = Logger.getLogger(Tanks.class.getName());
-    private static final boolean ALLOW_MULTIPLE_CONNECTIONS_FROM_SAME_IP_ADDRESS = false;
+    private static final boolean ALLOW_MULTIPLE_CONNECTIONS_FROM_SAME_IP_ADDRESS = true;
 
     private FileManager fileManager;
 
