@@ -245,11 +245,15 @@ class LoaderManager { //todo unnecessary class?
 class NetworkManager {
     constructor() {
         this.running = false;
+        this.interval = null;
     }
     
     start(tps) {
         this.running = true;
-        const interval = setInterval(() => {
+        if (this.interval) {
+            clearInterval(this.interval);
+        }
+        this.interval = setInterval(() => {
             if (this.running && webSocket.readyState === WebSocket.OPEN) {
                 let payload = {};
                 if (player) {
@@ -264,13 +268,13 @@ class NetworkManager {
                     send(payload);
                 }
             } else {
-                clearInterval(interval);
+                clearInterval(this.interval);
             }
         }, 1000/tps);
     }
     
     stop() {
-        this.running = true;
+        this.running = false;
     }
 }
 
