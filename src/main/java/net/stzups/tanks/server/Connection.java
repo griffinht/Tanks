@@ -52,10 +52,6 @@ public class Connection implements Runnable {
         return uuid;
     }
 
-    public void setUUID(UUID uuid) {
-        this.uuid = uuid;
-    }
-
     public int getPing() {
         return ping;
     }

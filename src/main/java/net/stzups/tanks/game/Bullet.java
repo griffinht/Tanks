@@ -2,7 +2,7 @@ package net.stzups.tanks.game;
 
 import java.util.UUID;
 
-public class Bullet extends Entity {
+class Bullet extends Entity {
     private static final int MAX_HITS = 3;
     Player owner;
     int hits;

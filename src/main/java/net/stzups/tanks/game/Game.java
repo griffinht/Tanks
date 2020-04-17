@@ -61,10 +61,6 @@ public class Game implements Runnable {
         network.stop();
     }
 
-    public Collection<Player> getPlayers() {
-        return connectionPlayerMap.values();
-    }
-
     public Map<Connection, Player> getConnectionPlayerMap() {
         return connectionPlayerMap;
     }

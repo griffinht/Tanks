@@ -70,10 +70,6 @@ public class Server implements Runnable {
         return connections;
     }
 
-    boolean containsConnection(Connection connection) {
-        return connections.contains(connection);
-    }
-
     boolean containsInetAddress(InetAddress inetAddress) {
         for (Connection connection : connections) {
             if (connection.getSocket().getInetAddress().equals(inetAddress)) {
