@@ -34,6 +34,8 @@ public class Connection implements Runnable {
     private final Socket socket;
     private final Queue<byte[]> queue = Collections.asLifoQueue(new ArrayDeque<>());
 
+    private final UUID uuid = UUID.randomUUID();
+
     private long lastHeartbeatPing = System.currentTimeMillis();
     private int heartbeatPing = 0;
     private int ping = 0;
@@ -81,6 +83,10 @@ public class Connection implements Runnable {
 
     public Socket getSocket() {
         return socket;
+    }
+
+    public UUID getUUID() {
+        return uuid;
     }
 
     public void run() {
