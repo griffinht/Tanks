@@ -321,6 +321,7 @@ function connect() {
                 let x = parseInt(split[0]);
                 let y = parseInt(split[1]);
                 if (newSectors[key].entities) {
+                    let ids = [];
                     for (let entityKey in newSectors[key].entities) {
                         let rawEntity = newSectors[key].entities[entityKey];
                         let entity;
@@ -332,8 +333,14 @@ function connect() {
                         if (entity.id == playerId) {
                             player = entity; //todo setProp
                         }
+                        ids.push(entity.id);
                         entities[entity.id] = entity;
                     }
+                    Object.keys(entities).forEach((key) => {
+                        if (!ids.includes(key)) {
+                            delete entities[key];
+                        }
+                    });
                 }
                 if (newSectors[key].blocks) {
                     for (let blockKey in newSectors[key].blocks) {
@@ -515,6 +522,7 @@ class Player extends Entity {
     
     draw() {
         ctx.save();
+        ctx.fillText(this.name, this.x, this.y); 
         ctx.rotate(this.rotation);
         ctx.fillRect(this.x, this.y, this.width, this.height);
         ctx.restore();
