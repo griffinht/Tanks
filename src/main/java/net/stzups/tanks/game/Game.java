@@ -9,9 +9,9 @@ import java.util.Map;
 public class Game implements Runnable {
 
     private static int GAME_TICK_RATE = 60;
-    private static double GAME_TICK_INTERVAL = 1000 / (GAME_TICK_RATE / 1000000.0);
+    private static int GAME_TICK_INTERVAL = 1000000000 / GAME_TICK_RATE;
     static final int NETWORK_TICK_RATE = 20;
-    private static double NETWORK_TICK_INTERVAL = 1000 / (NETWORK_TICK_RATE / 1000000.0);
+    private static int NETWORK_TICK_INTERVAL = 1000000000 / NETWORK_TICK_RATE;
 
 
     private Network network = new Network(this);
@@ -37,10 +37,10 @@ public class Game implements Runnable {
 
             if (now - lastTick > GAME_TICK_INTERVAL) {
                 long elapsedTime = now - lastTick;
-                tps = (float) (1000 / (elapsedTime / 1000000.0));
+                tps = 1000000000F / elapsedTime;
                 lastTick = now;
 
-                //System.out.print(tick + " ticks, " + (Math.round(tps * 100) / 100.0) + "tps, " + elapsedTime / 1000000.0 + "ms per tick\r");// todo fix tickrate reporting
+                System.out.print(tick + " ticks, " + (Math.round(tps * 100) / 100.0) + "tps, " + elapsedTime / 1000000.0 + "ms per tick\r");// todo fix tickrate reporting
                 //movement
                 world.tick(tick);
 
