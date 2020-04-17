@@ -40,7 +40,7 @@ public class Game implements Runnable {
                 tps = 1000000000F / elapsedTime;
                 lastTick = now;
 
-                System.out.print(tick + " ticks, " + (Math.round(tps * 100) / 100.0) + "tps, " + elapsedTime / 1000000.0 + "ms per tick\r");// todo fix tickrate reporting
+                //System.out.print(tick + " ticks, " + (Math.round(tps * 100) / 100.0) + "tps, " + elapsedTime / 1000000.0 + "ms per tick\r");// todo fix tickrate reporting
                 //movement
                 world.tick(tick);
 

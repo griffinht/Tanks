@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -44,8 +45,9 @@ public class Server implements Runnable {
             } catch (IOException e) {
                 if (stopped) {
                     logger.info("Closing " + connections.size() + " connections...");
-                    for (Connection connection : connections) {
-                        connection.close(true);
+                    Iterator<Connection> iterator = connections.iterator();
+                    while (iterator.hasNext()) { //foreach causes ConcurrentModificationException, IntelliJ isn't smart enough to see that :(
+                        iterator.next().close(true);
                     }
                     return;
                 }
