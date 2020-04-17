@@ -208,6 +208,8 @@ public class Connection implements Runnable {
             }
         } catch (IOException | NoSuchAlgorithmException e) {
             e.printStackTrace();
+            logger.warning("Closing connection for " + socket.getInetAddress().getHostAddress());
+            close(true);
         }
 
         if (connected) {
@@ -254,22 +256,18 @@ public class Connection implements Runnable {
         byte[] decoded;
 
         if (((head[1] >> 7) & 1) == 1) { // Mask bit
-            long length = readLength(head, inputStream);
+            int length = readLength(head, inputStream);
 
             byte[] key = new byte[4];
             if (inputStream.read(key) != 4)
                 throw new IOException("Couldn't read masking bits");
-            byte[] encoded = new byte[inputStream.available()];
+            byte[] encoded = new byte[length];
             decoded = new byte[encoded.length];
 
             if (inputStream.read(encoded) == -1)
                 throw new IOException("Couldn't read encoded payload");
             for (int i = 0; i < encoded.length; i++) {
                 decoded[i] = (byte) (encoded[i] ^ key[i & 0x3]);
-            }
-
-            if (length != decoded.length) {
-                throw new RuntimeException("Mismatching payload lengths, (packet length: " + length + ", actual length " + decoded.length + "), raw payload: " + new String(decoded));
             }
         } else {
             byte[] packet = new byte[inputStream.available()];
