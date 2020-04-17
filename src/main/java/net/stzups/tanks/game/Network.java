@@ -100,7 +100,7 @@ class Network implements PacketListener {
                 if (payload.has("player")) {
                     JSONArray jsonPlayer = payload.getJSONArray("player");
                     if (player.id.equals(UUID.fromString(jsonPlayer.getString(1)))) {
-                        
+
                     } else {
                         logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", specified incorrect player ID");
                         connection.close(true);

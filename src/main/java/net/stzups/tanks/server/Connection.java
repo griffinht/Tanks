@@ -70,15 +70,15 @@ public class Connection implements Runnable {
 
     private Thread heartbeat = new Thread(() -> {
         while(!Thread.currentThread().isInterrupted() && connected) {
+            if (heartbeatPing == -1 || heartbeatPing > 5000) {
+                logger.warning("Closing unresponsive connection..."); //todo test
+                close(true);
+            }
+            heartbeatPing = -1;
+            lastHeartbeatPing = System.currentTimeMillis();
+            sendPacket((byte) 0x9, "");
             try {
                 Thread.sleep(5000);
-                if (heartbeatPing == -1 || heartbeatPing > 5000) {
-                    logger.warning("Closing unresponsive connection..."); //todo test
-                    close(true);
-                }
-                heartbeatPing = -1;
-                lastHeartbeatPing = System.currentTimeMillis();
-                sendPacket((byte) 0x9, "");
             } catch (InterruptedException e) {
                 return;
             }
