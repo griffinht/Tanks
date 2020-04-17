@@ -190,15 +190,6 @@ window.onload = function(e) {
     window.addEventListener("resize", resize);
 }
 
-function send(payload) {
-    if(webSocket.readyState === WebSocket.OPEN) {
-        payload.time = Date.now();
-        webSocket.send(JSON.stringify(payload));
-    } else {
-        return "Error: Not connected";
-    }
-}
-
 class LoaderManager { //todo unnecessary class?
     constructor() {
         this.dots = 0;
@@ -352,6 +343,15 @@ function connect() {
                 }
             }
         }
+    }
+}
+
+function send(payload) {
+    if(webSocket.readyState === WebSocket.OPEN) {
+        payload.time = Date.now();
+        webSocket.send(JSON.stringify(payload));
+    } else {
+        return "Error: Not connected";
     }
 }
 
@@ -523,29 +523,18 @@ class Player extends Entity {
     serialize() {
         let bullets = [];
         this.bullets.forEach((bullet) => {
-        console.log(bullet);
             bullets.push(bullet.serialize());
         });
-        let array = ["player"];
-        super.serialize().forEach((thing) => {
-            array.push(thing);
-        });
-        array.push(this.name);
-        this.turret.serialize().forEach((thing) => {
-            array.push(thing);
-        });
-        bullets.forEach((thing) => {
-            array.push(thing);
-        });
-        return array;
+        return ["player", super.serialize(), this.name, this.turret.serialize(), bullets];
     }
     
     static deserialize(entity) {
         let bullets = [];
-        for (let bullet in entity[11]) {
+        for (let bullet in entity[4]) {
             bullets.push(Bullet.deserialize(bullet));
         }
-        return new Player(entity[1], entity[2], entity[3], entity[4], entity[5], entity[6], entity[7], entity[8], entity[9], Turret.deserialize(entity[10]), bullets);
+        let ent = Entity.deserialize(entity[1]);
+        return new Player(ent.id, ent.x, ent.y, ent.speed, ent.direction, ent.rotation, ent.width, ent.height, entity[2], Turret.deserialize(entity[3]), bullets);
     }
 }
 

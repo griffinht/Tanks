@@ -1,5 +1,7 @@
 package net.stzups.tanks.game;
 
+import org.json.JSONArray;
+
 import java.util.UUID;
 
 class Bullet extends Entity {
@@ -13,7 +15,14 @@ class Bullet extends Entity {
     }
 
     @Override
+    boolean update(JSONArray jsonArray) {
+        super.update(jsonArray.getJSONArray(0));
+        hits = jsonArray.getInt(1);
+        return true;
+    }
+
+    @Override
     String serialize() {
-        return "[" + super.serializeStripped() + "," + hits + "]";
+        return "[" + super.serialize() + "," + hits + "]";
     }
 }

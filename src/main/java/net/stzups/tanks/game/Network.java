@@ -99,9 +99,7 @@ class Network implements PacketListener {
                 }
                 if (payload.has("player")) {
                     JSONArray jsonPlayer = payload.getJSONArray("player");
-                    if (player.id.equals(UUID.fromString(jsonPlayer.getString(1)))) {
-
-                    } else {
+                    if (!player.update(jsonPlayer)) {
                         logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", specified incorrect player ID");
                         connection.close(true);
                         return;
@@ -112,6 +110,7 @@ class Network implements PacketListener {
                     player.setViewport(viewport.getInt(0), viewport.getInt(1));
                 }
             } catch (JSONException e) {
+                e.printStackTrace();
                 logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", parsing packet caused " + e.getMessage());
                 connection.close(true);
             }

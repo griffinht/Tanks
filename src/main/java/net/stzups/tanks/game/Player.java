@@ -1,5 +1,8 @@
 package net.stzups.tanks.game;
 
+import org.json.JSONArray;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -12,6 +15,12 @@ public class Player extends Entity {
             this.rotation = rotation;
             this.width = width;
             this.height = height;
+        }
+
+        void update(JSONArray jsonArray) {
+            rotation = jsonArray.getFloat(0);
+            width = jsonArray.getInt(1);
+            height = jsonArray.getInt(2);
         }
 
         String serialize() {
@@ -52,6 +61,16 @@ public class Player extends Entity {
     }
 
     @Override
+    boolean update(JSONArray jsonArray) {
+        if (!super.update(jsonArray.getJSONArray(1))) {
+            return false;
+        }
+        turret.update(jsonArray.getJSONArray(3));
+        //todo bullets
+        return true;
+    }
+
+    @Override
     String serialize() {
         StringBuilder bullets = new StringBuilder();
         for (Bullet bullet : this.bullets) {
@@ -61,6 +80,6 @@ public class Player extends Entity {
         if (bullets.length() == 0) {
             bullets.append("[]");
         }
-        return "[player," + super.serializeStripped() + "," + name + "," + turret.serialize() + "," + bullets.toString() + "]";
+        return "[player," + super.serialize() + "," + name + "," + turret.serialize() + "," + bullets.toString() + "]";
     }
 }
