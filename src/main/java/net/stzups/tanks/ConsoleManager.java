@@ -16,9 +16,8 @@ class ConsoleManager {
 
     static void manage() {
         while (true) {
-            try {
-                InputStreamReader inputStreamReader = new InputStreamReader(System.in);//todo do these need to be closed
-                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+            try (InputStreamReader inputStreamReader = new InputStreamReader(System.in);
+                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader)){
                 String[] input = bufferedReader.readLine().split("\\s");
                 switch (input[0].toLowerCase()) {
                     case "stop":
