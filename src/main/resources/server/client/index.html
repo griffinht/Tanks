@@ -98,7 +98,6 @@ body {
 var webSocket = null;
 var loaderManager;
 var networkManager;
-var clientId = null;
 
 var drawing = false;
 
@@ -123,11 +122,10 @@ var viewportWidth = 0; //maybe different from canvas.width in the future?
 var viewportHeight = 0;
 var updateViewport = false;
 
-const SECTOR_SIZE = 16;
-
 var tick = 0;
-var tickRate;
 var serverTps = 0;
+
+var tickRate;
 
 function initialize() {
     loaderManager = new LoaderManager();
