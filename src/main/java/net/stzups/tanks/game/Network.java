@@ -29,6 +29,7 @@ class Network implements PacketListener {
     void tick(int tick) {
         executorService.submit(() -> {
             JSONObject[][] sectors = new JSONObject[World.WORLD_SECTORS][World.WORLD_SECTORS];
+            float tps = (Math.round(game.getTps() * 100) / 100F);
 
             for (Map.Entry<Connection, Player> entry : game.connectionPlayerMap.entrySet()) {
                 Player player = entry.getValue();
@@ -48,7 +49,7 @@ class Network implements PacketListener {
                         }
                     }
                 }
-                entry.getKey().sendText("{\"play\":" + payload.toString() + ",\"ping\":" + entry.getKey().getPing() + ",\"time\":" + System.currentTimeMillis() + ",\"tps\":" + ((float) Math.round(game.getTps() * 100) / 100) + "}");
+                entry.getKey().sendText("{\"play\":" + payload.toString() + ",\"ping\":" + entry.getKey().getPing() + ",\"time\":" + System.currentTimeMillis() + ",\"tps\":" + tps + "}");
             }
         });
     }
