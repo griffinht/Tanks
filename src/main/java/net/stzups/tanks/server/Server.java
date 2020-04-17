@@ -46,8 +46,9 @@ public class Server implements Runnable {
                 if (stopped) {
                     logger.info("Closing " + connections.size() + " connections...");
                     Iterator<Connection> iterator = connections.iterator();
-                    while (iterator.hasNext()) { //foreach causes ConcurrentModificationException, IntelliJ isn't smart enough to see that :(
-                        iterator.next().close(true);
+                    while (iterator.hasNext()) {
+                        iterator.next().close(true, false);
+                        iterator.remove();
                     }
                     return;
                 }

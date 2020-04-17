@@ -342,6 +342,10 @@ public class Connection implements Runnable {
     }
 
     public void close(boolean kick) {
+        close(true, true);
+    }
+
+    void close(boolean kick, boolean remove) {
         if (connected) {
             connected = false;
             heartbeat.interrupt();
@@ -350,7 +354,8 @@ public class Connection implements Runnable {
 
             logger.info("Closed connection for client from " + socket.getInetAddress().getHostAddress());
 
-            server.removeConnection(this);
+            if (remove)
+                server.removeConnection(this);
         } else {
             logger.warning("Tried to close connection for client from " + socket.getInetAddress().getHostAddress() + " but the connection was already closed (it shouldn't be)");
         }
