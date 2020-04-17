@@ -18,8 +18,8 @@ class Network implements PacketListener {
 
     private static final Logger logger = java.util.logging.Logger.getLogger(Tanks.class.getName());
 
-    private ExecutorService executorService = Executors.newSingleThreadExecutor();
-    private Game game;
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private final Game game;
 
     Network(Game game) {
         this.game = game;

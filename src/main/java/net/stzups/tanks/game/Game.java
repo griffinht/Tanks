@@ -7,22 +7,22 @@ import java.util.Map;
 
 public class Game implements Runnable {
 
-    private static int GAME_TICK_RATE = 20;
-    private static int GAME_TICK_INTERVAL = 1000000000 / GAME_TICK_RATE;
+    private static final int GAME_TICK_RATE = 20;
+    private static final int GAME_TICK_INTERVAL = 1000000000 / GAME_TICK_RATE;
     static final int NETWORK_TICK_RATE = 20;
-    private static int NETWORK_TICK_INTERVAL = 1000000000 / NETWORK_TICK_RATE;
+    private static final int NETWORK_TICK_INTERVAL = 1000000000 / NETWORK_TICK_RATE;
 
+    private final Network network = new Network(this);
 
-    private Network network = new Network(this);
+    final Map<Connection, Player> connectionPlayerMap = new HashMap<>();
+    final World world = new World();
+
     private long lastNetworkTick = 0;
-
     private boolean running;
     private int tick = 0;
     private float tps = 0;
     private long lastTick = 0;
 
-    Map<Connection, Player> connectionPlayerMap = new HashMap<>();
-    World world = new World();
 
     public Game() {
 

@@ -16,13 +16,15 @@ public class Server implements Runnable {
     private final int PORT;
     private static final Logger logger = java.util.logging.Logger.getLogger(Tanks.class.getName());
 
-    private FileManager fileManager;
+    private final FileManager fileManager;
+
+    private final List<Connection> connections = new ArrayList<>();
+    private final List<PacketListener> packetListeners = new ArrayList<>();
 
     private ServerSocket serverSocket;
-    private List<Connection> connections = new ArrayList<>();
     private boolean stopped = false;
 
-    private List<PacketListener> packetListeners = new ArrayList<>();
+
 
     public Server(int port) {
         this.PORT = port;

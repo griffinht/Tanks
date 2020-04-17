@@ -19,8 +19,8 @@ public class FileManager {
 
     private static final String SERVER_RESOURCES_PATH = "server";
 
-    private Map<String, File> cachedFiles = new HashMap<>();
-    private Map<String, byte[]> cachedFilesContents = new HashMap<>();
+    private final Map<String, File> cachedFiles = new HashMap<>();
+    private final Map<String, byte[]> cachedFilesContents = new HashMap<>();
 
     private static final Logger logger = java.util.logging.Logger.getLogger(Tanks.class.getName());
 

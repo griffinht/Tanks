@@ -28,15 +28,15 @@ public class Connection implements Runnable {
     private static final Logger logger = Logger.getLogger(Tanks.class.getName());
     private static final boolean ALLOW_MULTIPLE_CONNECTIONS_FROM_SAME_IP_ADDRESS = true;
 
-    private FileManager fileManager;
+    private final FileManager fileManager;
 
-    private Server server;
-    private UUID uuid = null;
-    private Socket socket;
+    private final Server server;
+    private final Socket socket;
+    private final Queue<byte[]> queue = Collections.asLifoQueue(new ArrayDeque<>());
+
     private long lastHeartbeatPing = System.currentTimeMillis();
     private int heartbeatPing = 0;
     private int ping = 0;
-    private Queue<byte[]> queue = Collections.asLifoQueue(new ArrayDeque<>());
     private boolean connected = false;
 
     Connection(Server server, Socket socket, FileManager fileManager) {
@@ -48,9 +48,24 @@ public class Connection implements Runnable {
         new Thread(this).start();
     }
 
-    public UUID getUUID() {
-        return uuid;
-    }
+    private final Thread heartbeat = new Thread(() -> {
+        while(!Thread.currentThread().isInterrupted() && connected) {
+            if (heartbeatPing == -1 || heartbeatPing > 5000) {
+                logger.warning("Closing unresponsive connection...");
+                close(true);
+            }
+            heartbeatPing = -1;
+            lastHeartbeatPing = System.currentTimeMillis();
+            sendPacket((byte) 0x9, "");
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                return;
+            }
+        }
+
+        close(false);
+    });
 
     public int getPing() {
         return ping;
@@ -67,25 +82,6 @@ public class Connection implements Runnable {
     public Socket getSocket() {
         return socket;
     }
-
-    private Thread heartbeat = new Thread(() -> {
-        while(!Thread.currentThread().isInterrupted() && connected) {
-            if (heartbeatPing == -1 || heartbeatPing > 5000) {
-                logger.warning("Closing unresponsive connection..."); //todo test
-                close(true);
-            }
-            heartbeatPing = -1;
-            lastHeartbeatPing = System.currentTimeMillis();
-            sendPacket((byte) 0x9, "");
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                return;
-            }
-        }
-
-        close(false);
-    });
 
     public void run() {
         try (InputStream inputStream = socket.getInputStream();
@@ -342,7 +338,7 @@ public class Connection implements Runnable {
     }
 
     public void close(boolean kick) {
-        close(true, true);
+        close(kick, true);
     }
 
     void close(boolean kick, boolean remove) {

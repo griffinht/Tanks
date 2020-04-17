@@ -6,7 +6,7 @@ import java.util.UUID;
 
 class Entity {
 
-    UUID id;
+    final UUID id;
     double x;
     double y;
     double speed;

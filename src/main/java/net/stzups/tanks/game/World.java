@@ -4,7 +4,8 @@ class World {
     static final int SECTOR_SIZE = 16;
     static final int WORLD_SECTORS = 100;
 
-    Sector[][] sectors = new Sector[WORLD_SECTORS][WORLD_SECTORS];
+    final Sector[][] sectors = new Sector[WORLD_SECTORS][WORLD_SECTORS];
+
     Sector[][] changedSectors = new Sector[WORLD_SECTORS][WORLD_SECTORS];
 
     World() {
