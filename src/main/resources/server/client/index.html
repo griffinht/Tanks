@@ -254,19 +254,16 @@ class NetworkManager {
             clearInterval(this.interval);
         }
         this.interval = setInterval(() => {
-            if (this.running && webSocket.readyState === WebSocket.OPEN) {
-                let payload = {};
+            if (this.running && webSocket.readyState == WebSocket.OPEN) {
+                let payload = {time:window.performance.now()};
                 if (player) {
-                    payload.player = player;
+                    payload.player = player.serialize();
                 }
                 if (updateViewport) {
                     updateViewport = false;
                     payload.viewport = [viewportWidth, viewportHeight];
                 }
-                if (payload.length > 0) {
-                    payload.time = window.performance.now();
-                    send(payload);
-                }
+                send(payload);
             } else {
                 clearInterval(this.interval);
             }
@@ -498,6 +495,10 @@ class Entity {
         ctx.restore();
     }
     
+    serialize() {
+        return [this.id, this.x, this.y, this.speed, this.direction, this.rotation, this.width, this.height];
+    }
+    
     static deserialize(entity) {
         return new Entity(entity[0], entity[1], entity[2], entity[3], entity[4], entity[5], entity[6], entity[7]);
     }
@@ -519,6 +520,26 @@ class Player extends Entity {
         ctx.restore();
     }
     
+    serialize() {
+        let bullets = [];
+        this.bullets.forEach((bullet) => {
+        console.log(bullet);
+            bullets.push(bullet.serialize());
+        });
+        let array = ["player"];
+        super.serialize().forEach((thing) => {
+            array.push(thing);
+        });
+        array.push(this.name);
+        this.turret.serialize().forEach((thing) => {
+            array.push(thing);
+        });
+        bullets.forEach((thing) => {
+            array.push(thing);
+        });
+        return array;
+    }
+    
     static deserialize(entity) {
         let bullets = [];
         for (let bullet in entity[11]) {
@@ -534,6 +555,12 @@ class Bullet extends Entity {
         this.hits = hits;
     }
     
+    serialize() {
+        let array = super.serialize();
+        array.push(this.hits);
+        return array;
+    }
+    
     static deserialize(entity) {
         return new Bullet(entity[0], entity[1], entity[2], entity[3], entity[4], entity[5], entity[6], entity[7], entity[8]);
     }
@@ -544,6 +571,10 @@ class Turret {
         this.rotation = rotation;
         this.width = width;
         this.height = height;
+    }
+    
+    serialize() {
+        return [this.rotation, this.width, this.height];
     }
     
     static deserialize(turret) {

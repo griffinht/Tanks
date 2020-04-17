@@ -49,7 +49,7 @@ class Network implements PacketListener {
                         }
                     }
                 }
-                entry.getKey().sendText("{\"play\":" + payload.toString() + ",\"ping\":" + entry.getKey().getPing() + ",\"time\":" + System.currentTimeMillis() + ",\"tps\":" + tps + "}");
+                entry.getKey().sendText("{\"play\":" + payload.toString() + ",\"ping\":" + entry.getKey().getPing() + ",\"tps\":" + tps + "}");
             }
         });
     }
@@ -73,10 +73,6 @@ class Network implements PacketListener {
                     logger.info("New player " + player.getName());
 
                     connection.sendText("{\"newPlayer\":[\"" + player.id + "\"]}");
-                } else {
-                    logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", should have gotten newPlayer, instead got " + payload.keySet());
-                    connection.close(true);
-                    return;
                 }
                 if (payload.has("time")) {
                     connection.setPing((int) (System.currentTimeMillis() - payload.getLong("time")));
@@ -98,9 +94,18 @@ class Network implements PacketListener {
                     connection.setPing((int) (System.currentTimeMillis() - payload.getLong("time")));
                 } else {
                     logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", should have included time, instead got " + payload.keySet());
+                    connection.close(true);
+                    return;
                 }
                 if (payload.has("player")) {
-                    System.out.println(payload.get("player"));
+                    JSONArray jsonPlayer = payload.getJSONArray("player");
+                    if (player.id.equals(UUID.fromString(jsonPlayer.getString(1)))) {
+                        
+                    } else {
+                        logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", specified incorrect player ID");
+                        connection.close(true);
+                        return;
+                    }
                 }
                 if (payload.has("viewport")) {
                     JSONArray viewport = payload.getJSONArray("viewport");

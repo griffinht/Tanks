@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class Game implements Runnable {
 
-    private static int GAME_TICK_RATE = 60;
+    private static int GAME_TICK_RATE = 20;
     private static int GAME_TICK_INTERVAL = 1000000000 / GAME_TICK_RATE;
     static final int NETWORK_TICK_RATE = 20;
     private static int NETWORK_TICK_INTERVAL = 1000000000 / NETWORK_TICK_RATE;
