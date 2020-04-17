@@ -72,14 +72,18 @@ class Network implements PacketListener {
                     game.world.addObject(player);
                     logger.info("New player " + player.getName());
 
-                    connection.sendText("{\"newPlayer\":[\"" + player.id + "\"," + Game.NETWORK_TICK_RATE + "]}");
+                    connection.sendText("{\"newPlayer\":[\"" + player.id + "\"]}");
                 } else {
                     logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", should have gotten newPlayer, instead got " + payload.keySet());
+                    connection.close(true);
+                    return;
                 }
                 if (payload.has("time")) {
                     connection.setPing((int) (System.currentTimeMillis() - payload.getLong("time")));
                 } else {
                     logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", should have included time, instead got " + payload.keySet());
+                    connection.close(true);
+                    return;
                 }
             } catch (JSONException e) {
                 logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", parsing packet caused " + e.getMessage());
@@ -96,7 +100,7 @@ class Network implements PacketListener {
                     logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", should have included time, instead got " + payload.keySet());
                 }
                 if (payload.has("player")) {
-                    //todo
+                    System.out.println(payload.get("player"));
                 }
                 if (payload.has("viewport")) {
                     JSONArray viewport = payload.getJSONArray("viewport");
@@ -117,6 +121,6 @@ class Network implements PacketListener {
     }
 
     public void addConnection(Connection connection) {
-
+        connection.sendText("{\"information\":[" + Game.NETWORK_TICK_RATE + "]}");
     }
 }

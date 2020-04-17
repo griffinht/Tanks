@@ -187,9 +187,6 @@ window.onload = function(e) {
         new Promise((resolve, reject) => {
             loader.style.display = "none";
             content.style.display = "block";
-            setInterval(() => {
-                
-            }, 1000/60);
         });
     });
     window.addEventListener("resize", resize);
@@ -256,7 +253,7 @@ class NetworkManager {
         this.running = true;
         const interval = setInterval(() => {
             if (this.running && webSocket.readyState === WebSocket.OPEN) {
-                let payload = {time:window.performance.now()};
+                let payload = {};
                 if (player) {
                     payload.player = player;
                 }
@@ -264,7 +261,10 @@ class NetworkManager {
                     updateViewport = false;
                     payload.viewport = [viewportWidth, viewportHeight];
                 }
-                send(payload);
+                if (payload.length > 0) {
+                    payload.time = window.performance.now();
+                    send(payload);
+                }
             } else {
                 clearInterval(interval);
             }
@@ -302,10 +302,19 @@ function connect() {
     }
 
     webSocket.onmessage = function() {
-        let payload = JSON.parse(event.data);
+        let payload;
+        try {
+            payload = JSON.parse(event.data);
+        } catch (e) {
+            console.log(event.data);
+            console.log(e);
+            return;
+        }
+        if (payload.information) {
+            networkManager.start(parseInt(payload.information[0]));
+        }
         if (payload.newPlayer) {
             playerId = payload.newPlayer[0];
-            networkManager.start(payload.newPlayer[1]);
         }
         if (payload.ping) {
             ping = payload.ping;

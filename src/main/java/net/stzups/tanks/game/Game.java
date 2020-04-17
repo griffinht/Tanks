@@ -2,7 +2,6 @@ package net.stzups.tanks.game;
 
 import net.stzups.tanks.server.Connection;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
