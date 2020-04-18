@@ -15,9 +15,9 @@ class ConsoleManager {
     private static final Logger logger = java.util.logging.Logger.getLogger(Tanks.class.getName());
 
     static void manage() {
-        while (true) {
-            try (InputStreamReader inputStreamReader = new InputStreamReader(System.in);
-                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader)){
+        try (InputStreamReader inputStreamReader = new InputStreamReader(System.in);
+             BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
+            while (true) {
                 String[] input = bufferedReader.readLine().split("\\s");
                 switch (input[0].toLowerCase()) {
                     case "stop":
@@ -71,9 +71,9 @@ class ConsoleManager {
                     default:
                         logger.info("Unknown command \"" + input[0] + "\"");
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
