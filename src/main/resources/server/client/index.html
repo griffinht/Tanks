@@ -140,12 +140,12 @@ function initialize() {
 window.onload = function(e) {
     canvas.addEventListener("mousemove", function(e) {
         if (typeof player !== "undefined") {
-            let x = e.clientX - player.x - (player.width/2);
-            let y = e.clientY - player.y - (player.height/2);
+            let x = e.clientX + viewportX - player.x - (player.width/2);
+            let y = e.clientY + viewportY - player.y - (player.height/2);
             if (x < 0) {
-                player.turret.rotation = Math.atan(y/x) + Math.PI;
+                player.turret.rotation = Math.atan(y/x) + Math.PI - Math.PI / 2;
             } else {
-                player.turret.rotation = Math.atan(y/x);
+                player.turret.rotation = Math.atan(y/x) - Math.PI / 2;
             }
         }
     });
@@ -537,7 +537,6 @@ class Player extends Entity {
         
         ctx.save();
         ctx.fillStyle = "#00ff18";
-        console.log(this.turret.rotation);
         ctx.rotate(this.turret.rotation);
         ctx.fillRect(-this.turret.width / 2, 0, this.turret.width, this.turret.height);
         ctx.restore();
