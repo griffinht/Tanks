@@ -67,7 +67,7 @@ class Network implements PacketListener {
                     String name = newClient.getString(0);
                     int viewportWidth = newClient.getInt(1);
                     int viewportHeight = newClient.getInt(2);
-                    Player player = new Player(UUID.randomUUID(), 0, 0, 0, 0, 0, 20, 40, name, viewportWidth, viewportHeight, new Player.Turret(0, 4, 30), new ArrayList<>());
+                    Player player = new Player(UUID.randomUUID(), 0, 0, 0, 0, 0, 40, 20, name, viewportWidth, viewportHeight, new Player.Turret(0, 4, 30), new ArrayList<>());
                     game.connectionPlayerMap.put(connection, player);
                     game.world.addObject(player);
                     logger.info("New player " + player.getName());

@@ -115,6 +115,7 @@ var blocks = [];
 var entities = {};
 var player;
 var playerId;
+var keys = [];
 
 var viewportX = 0;
 var viewportY = 0;
@@ -151,19 +152,15 @@ window.onload = function(e) {
     });
     
     document.addEventListener("keydown", function(e) {
-        if (typeof player !== "undefined") {
-            if (!player.keys.includes(e.key)) {
-                player.keys.push(e.key);
-            }
+        if (!keys.includes(e.which)) {
+            keys.push(e.which);
         }
     });
     
     document.addEventListener("keyup", function(e) {
-        if (typeof player !== "undefined") {
-            let index = player.keys[e.key];
-            if (index !== -1) {
-                player.keys.splice(index, 1);
-            }
+        let index = keys[e.which];
+        if (index !== -1) {
+            keys.splice(index, 1);
         }
     });
     
@@ -475,7 +472,6 @@ class Player extends Entity {
         this.name = name;
         this.turret = turret;
         this.bullets = bullets;
-        this.keys = []
     }
     
     draw() {
@@ -525,6 +521,26 @@ class Player extends Entity {
             ctx.restore();
         });
         */
+        if (this.id = playerId) {
+            if (keys.includes(87) && keys.includes(68)) {
+                this.rotation = 7*Math.PI/4;
+            } else if (keys.includes(68) && keys.includes(83)) {
+                this.rotation = Math.PI/4;
+            } else if (keys.includes(83) && keys.includes(65)) {
+                this.rotation = 3*Math.PI/4;
+            } else if (keys.includes(65) && keys.includes(87)) {
+                this.rotation = 5*Math.PI/4;
+            } else if (keys.includes(87)) {
+                this.rotation = 3*Math.PI/2
+            } else if (keys.includes(68)) {
+                this.rotation = 0;
+            } else if (keys.includes(83)) {
+                this.rotation = Math.PI/2
+            } else if (keys.includes(65)) {
+                this.rotation = Math.PI;
+            }
+        }
+        
         ctx.save();
         ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
         ctx.fillText(this.name, 0, -this.width / 2 - fontSize);
