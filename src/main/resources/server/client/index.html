@@ -475,52 +475,6 @@ class Player extends Entity {
     }
     
     draw() {
-        /*
-        if (tank.keys.includes("w") && tank.keys.includes("d")) {
-            tank.rot = 7*Math.PI/4;
-        } else if (tank.keys.includes("d") && tank.keys.includes("s")) {
-            tank.rot = Math.PI/4;
-        } else if (tank.keys.includes("s") && tank.keys.includes("a")) {
-            tank.rot = 3*Math.PI/4;
-        } else if (tank.keys.includes("a") && tank.keys.includes("w")) {
-            tank.rot = 5*Math.PI/4;
-        } else if (tank.keys.includes("w")) {
-            tank.rot = 3*Math.PI/2
-        } else if (tank.keys.includes("d")) {
-            tank.rot = 0;
-        } else if (tank.keys.includes("s")) {
-            tank.rot = Math.PI/2
-        } else if (tank.keys.includes("a")) {
-            tank.rot = Math.PI;
-        }
-        
-        ctx.save();
-        ctx.translate(tank.x + tank.width/2, tank.y + tank.height/2);
-        ctx.rotate(0);
-        ctx.fillText("drawing " + tank.name, 20, 0);
-        
-        ctx.save();
-        
-        ctx.rotate(tank.rot);
-        ctx.fillStyle = "#1a7022";
-        ctx.fillRect(-tank.width/2/2, -tank.height/2, tank.width/2, tank.height);
-        ctx.fillStyle = "purple";
-        ctx.fillRect(10, 0, 5, 5);
-        ctx.restore();
-        ctx.rotate(tank.turret.rot);
-        ctx.fillStyle = "#00ff18";
-        ctx.fillRect(0, -tank.turret.height/2, tank.turret.width, tank.turret.height);
-        ctx.restore();
-        tank.bullets.forEach((bullet) => {
-            ctx.save();
-            ctx.translate(bullet.x + bullet.width/2, bullet.y + bullet.height/2);
-            ctx.rotate(0);
-            ctx.fillText("bullet", 20, 0);
-            ctx.rotate(bullet.rot);
-            ctx.fillRect(-bullet.width/2, -bullet.height/2, bullet.width, bullet.height);
-            ctx.restore();
-        });
-        */
         if (this.id = playerId) {
             if (keys.includes(87) && keys.includes(68)) {
                 this.rotation = 7*Math.PI/4;
