@@ -79,8 +79,8 @@ class Network implements PacketListener {
                 } else {
                     logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", should have included time, instead got " + payload.keySet());
                     connection.close(true);
-                    return;
                 }
+                //remember to add a return back here
             } catch (JSONException e) {
                 logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", parsing packet caused " + e.getMessage());
                 connection.close(true);
