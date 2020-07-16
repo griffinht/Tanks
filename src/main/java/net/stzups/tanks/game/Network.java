@@ -31,26 +31,36 @@ class Network implements PacketListener {
             JSONObject[][] sectors = new JSONObject[World.WORLD_SECTORS][World.WORLD_SECTORS];
             float tps = (Math.round(game.getTps() * 100) / 100F);
 
-            for (Map.Entry<Connection, Player> entry : game.connectionPlayerMap.entrySet()) {
-                Player player = entry.getValue();
-                JSONObject payload = new JSONObject();
-                payload.put("tick", tick);
-                for (int x = Math.max(0, (int) (player.x - player.viewportWidth / 2.0 / World.SECTOR_SIZE)); x < Math.ceil(player.x + player.viewportWidth / 2.0 / World.SECTOR_SIZE); x++) {
-                    for (int y = Math.max(0, (int) (player.y - player.viewportHeight / 2.0 / World.SECTOR_SIZE)); y < Math.ceil(player.y + player.viewportHeight / 2.0 / World.SECTOR_SIZE); y++) {
-                        Sector sector = game.world.sectors[x][y];
-                        if (sector != null) {
-                            if (sectors[x][y] == null) {
-                                JSONObject jsonSector = sector.serialize();
-                                sectors[x][y] = jsonSector;
-                                payload.put(x + "," + y, jsonSector);
-                            } else {
-                                payload.put(x + "," + y, sectors[x][y]);
+            //System.out.print("looping through " + game.connectionPlayerMap.size() + ": ");
+            try {
+                for (Map.Entry<Connection, Player> entry : game.connectionPlayerMap.entrySet()) {
+                    Player player = entry.getValue();
+                    JSONObject payload = new JSONObject();
+                    payload.put("tick", tick);
+                    for (int x = Math.max(0, (int) ((player.x - player.viewportWidth) / 2.0 / World.SECTOR_SIZE)); x < Math.ceil((player.x + player.viewportWidth) / 2.0 / World.SECTOR_SIZE); x++) {
+                        for (int y = Math.max(0, (int) ((player.y - player.viewportHeight) / 2.0 / World.SECTOR_SIZE)); y < Math.ceil((player.y + player.viewportHeight) / 2.0 / World.SECTOR_SIZE); y++) {
+                            Sector sector = game.world.sectors[x][y];
+                            if (sector != null) {
+                                if (sectors[x][y] == null) {
+                                    JSONObject jsonSector = sector.serialize();
+                                    sectors[x][y] = jsonSector;
+                                    payload.put(x + "," + y, jsonSector);
+                                } else {
+                                    payload.put(x + "," + y, sectors[x][y]);
+                                }
                             }
                         }
                     }
+                    //System.out.print(entry.getKey().getUUID() + ", ");
+                    entry.getKey().sendText("{\"play\":" + payload.toString() + ",\"ping\":" + entry.getKey().getPing() + ",\"tps\":" + tps + "}");
                 }
-                entry.getKey().sendText("{\"play\":" + payload.toString() + ",\"ping\":" + entry.getKey().getPing() + ",\"tps\":" + tps + "}");
             }
+            catch(Exception e)
+            {
+                e.printStackTrace();
+            }
+
+            //System.out.print("\r");
         });
     }
 
@@ -118,9 +128,13 @@ class Network implements PacketListener {
     }
 
     public void removeConnection(Connection connection) {
+
         if (game.connectionPlayerMap.containsKey(connection)) {
+            System.out.println("remove game connection for "+connection.getSocket().getInetAddress().getHostAddress());
             game.world.removeObject(game.connectionPlayerMap.get(connection));
             game.connectionPlayerMap.remove(connection);
+        } else {
+            System.out.println("couldnt remove game connection for "+connection.getSocket().getInetAddress().getHostAddress());
         }
     }
 

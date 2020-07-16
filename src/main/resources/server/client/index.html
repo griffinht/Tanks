@@ -116,6 +116,7 @@ var entities = {};
 var player;
 var playerId;
 var keys = [];
+var lastMouse;
 
 var viewportX = 0;
 var viewportY = 0;
@@ -124,6 +125,7 @@ var viewportHeight = 0;
 var updateViewport = false;
 
 var tick = 0;
+var lastSentTick = 0;
 var serverTps = 0;
 
 var tickRate;
@@ -140,15 +142,7 @@ function initialize() {
 
 window.onload = function(e) {
     canvas.addEventListener("mousemove", function(e) {
-        if (typeof player !== "undefined") {
-            let x = e.clientX + viewportX - player.x - (player.width/2);
-            let y = e.clientY + viewportY - player.y - (player.height/2);
-            if (x < 0) {
-                player.turret.rotation = Math.atan(y/x) + Math.PI - Math.PI / 2;
-            } else {
-                player.turret.rotation = Math.atan(y/x) - Math.PI / 2;
-            }
-        }
+        lastMouse = e;
     });
     
     document.addEventListener("keydown", function(e) {
@@ -330,11 +324,24 @@ function connect() {
                             entity = Entity.deserialize(rawEntity);
                         }
                         if (entity.id == playerId) {
-                            player = entity; //todo setProp
+                            if(lastSentTick < tick)
+                            {
+                                console.log("yup");
+                            }
+                            else
+                            {
+                                
+                                console.log("nope");
+                            }
+                            if(typeof player === "undefined")
+                            {
+                                player = entity; //todo setProp
+                            }
                         }
-                        ids.push(entity.id);
                         entities[entity.id] = entity;
+                        ids.push(entity.id);
                     }
+                    console.log("got " + Object.keys(entities).length + " entities");
                     Object.keys(entities).forEach((key) => {
                         if (!ids.includes(key)) {
                             delete entities[key];
@@ -356,6 +363,7 @@ function send(payload) {
     if(webSocket.readyState === WebSocket.OPEN) {
         payload.time = Date.now();
         webSocket.send(JSON.stringify(payload));
+        lastSentTick = tick;
     } else {
         return "Error: Not connected";
     }
@@ -395,7 +403,14 @@ function draw(now) {
             block.draw();
         });
         Object.keys(entities).forEach((key) => {
-            entities[key].draw();
+            if(key === playerId)
+            {
+                player.draw();
+            }
+            else
+            {
+                entities[key].draw();
+            }
         });
         
         ctx.restore();
@@ -492,6 +507,17 @@ class Player extends Entity {
                 this.rotation = Math.PI/2
             } else if (keys.includes(65)) {
                 this.rotation = Math.PI;
+            }
+
+            if(typeof lastMouse !== "undefined")
+            {
+                let x = lastMouse.clientX + viewportX - this.x - (this.width/2);
+                let y = lastMouse.clientY + viewportY - this.y - (this.height/2);
+                if (x < 0) {
+                    this.turret.rotation = Math.atan(y/x) + Math.PI - Math.PI / 2;
+                } else {
+                    this.turret.rotation = Math.atan(y/x) - Math.PI / 2;
+                }
             }
         }
         
