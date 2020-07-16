@@ -91,7 +91,7 @@ public class Connection implements Runnable {
 
     public void run() {
         try (InputStream inputStream = socket.getInputStream();
-             OutputStream outputStream = socket.getOutputStream()){
+             OutputStream outputStream = socket.getOutputStream()){//todo try catch all for java error to return 500 error
 
             try (Scanner scanner = new Scanner(inputStream, "UTF-8")) {
                 String data = scanner.useDelimiter("\\r\\n\\r\\n").next();
