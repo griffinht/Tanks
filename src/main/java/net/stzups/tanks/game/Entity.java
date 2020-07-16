@@ -7,15 +7,15 @@ import java.util.UUID;
 class Entity {
 
     final UUID id;
-    double x;
-    double y;
-    double speed;
-    double direction;
-    double rotation;
+    float x;
+    float y;
+    float speed;
+    float direction;
+    float rotation;
     int width;
     int height;
 
-    Entity(UUID id, double x, double y, double speed, double direction, double rotation, int width, int height) {
+    Entity(UUID id, float x, float y, float speed, float direction, float rotation, int width, int height) {
         this.id = id;
         this.x = x;
         this.y = y;

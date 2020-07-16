@@ -371,7 +371,7 @@ canvas
 
 function draw(now) {
     if (drawing) {
-        let delta = now-lastFrame;
+        let dt = now-lastFrame;
         ctx.fillStyle = "black";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
@@ -388,23 +388,23 @@ function draw(now) {
         
         ctx.fillStyle = "green";
         blocks.forEach((block) => {
-            block.draw();
+            block.draw(dt);
         });
         Object.keys(entities).forEach((key) => {
             if(key === playerId)
             {
-                player.draw();
+                player.draw(dt);
             }
             else
             {
-                entities[key].draw();
+                entities[key].draw(dt);
             }
         });
         
         ctx.restore();
         ctx.fillStyle = "white";
         ctx.font = fontSize + font;
-        ctx.fillText(Math.round(1000/delta) + "fps", 10, 30);
+        ctx.fillText(Math.round(1000/dt) + "fps", 10, 30);
         ctx.fillText(ping + "ms", 10, 60);
         ctx.fillText(tick + "tick", 10, 90);
         ctx.fillText(serverTps + "tps (server)", 10, 120);
@@ -436,7 +436,7 @@ class Block {
         this.y = y;
     }
     
-    draw() {
+    draw(dt) {
         ctx.fillRect(this.x, this.y, 10, 10);
     }
 }
@@ -453,7 +453,10 @@ class Entity {
         this.height = height;
     }
     
-    draw() {
+    draw(dt) {
+        this.x += this.speed * Math.acos(this.direction) * dt;
+        this.y += this.speed * Math.asin(this.direction) * dt;
+
         ctx.save();
         ctx.rotate(this.rotation);
         ctx.fillRect(this.x, this.y, this.width, this.height);
@@ -477,8 +480,9 @@ class Player extends Entity {
         this.bullets = bullets;
     }
     
-    draw() {
+    draw(dt) {
         if (this.id === playerId) {
+            this.speed = 1;
             if (keys.includes(87) && keys.includes(68)) {
                 this.rotation = 7*Math.PI/4;
             } else if (keys.includes(68) && keys.includes(83)) {
@@ -495,10 +499,13 @@ class Player extends Entity {
                 this.rotation = Math.PI/2
             } else if (keys.includes(65)) {
                 this.rotation = Math.PI;
+            } else {
+                this.speed = 0;
             }
 
-            if(typeof lastMouse !== "undefined")
-            {
+            this.direction = this.rotation;
+
+            if(typeof lastMouse !== "undefined") {
                 let x = lastMouse.clientX + viewportX - this.x - (this.width/2);
                 let y = lastMouse.clientY + viewportY - this.y - (this.height/2);
                 if (x < 0) {
@@ -508,6 +515,9 @@ class Player extends Entity {
                 }
             }
         }
+
+        this.x += Math.cos(this.direction) * this.speed * dt;
+        this.y += Math.sin(this.direction) * this.speed * dt;
         
         ctx.save();
         ctx.translate(this.x + this.width / 2, this.y + this.height / 2);

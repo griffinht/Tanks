@@ -38,7 +38,7 @@ public class Player extends Entity {
     Player.Turret turret;
     List<Bullet> bullets;
 
-    Player(UUID id, double x, double y, double speed, double direction, double rotation, int width, int height, String name, int viewportWidth, int viewportHeight, Player.Turret turret, List<Bullet> bullets) {
+    Player(UUID id, float x, float y, float speed, float direction, float rotation, int width, int height, String name, int viewportWidth, int viewportHeight, Player.Turret turret, List<Bullet> bullets) {
         super(id, x, y, speed, direction, rotation, width, height);
         this.name = name;
         this.turret = turret;

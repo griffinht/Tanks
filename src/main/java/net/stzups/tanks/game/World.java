@@ -1,5 +1,8 @@
 package net.stzups.tanks.game;
 
+import java.util.HashMap;
+import java.util.Map;
+
 class World {
     static final int SECTOR_SIZE = 16;
     static final int WORLD_SECTORS = 100;
@@ -18,6 +21,7 @@ class World {
     }
 
     void tick(int tick) {
+        Map<Entity, Sector> moveEntities = new HashMap<>();
         for (Sector[] sectorsX : sectors) {
             for (Sector sector : sectorsX) {
                 for (Entity entity : sector.entities) {
@@ -35,13 +39,20 @@ class World {
                             || entity.x < sector.x * SECTOR_SIZE
                             || (int) entity.y > sector.y * SECTOR_SIZE + SECTOR_SIZE
                             || entity.y < sector.y * SECTOR_SIZE)) {
-                        Sector s = sectors[(int) entity.x/SECTOR_SIZE][(int) entity.y/SECTOR_SIZE];
-                        System.out.println("Moving object at (" + entity.x + ", " + entity.y + ") from sector " + sector.x + ", " + sector.y + " to sector " + s.x + ", " + s.y);
-                        sector.entities.remove(entity);
-                        sectors[(int) entity.x/SECTOR_SIZE][(int) entity.y/SECTOR_SIZE].entities.add(entity);//todo out of bounds
+                        moveEntities.put(entity, sector);
                     }
                 }
             }
+        }
+        for(Map.Entry<Entity, Sector> entry : moveEntities.entrySet()) {
+            entry.getValue().entities.remove(entry.getKey());
+            if((int) entry.getKey().x/SECTOR_SIZE > World.WORLD_SECTORS - 1) {
+                entry.getKey().x = (World.WORLD_SECTORS - 1)* SECTOR_SIZE;
+            }
+            if((int) entry.getKey().y/SECTOR_SIZE > World.WORLD_SECTORS - 1) {
+                entry.getKey().y = (World.WORLD_SECTORS - 1) * SECTOR_SIZE;
+            }
+            sectors[(int) entry.getKey().x/SECTOR_SIZE][(int) entry.getKey().y/SECTOR_SIZE].entities.add(entry.getKey());//todo out of bounds
         }
     }
 
