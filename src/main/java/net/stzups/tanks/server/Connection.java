@@ -380,6 +380,14 @@ public class Connection implements Runnable {
             if (kick)
                 sendPacket((byte) 0x8, "");
 
+            try {
+                socket.close();
+            }
+            catch(IOException e) {
+                logger.warning("Tried to close socket for client from " + socket.getInetAddress().getHostAddress());
+                e.printStackTrace();
+            }
+
             logger.info("Closed connection for client from " + socket.getInetAddress().getHostAddress());
 
             if (remove)

@@ -6,6 +6,7 @@ import net.stzups.tanks.Tanks;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -43,7 +44,15 @@ public class Server implements Runnable {
         // Main connections loop
         while (!stopped) {
             try {
-                new Connection(this, serverSocket.accept(), fileManager);
+                Socket socket = serverSocket.accept();
+                if(!stopped)
+                {
+                    new Connection(this, socket, fileManager);
+                }
+                else
+                {
+                    socket.close();
+                }
             } catch (IOException e) {
                 if (stopped) {
                     logger.info("Closing " + connections.size() + " connections...");
