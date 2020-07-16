@@ -308,7 +308,6 @@ function connect() {
         if (payload.play) {
             let newSectors = payload.play;
             tick = parseInt(newSectors.tick);
-
             for (let key in newSectors) {
                 let split = key.split(",", 2);
                 let x = parseInt(split[0]);
@@ -324,15 +323,6 @@ function connect() {
                             entity = Entity.deserialize(rawEntity);
                         }
                         if (entity.id == playerId) {
-                            if(lastSentTick < tick)
-                            {
-                                console.log("yup");
-                            }
-                            else
-                            {
-                                
-                                console.log("nope");
-                            }
                             if(typeof player === "undefined")
                             {
                                 player = entity; //todo setProp
@@ -341,7 +331,6 @@ function connect() {
                         entities[entity.id] = entity;
                         ids.push(entity.id);
                     }
-                    console.log("got " + Object.keys(entities).length + " entities");
                     Object.keys(entities).forEach((key) => {
                         if (!ids.includes(key)) {
                             delete entities[key];
@@ -351,7 +340,6 @@ function connect() {
                 if (newSectors[key].blocks) {
                     for (let blockKey in newSectors[key].blocks) {
                         let block = newSectors[key].entities[blockKey];
-                        console.log(block);
                     }
                 }
             }
@@ -490,8 +478,7 @@ class Player extends Entity {
     }
     
     draw() {
-        console.log(this.id);
-        if (this.id = playerId) {
+        if (this.id === playerId) {
             if (keys.includes(87) && keys.includes(68)) {
                 this.rotation = 7*Math.PI/4;
             } else if (keys.includes(68) && keys.includes(83)) {
