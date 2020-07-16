@@ -270,7 +270,7 @@ function connect() {
     new Promise((resolve, reject) => {
         loaderManager.update();
     });
-    webSocket = new WebSocket("ws://45.36.37.61:80");
+    webSocket = new WebSocket("[[[SERVER_IP]]]");
 
     webSocket.onopen = function() {
         window.onbeforeunload = function(){
