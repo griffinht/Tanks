@@ -37,7 +37,6 @@ class World {
                 }
             }
         }
-        System.out.println();
     }
 
     void addEntity(Entity entity) {
