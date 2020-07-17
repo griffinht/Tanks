@@ -1,66 +1,51 @@
 package net.stzups.tanks.game;
 
-import java.util.HashMap;
+import net.stzups.util.Grid;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 class World {
-    static final int SECTOR_SIZE = 16;
-    static final int WORLD_SECTORS = 100;
+    static final int GRID_SIZE = 64; //todo dynamic grid size???
 
-    final Sector[][] sectors = new Sector[WORLD_SECTORS][WORLD_SECTORS];
-
-    Sector[][] changedSectors = new Sector[WORLD_SECTORS][WORLD_SECTORS];
+    Grid<Entity> grid = new Grid<>();
 
     World() {
-        //populate sectors
-        for (int x = 0; x < sectors.length; x++) {
-            for (int y = 0; y < sectors[x].length; y++) {
-                sectors[x][y] = new Sector(x, y, SECTOR_SIZE);
-            }
-        }
+
     }
 
     void tick(int tick) {
-        Map<Entity, Sector> moveEntities = new HashMap<>();
-        for (Sector[] sectorsX : sectors) {
-            for (Sector sector : sectorsX) {
-                for (Entity entity : sector.entities) {
-                    boolean move = false;
+        for (Integer columnKey : new TreeSet<>(grid.get().keySet())) {
+            Map<Integer, List<Entity>> column = grid.get(columnKey);
+            for (Integer rowKey : new TreeSet<>(column.keySet())) {
+                List<Entity> row = column.get(rowKey);
+                Iterator<Entity> iterator = row.iterator();
+                for (Entity entity : new ArrayList<>(row)) {
                     if (entity.speed != 0) {
                         entity.x += entity.speed * Math.cos(entity.direction);
-                        move = true;
                     }
                     if (entity.speed != 0) {
                         entity.y += entity.speed * Math.sin(entity.direction);
-                        move = true;
                     }
-                    if (move &&
-                            ((int) entity.x > sector.x * SECTOR_SIZE + SECTOR_SIZE
-                            || entity.x < sector.x * SECTOR_SIZE
-                            || (int) entity.y > sector.y * SECTOR_SIZE + SECTOR_SIZE
-                            || entity.y < sector.y * SECTOR_SIZE)) {
-                        moveEntities.put(entity, sector);
+                    if (columnKey != (int) entity.x / GRID_SIZE || rowKey != (int) entity.y / GRID_SIZE) {
+                        grid.remove(columnKey, rowKey, entity);
+                        grid.insert((int) entity.x / GRID_SIZE, (int) entity.y / GRID_SIZE, entity);
                     }
                 }
             }
         }
-        for(Map.Entry<Entity, Sector> entry : moveEntities.entrySet()) {
-            entry.getValue().entities.remove(entry.getKey());
-            if((int) entry.getKey().x/SECTOR_SIZE > World.WORLD_SECTORS - 1) {
-                entry.getKey().x = (World.WORLD_SECTORS - 1)* SECTOR_SIZE;
-            }
-            if((int) entry.getKey().y/SECTOR_SIZE > World.WORLD_SECTORS - 1) {
-                entry.getKey().y = (World.WORLD_SECTORS - 1) * SECTOR_SIZE;
-            }
-            sectors[(int) entry.getKey().x/SECTOR_SIZE][(int) entry.getKey().y/SECTOR_SIZE].entities.add(entry.getKey());//todo out of bounds
-        }
+        System.out.println();
     }
 
-    void addObject(Entity entity) {
-        sectors[(int) entity.x/SECTOR_SIZE][(int) entity.y/SECTOR_SIZE].entities.add(entity);//todo out of bounds
+    void addEntity(Entity entity) {
+        grid.insert((int) entity.x / GRID_SIZE, (int) entity.y / GRID_SIZE, entity);
     }
 
-    void removeObject(Entity entity) {
-        sectors[(int) entity.x/SECTOR_SIZE][(int) entity.y/SECTOR_SIZE].entities.remove(entity);
+    void removeEntity(Entity entity) {
+        grid.insert((int) entity.x / GRID_SIZE, (int) entity.y / GRID_SIZE, entity);
     }
 }

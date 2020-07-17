@@ -111,7 +111,6 @@ var ctx = canvas.getContext("2d");
 var lastFrame = 0;
 var ping = 0;
 
-var blocks = [];
 var entities = {};
 var player;
 var playerId;
@@ -306,16 +305,15 @@ function connect() {
             serverTps = parseFloat(payload.tps);
         }
         if (payload.play) {
-            let newSectors = payload.play;
-            tick = parseInt(newSectors.tick);
-            for (let key in newSectors) {
+            tick = parseInt(payload.play.tick);
+            for (let key in payload.play.grid) {
                 let split = key.split(",", 2);
                 let x = parseInt(split[0]);
                 let y = parseInt(split[1]);
-                if (newSectors[key].entities) {
+                if (payload.play.grid[key].entities) {
                     let ids = [];
-                    for (let entityKey in newSectors[key].entities) {
-                        let rawEntity = newSectors[key].entities[entityKey];
+                    for (let entityKey in payload.play.grid[key].entities) {
+                        let rawEntity = payload.play.grid[key].entities[entityKey];
                         let entity;
                         if (rawEntity[0] === "player") {
                             entity = Player.deserialize(rawEntity);
@@ -336,11 +334,6 @@ function connect() {
                             delete entities[key];
                         }
                     });
-                }
-                if (newSectors[key].blocks) {
-                    for (let blockKey in newSectors[key].blocks) {
-                        let block = newSectors[key].entities[blockKey];
-                    }
                 }
             }
         }
@@ -387,9 +380,6 @@ function draw(now) {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         ctx.fillStyle = "green";
-        blocks.forEach((block) => {
-            block.draw(dt);
-        });
         Object.keys(entities).forEach((key) => {
             if(key === playerId)
             {
@@ -428,17 +418,6 @@ function resize() {
     updateViewport = true;
     
     ctx.imageSmoothingEnabled = "false";
-}
-
-class Block {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-    }
-    
-    draw(dt) {
-        ctx.fillRect(this.x, this.y, 10, 10);
-    }
 }
 
 class Entity {
