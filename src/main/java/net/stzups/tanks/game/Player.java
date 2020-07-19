@@ -29,7 +29,7 @@ public class Player extends Entity {
 
     private static final float MAX_VIEWPORT_WIDTH = 16;
     private static final float MAX_VIEWPORT_HEIGHT = 9;
-    private static final int VIEWPORT_SCALE = 4;
+    private static final int VIEWPORT_SCALE = 30;
 
     private String name;
     int viewportWidth;

@@ -310,8 +310,8 @@ function connect() {
             console.log(payload.viewport[0], payload.viewport[1]);
             viewportWidth = payload.viewport[0];
             viewportHeight = payload.viewport[1];
-            viewportWidthScale = viewportWidth / canvas.width;
-            viewportHeightScale = viewportHeightScale / canvas.height;
+            viewportWidthScale = canvas.width / viewportWidth;
+            viewportHeightScale = canvas.height / viewportHeight;
         }
         if (payload.play) {
             tick = parseInt(payload.play.tick);
