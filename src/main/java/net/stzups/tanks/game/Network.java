@@ -102,9 +102,13 @@ class Network implements PacketListener {
                     JSONArray newP = new JSONArray();
                     newP.put(player.id);
                     player.updateViewport();
-                    newP.put(player.viewportWidth);
-                    newP.put(player.viewportHeight);
-                    connection.sendText("{\"newPlayer\":" + newP.toString() + "}");
+                    JSONArray viewport = new JSONArray();
+                    viewport.put(player.viewportWidth);
+                    viewport.put(player.viewportHeight);
+                    JSONObject payloadOut = new JSONObject();
+                    payloadOut.put("newPlayer", newP);
+                    payloadOut.put("viewport", viewport);
+                    connection.sendText(payloadOut.toString());
                 }
                 if (payload.has("time")) {
                     connection.setPing((int) (System.currentTimeMillis() - payload.getLong("time")));

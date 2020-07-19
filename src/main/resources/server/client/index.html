@@ -307,7 +307,6 @@ function connect() {
             serverTps = parseFloat(payload.tps);
         }
         if (payload.viewport) {
-            console.log(payload.viewport[0], payload.viewport[1]);
             viewportWidth = payload.viewport[0];
             viewportHeight = payload.viewport[1];
             viewportWidthScale = canvas.width / viewportWidth;
