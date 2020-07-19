@@ -2,7 +2,6 @@ package net.stzups.tanks.game;
 
 import org.json.JSONArray;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,6 +34,7 @@ public class Player extends Entity {
     private String name;
     int viewportWidth;
     int viewportHeight;
+    private boolean updateViewport = false;
     Player.Turret turret;
     List<Bullet> bullets;
 
@@ -53,6 +53,16 @@ public class Player extends Entity {
         } else {
             this.viewportHeight = (int) (MAX_VIEWPORT_HEIGHT * VIEWPORT_SCALE);
             this.viewportWidth = (int) ((float) this.viewportHeight * ((float) viewportWidth / (float) viewportHeight));
+        }
+        updateViewport = true;
+    }
+
+    boolean updateViewport() {
+        if (updateViewport) {
+            updateViewport = false;
+            return true;
+        } else {
+            return false;
         }
     }
 

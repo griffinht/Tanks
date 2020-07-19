@@ -35,7 +35,14 @@ class Network implements PacketListener {
                 for (Map.Entry<Connection, Player> entry : game.connectionPlayerMap.entrySet()) {
                     Player player = entry.getValue();
                     JSONObject payload = new JSONObject();
-                    payload.put("tick", tick);
+                    JSONObject play = new JSONObject();
+                    play.put("tick", tick);
+                    if (player.updateViewport()) {
+                        JSONArray viewport = new JSONArray();
+                        viewport.put(player.viewportWidth);
+                        viewport.put(player.viewportHeight);
+                        payload.put("viewport", viewport);
+                    }
                     JSONObject playerGrid = new JSONObject();
                     for (int x = (int) (player.x - player.viewportWidth / 2.0f) / World.GRID_SIZE; x <= (int) (player.x + player.viewportWidth / 2.0f) / World.GRID_SIZE; x++) {
                         for (int y = (int) (player.y - player.viewportHeight / 2.0f) / World.GRID_SIZE; y <= (int) (player.y + player.viewportHeight / 2.0f) / World.GRID_SIZE; y++) {
@@ -58,9 +65,11 @@ class Network implements PacketListener {
                             }
                         }
                     }
-                    payload.put("grid", grid);
+                    play.put("grid", grid);
+                    payload.put("play", play);
                     //System.out.print(entry.getKey().getUUID() + ", ");
-                    entry.getKey().sendText("{\"play\":" + payload.toString() + ",\"ping\":" + entry.getKey().getPing() + ",\"tps\":" + tps + "}");
+
+                    entry.getKey().sendText(payload.toString());
                 }
             }
             catch(Exception e)
@@ -90,7 +99,12 @@ class Network implements PacketListener {
                     game.world.addEntity(player);
                     logger.info("New player " + player.getName());
 
-                    connection.sendText("{\"newPlayer\":[\"" + player.id + "\"]}");
+                    JSONArray newP = new JSONArray();
+                    newP.put(player.id);
+                    player.updateViewport();
+                    newP.put(player.viewportWidth);
+                    newP.put(player.viewportHeight);
+                    connection.sendText("{\"newPlayer\":" + newP.toString() + "}");
                 }
                 if (payload.has("time")) {
                     connection.setPing((int) (System.currentTimeMillis() - payload.getLong("time")));

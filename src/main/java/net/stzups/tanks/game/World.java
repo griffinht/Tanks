@@ -3,13 +3,12 @@ package net.stzups.tanks.game;
 import net.stzups.util.Grid;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
 class World {
-    static final int GRID_SIZE = 64; //todo dynamic grid size???
+    static final int GRID_SIZE = 16; //todo dynamic grid size???
 
     Grid<Entity> grid = new Grid<>();
 
@@ -22,7 +21,6 @@ class World {
             Map<Integer, List<Entity>> column = grid.get(columnKey);
             for (Integer rowKey : new TreeSet<>(column.keySet())) {
                 List<Entity> row = column.get(rowKey);
-                Iterator<Entity> iterator = row.iterator();
                 for (Entity entity : new ArrayList<>(row)) {
                     if (entity.speed != 0) {
                         entity.x += entity.speed * Math.cos(entity.direction);
