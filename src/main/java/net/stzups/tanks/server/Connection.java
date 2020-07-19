@@ -6,6 +6,7 @@ import net.stzups.tanks.Tanks;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.Inet6Address;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -189,21 +190,26 @@ public class Connection implements Runnable {
 
                         byte[] fileContents = fileManager.getFileContents("client/" + foundPath);
 
-                        if(fileContents.length > 0) {
-                            for(int i = 0; i < fileContents.length; i++)
+                        if (fileContents.length > 0) {
+                            for (int i = 0; i < fileContents.length; i++)
                             {
-                                if(fileContents[i] == '[' && fileContents[i + 1] == '[' && fileContents[i + 2] == '[')
+                                if (fileContents[i] == '[' && fileContents[i + 1] == '[' && fileContents[i + 2] == '[')
                                 {
-                                    for(int x = i + 3; x < fileContents.length; x++)
+                                    for (int x = i + 3; x < fileContents.length; x++)
                                     {
-                                        if(fileContents[x] == ']' && fileContents[x + 1] == ']' && fileContents[x + 2] == ']')
+                                        if (fileContents[x] == ']' && fileContents[x + 1] == ']' && fileContents[x + 2] == ']')
                                         {
 
                                             String str = new String(fileContents, i + 3, x - i - 3);
                                             String match = "SERVER_IP";
-                                            if(str.equalsIgnoreCase(match))
+                                            if (str.equalsIgnoreCase(match))
                                             {
-                                                byte[] ip = ("ws://[" + socket.getLocalAddress().getHostAddress() + "]:" + socket.getLocalPort()).getBytes();//todo safety
+                                                byte[] ip;
+                                                if (socket.getInetAddress() instanceof Inet6Address) {
+                                                    ip = ("ws://[" + socket.getLocalAddress().getHostAddress() + "]:" + socket.getLocalPort()).getBytes();//todo safety
+                                                } else {
+                                                    ip = ("ws://" + socket.getLocalAddress().getHostAddress() + ":" + socket.getLocalPort()).getBytes();//todo safety
+                                                }
                                                 byte[] first = new byte[fileContents.length + ip.length - (match.length() + 6)];
                                                 System.arraycopy(fileContents, 0, first, 0, x - 3);
                                                 System.arraycopy(ip, 0, first, i, ip.length);
