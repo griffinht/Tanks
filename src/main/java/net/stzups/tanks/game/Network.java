@@ -125,29 +125,31 @@ class Network implements PacketListener {
             //logger.info(player.getName() + ": " + rawPayload);
             try {
                 JSONObject payload = new JSONObject(rawPayload);
-                if (!player.getPingQueue().isEmpty() && payload.has("play")) {
-                    Map.Entry<UUID, Long> pop = player.getPingQueue().poll();
-                    if(UUID.fromString(payload.getString("play")).equals(pop.getKey())) {
-                        long ping = System.currentTimeMillis() - pop.getValue();
-                        if(ping < 0) {
-                            logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", replied to pong packet in negative time");
-                        } else {
-                            player.setPing((int) ping);
-                            if ((int) ping > Connection.MAXIMUM_PING) {
-                                logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", ping too high");//todo will this ever happen if the thing below is already checking?
-                                connection.close(true);
-                                return;
+                if (!player.getPingQueue().isEmpty()) {
+                    if (payload.has("play")) {
+                        Map.Entry<UUID, Long> poll = player.getPingQueue().poll();
+                        if (poll != null && UUID.fromString(payload.getString("play")).equals(poll.getKey())) {
+                            long ping = System.currentTimeMillis() - poll.getValue();
+                            if (ping < 0) {
+                                logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", replied to pong packet in negative time");
+                            } else {
+                                player.setPing((int) ping);
+                                if ((int) ping > Connection.MAXIMUM_PING) {
+                                    logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", ping too high");//todo will this ever happen if the thing below is already checking?
+                                    connection.close(true);
+                                    return;
+                                }
                             }
+                        } else {
+                            logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", specified the wrong pong packet id");
+                            connection.close(true);//todo change to kick with reason method also reason for kick
+                            return;
                         }
-                    } else {
-                        logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", specified the wrong pong packet id");
-                        connection.close(true);//todo change to kick with reason method also reason for kick
+                    } else if (System.currentTimeMillis() - player.getPingQueue().peek().getValue() > Connection.MAXIMUM_PING) {
+                        logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", took too long to respond to ping");
+                        connection.close(true);
                         return;
                     }
-                } else if(!player.getPingQueue().isEmpty() && System.currentTimeMillis() - player.getPingQueue().peek().getValue() > Connection.MAXIMUM_PING) {
-                    logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", took too long to respond to ping");
-                    connection.close(true);
-                    return;
                 }
                 if (payload.has("player")) {
                     JSONArray jsonPlayer = payload.getJSONArray("player");
