@@ -2,7 +2,10 @@ package net.stzups.tanks.game;
 
 import org.json.JSONArray;
 
+import java.util.ArrayDeque;
 import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 import java.util.UUID;
 
 public class Player extends Entity {
@@ -32,11 +35,14 @@ public class Player extends Entity {
     private static final int VIEWPORT_SCALE = 30;
 
     private String name;
-    int viewportWidth;
-    int viewportHeight;
+    private Player.Turret turret;
+    private List<Bullet> bullets;
+
+    private int viewportWidth;
+    private int viewportHeight;
     private boolean updateViewport = false;
-    Player.Turret turret;
-    List<Bullet> bullets;
+    private Queue<Map.Entry<UUID, Long>> pingQueue = new ArrayDeque<>();
+    private int ping;
 
     Player(UUID id, float x, float y, float speed, float direction, float rotation, int width, int height, String name, int viewportWidth, int viewportHeight, Player.Turret turret, List<Bullet> bullets) {
         super(id, x, y, speed, direction, rotation, width, height);
@@ -68,6 +74,26 @@ public class Player extends Entity {
 
     public String getName() {
         return name;
+    }
+
+    int getViewportWidth() {
+        return viewportWidth;
+    }
+
+    int getViewportHeight() {
+        return viewportHeight;
+    }
+
+    int getPing() {
+        return ping;
+    }
+
+    Queue<Map.Entry<UUID, Long>> getPingQueue() {
+        return pingQueue;
+    }
+
+    void setPing(int ping) {
+        this.ping = ping;
     }
 
     @Override

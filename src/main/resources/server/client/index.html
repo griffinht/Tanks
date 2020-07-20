@@ -240,7 +240,7 @@ class NetworkManager {
         }
         this.interval = setInterval(() => {//todo move to draw
             if (this.running && webSocket.readyState == WebSocket.OPEN) {
-                let payload = {time:window.performance.now()};
+                let payload = {};
                 if (player) {
                     payload.player = player.serialize();
                 }
@@ -314,6 +314,8 @@ function connect() {
         }
         if (payload.play) {
             tick = parseInt(payload.play.tick);
+            ping = parseInt(payload.play.ping);
+            send({play:payload.play.uuid})
             for (let key in payload.play.grid) {
                 let split = key.split(",", 2);
                 let x = parseInt(split[0]);
@@ -357,8 +359,9 @@ function connect() {
 
 function send(payload) {
     if(webSocket.readyState === WebSocket.OPEN) {
-        payload.time = Date.now();
-        webSocket.send(JSON.stringify(payload));
+        if (Object.keys(payload).length !== 0 && payload.constructor === Object) {
+            webSocket.send(JSON.stringify(payload));
+        }
         lastSentTick = tick;
     } else {
         return "Error: Not connected";

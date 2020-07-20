@@ -7,6 +7,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.UUID;
@@ -37,15 +38,18 @@ class Network implements PacketListener {
                     JSONObject payload = new JSONObject();
                     JSONObject play = new JSONObject();
                     play.put("tick", tick);
+                    UUID uuid = UUID.randomUUID();
+                    play.put("uuid", uuid);
+                    play.put("ping", player.getPing());
                     if (player.updateViewport()) {
                         JSONArray viewport = new JSONArray();
-                        viewport.put(player.viewportWidth);
-                        viewport.put(player.viewportHeight);
+                        viewport.put(player.getViewportWidth());
+                        viewport.put(player.getViewportHeight());
                         payload.put("viewport", viewport);
                     }
                     JSONObject playerGrid = new JSONObject();
-                    for (int x = (int) (player.x - player.viewportWidth / 2.0f) / World.GRID_SIZE; x <= (int) (player.x + player.viewportWidth / 2.0f) / World.GRID_SIZE; x++) {
-                        for (int y = (int) (player.y - player.viewportHeight / 2.0f) / World.GRID_SIZE; y <= (int) (player.y + player.viewportHeight / 2.0f) / World.GRID_SIZE; y++) {
+                    for (int x = (int) (player.x - player.getViewportWidth() / 2.0f) / World.GRID_SIZE; x <= (int) (player.x + player.getViewportWidth() / 2.0f) / World.GRID_SIZE; x++) {
+                        for (int y = (int) (player.y - player.getViewportHeight() / 2.0f) / World.GRID_SIZE; y <= (int) (player.y + player.getViewportHeight() / 2.0f) / World.GRID_SIZE; y++) {
                             String key = x + "," + y;
                             if(grid.has(key)) {
                                 playerGrid.put(key, grid.get(key));
@@ -70,6 +74,7 @@ class Network implements PacketListener {
                     //System.out.print(entry.getKey().getUUID() + ", ");
 
                     entry.getKey().sendText(payload.toString());
+                    player.getPingQueue().add(new AbstractMap.SimpleEntry<>(uuid, System.currentTimeMillis()));//todo java 9 Map.entry(k,v)
                 }
             }
             catch(Exception e)
@@ -103,18 +108,12 @@ class Network implements PacketListener {
                     newP.put(player.id);
                     player.updateViewport();
                     JSONArray viewport = new JSONArray();
-                    viewport.put(player.viewportWidth);
-                    viewport.put(player.viewportHeight);
+                    viewport.put(player.getViewportWidth());
+                    viewport.put(player.getViewportHeight());
                     JSONObject payloadOut = new JSONObject();
                     payloadOut.put("newPlayer", newP);
                     payloadOut.put("viewport", viewport);
                     connection.sendText(payloadOut.toString());
-                }
-                if (payload.has("time")) {
-                    connection.setPing((int) (System.currentTimeMillis() - payload.getLong("time")));
-                } else {
-                    logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", should have included time, instead got " + payload.keySet());
-                    connection.close(true);
                 }
                 //remember to add a return back here
             } catch (JSONException e) {
@@ -126,10 +125,27 @@ class Network implements PacketListener {
             //logger.info(player.getName() + ": " + rawPayload);
             try {
                 JSONObject payload = new JSONObject(rawPayload);
-                if (payload.has("time")) {
-                    connection.setPing((int) (System.currentTimeMillis() - payload.getLong("time")));
-                } else {
-                    logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", should have included time, instead got " + payload.keySet());
+                if (!player.getPingQueue().isEmpty() && payload.has("play")) {
+                    Map.Entry<UUID, Long> pop = player.getPingQueue().poll();
+                    if(UUID.fromString(payload.getString("play")).equals(pop.getKey())) {
+                        long ping = System.currentTimeMillis() - pop.getValue();
+                        if(ping < 0) {
+                            logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", replied to pong packet in negative time");
+                        } else {
+                            player.setPing((int) ping);
+                            if ((int) ping > Connection.MAXIMUM_PING) {
+                                logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", ping too high");//todo will this ever happen if the thing below is already checking?
+                                connection.close(true);
+                                return;
+                            }
+                        }
+                    } else {
+                        logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", specified the wrong pong packet id");
+                        connection.close(true);//todo change to kick with reason method also reason for kick
+                        return;
+                    }
+                } else if(!player.getPingQueue().isEmpty() && System.currentTimeMillis() - player.getPingQueue().peek().getValue() > Connection.MAXIMUM_PING) {
+                    logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", took too long to respond to ping");
                     connection.close(true);
                     return;
                 }
