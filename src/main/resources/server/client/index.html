@@ -126,6 +126,7 @@ var viewportHeightScale = 0;
 var updateViewport = false;
 
 var tick = 0;
+var offsetDt = 0;
 var lastSentTick = 0;
 var serverTps = 0;
 
@@ -314,6 +315,7 @@ function connect() {
         }
         if (payload.play) {
             tick = parseInt(payload.play.tick);
+            offsetDt = parseFloat(payload.play.dt);
             ping = parseInt(payload.play.ping);
             send({play:payload.play.uuid});
             
@@ -378,7 +380,8 @@ canvas
 
 function draw(now) {
     if (drawing) {
-        let dt = now-lastFrame;
+        let dt = ((now-lastFrame) / 1000) + offsetDt;
+        offsetDt = 0;//todo make sure this does something
         ctx.fillStyle = "black";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
@@ -408,7 +411,7 @@ function draw(now) {
         ctx.restore();
         ctx.fillStyle = "white";
         ctx.font = fontSize + font;
-        ctx.fillText(Math.round(1000/dt) + "fps", 10, 30);
+        ctx.fillText(Math.round(1/dt) + "fps", 10, 30);
         ctx.fillText(ping + "ms", 10, 60);
         ctx.fillText(tick + "tick", 10, 90);
         ctx.fillText(serverTps + "tps (server)", 10, 120);
@@ -473,7 +476,7 @@ class Player extends Entity {
     
     draw(dt) {
         if (this.id === playerId) {
-            this.speed = 1;
+            this.speed = 10;
             if (keys.includes(87) && keys.includes(68)) {
                 this.rotation = 7*Math.PI/4;
             } else if (keys.includes(68) && keys.includes(83)) {

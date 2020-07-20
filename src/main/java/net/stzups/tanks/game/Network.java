@@ -27,7 +27,7 @@ class Network implements PacketListener {
         Tanks.server.addPacketListener(this);
     }
 
-    void tick(int tick) {
+    void update(int tick, float dt) {
         executorService.submit(() -> {
             float tps = (Math.round(game.getTps() * 100) / 100F);
             JSONObject grid = new JSONObject();
@@ -38,6 +38,7 @@ class Network implements PacketListener {
                     JSONObject payload = new JSONObject();
                     JSONObject play = new JSONObject();
                     play.put("tick", tick);
+                    play.put("dt", dt);
                     UUID uuid = UUID.randomUUID();
                     play.put("uuid", uuid);
                     play.put("ping", player.getPing());
@@ -102,7 +103,7 @@ class Network implements PacketListener {
                     String name = newClient.getString(0);
                     int viewportWidth = newClient.getInt(1);
                     int viewportHeight = newClient.getInt(2);
-                    Player player = new Player(UUID.randomUUID(), 0, 0, 0, 0, 0, 40, 20, name, viewportWidth, viewportHeight, new Player.Turret(0, 4, 30), new ArrayList<>());
+                    Player player = new Player(UUID.randomUUID(), 0, 0, 0, 0, 0, 5, 2, name, viewportWidth, viewportHeight, new Player.Turret(0, 0.5f, 3f), new ArrayList<>());
                     game.connectionPlayerMap.put(connection, player);
                     game.world.addEntity(player);
                     logger.info("New player " + player.getName());

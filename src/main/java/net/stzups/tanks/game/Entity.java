@@ -12,10 +12,10 @@ class Entity {
     float speed;
     float direction;
     float rotation;
-    int width;
-    int height;
+    float width;
+    float height;
 
-    Entity(UUID id, float x, float y, float speed, float direction, float rotation, int width, int height) {
+    Entity(UUID id, float x, float y, float speed, float direction, float rotation, float width, float height) {
         this.id = id;
         this.x = x;
         this.y = y;
@@ -36,8 +36,8 @@ class Entity {
         speed = jsonArray.getFloat(3);
         direction = jsonArray.getFloat(4);
         rotation = jsonArray.getFloat(5);
-        width = jsonArray.getInt(6);
-        height = jsonArray.getInt(7);
+        width = jsonArray.getFloat(6);
+        height = jsonArray.getFloat(7);
         return true;
     }
 

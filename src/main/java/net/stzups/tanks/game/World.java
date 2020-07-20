@@ -16,18 +16,14 @@ class World {
 
     }
 
-    void tick(int tick) {
+    void update(int tick, float dt) {
         for (Integer columnKey : new TreeSet<>(grid.get().keySet())) {
             Map<Integer, List<Entity>> column = grid.get(columnKey);
             for (Integer rowKey : new TreeSet<>(column.keySet())) {
                 List<Entity> row = column.get(rowKey);
                 for (Entity entity : new ArrayList<>(row)) {
-                    if (entity.speed != 0) {
-                        entity.x += entity.speed * Math.cos(entity.direction);
-                    }
-                    if (entity.speed != 0) {
-                        entity.y += entity.speed * Math.sin(entity.direction);
-                    }
+                    entity.x += entity.speed * Math.cos(entity.direction) * dt;//speed is units per second
+                    entity.y += entity.speed * Math.sin(entity.direction) * dt;
                     if (columnKey != (int) entity.x / GRID_SIZE || rowKey != (int) entity.y / GRID_SIZE) {
                         grid.remove(columnKey, rowKey, entity);
                         grid.insert((int) entity.x / GRID_SIZE, (int) entity.y / GRID_SIZE, entity);

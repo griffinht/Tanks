@@ -33,21 +33,22 @@ public class Game implements Runnable {
 
         while (running) {
             long now = System.nanoTime();
-
+            float dt = (now - lastTick) / 1000000000f;//dt is ms since last tick
             if (now - lastTick > GAME_TICK_INTERVAL) {
-                long elapsedTime = now - lastTick;
-                tps = 1000000000F / elapsedTime;
+                tps = 1f / dt;
+
                 lastTick = now;
 
-                //System.out.print(tick + " ticks, " + (Math.round(tps * 100) / 100.0) + "tps, " + elapsedTime / 1000000.0 + "ms per tick\r");// todo fix tickrate reporting
+                //System.out.print(tick + " ticks, " + (Math.round(tps * 100) / 100.0) + "tps, " + dt + "s per tick\r");// todo fix tickrate reporting
                 //movement
-                world.tick(tick);
+                world.update(tick, dt);
+                dt = 0;
 
                 tick++;
             }
 
             if (now - lastNetworkTick > NETWORK_TICK_INTERVAL) {
-                network.tick(tick);
+                network.update(tick, dt);
                 lastNetworkTick = now;
             }
 
