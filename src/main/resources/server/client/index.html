@@ -382,6 +382,13 @@ function draw(now) {
     if (drawing) {
         let dt = ((now-lastFrame) / 1000) + offsetDt;
         offsetDt = 0;//todo make sure this does something
+        Object.keys(entities).forEach((key) => {
+            if (key === playerId) {
+                player.update(dt);
+            } else {
+                entities[key].update(dt);
+            }
+        })
         ctx.fillStyle = "black";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
@@ -398,14 +405,7 @@ function draw(now) {
         
         ctx.fillStyle = "green";
         Object.keys(entities).forEach((key) => {
-            if(key === playerId)
-            {
-                player.draw(dt);
-            }
-            else
-            {
-                entities[key].draw(dt);
-            }
+            entities[key].draw(dt);
         });
         
         ctx.restore();
@@ -446,11 +446,13 @@ class Entity {
         this.width = width;
         this.height = height;
     }
-    
-    draw(dt) {
+
+    update(dt) {
         this.x += this.speed * Math.acos(this.direction) * dt;
         this.y += this.speed * Math.asin(this.direction) * dt;
-
+    }
+    
+    draw() {
         ctx.save();
         ctx.rotate(this.rotation);
         ctx.fillRect(this.x, this.y, this.width, this.height);
@@ -474,7 +476,7 @@ class Player extends Entity {
         this.bullets = bullets;
     }
     
-    draw(dt) {
+    update(dt) {
         if (this.id === playerId) {
             this.speed = 10;
             if (keys.includes(87) && keys.includes(68)) {
@@ -512,7 +514,9 @@ class Player extends Entity {
 
         this.x += Math.cos(this.direction) * this.speed * dt;
         this.y += Math.sin(this.direction) * this.speed * dt;
-        
+    }
+
+    draw() {
         ctx.save();
         ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
         ctx.fillText(this.name, -ctx.measureText(this.name).width / 2, -fontSize - 5);
