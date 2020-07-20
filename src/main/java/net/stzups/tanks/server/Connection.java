@@ -28,6 +28,7 @@ public class Connection implements Runnable {
 
     private static final Logger logger = Logger.getLogger(Tanks.class.getName());
     private static final boolean ALLOW_MULTIPLE_CONNECTIONS_FROM_SAME_IP_ADDRESS = true;
+    public static final int MAXIMUM_PING = 1000;
 
     private final FileManager fileManager;
 
@@ -37,8 +38,7 @@ public class Connection implements Runnable {
 
     private final UUID uuid = UUID.randomUUID();
 
-    private long lastHeartbeatPing = System.currentTimeMillis();
-    private int heartbeatPing = 0;
+    private long lastPing = System.currentTimeMillis();
     private int ping = 0;
     private boolean connected = false;
 
@@ -53,12 +53,12 @@ public class Connection implements Runnable {
 
     private final Thread heartbeat = new Thread(() -> {
         while(!Thread.currentThread().isInterrupted() && connected) {
-            if (heartbeatPing == -1 || heartbeatPing > 5000) {
+            if (ping == -1 || ping > MAXIMUM_PING) {
                 logger.warning("Closing unresponsive connection...");
                 close(true);
             }
-            heartbeatPing = -1;
-            lastHeartbeatPing = System.currentTimeMillis();
+            ping = -1;
+            lastPing = System.currentTimeMillis();
             sendPacket((byte) 0x9, "");
             try {
                 Thread.sleep(5000);
@@ -72,14 +72,6 @@ public class Connection implements Runnable {
 
     public int getPing() {
         return ping;
-    }
-
-    public void setPing(int ping) {
-        if (ping < -1) { // Allow for some incorrect time
-            logger.warning("Closing connection for " + socket.getInetAddress().getHostAddress() + " because of negative ping (" + ping + "ms)");
-            close(true);
-        }
-        this.ping = ping;
     }
 
     public Socket getSocket() {
@@ -149,7 +141,7 @@ public class Connection implements Runnable {
                                         throw new RuntimeException("Client sent ping, server can't handle");
                                     case 0xA: // pong from client
                                         long time = System.currentTimeMillis();
-                                        heartbeatPing = (int) (time - lastHeartbeatPing);
+                                        ping = (int) (time - lastPing);
                                         break;
                                     default: // error
                                         byte[] packet = new byte[inputStream.available()];
