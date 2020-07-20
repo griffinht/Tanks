@@ -315,13 +315,15 @@ function connect() {
         if (payload.play) {
             tick = parseInt(payload.play.tick);
             ping = parseInt(payload.play.ping);
-            send({play:payload.play.uuid})
+            send({play:payload.play.uuid});
+            
+            let ids = [];
             for (let key in payload.play.grid) {
                 let split = key.split(",", 2);
                 let x = parseInt(split[0]);
                 let y = parseInt(split[1]);
                 if (payload.play.grid[key].entities) {
-                    let ids = [];
+                    
                     let name;
                     for (let entityKey in payload.play.grid[key].entities) {
                         let rawEntity = payload.play.grid[key].entities[entityKey];
@@ -331,28 +333,22 @@ function connect() {
                         } else {
                             entity = Entity.deserialize(rawEntity);
                         }
-                        if (entity.id == playerId) {
-                            if(typeof player === "undefined")
-                            {
-                                player = entity; //todo setProp
-                            }
+                        if (typeof player === "undefined" && entity.id == playerId) {
+                            player = entity; //todo setProp
                         }
                         entities[entity.id] = entity;
                         ids.push(entity.id);
                         name = entity.name;
                     }
-                    Object.keys(entities).forEach((key) => {
-                        //console.log(entities[key].name + ":");
-                        if (!ids.includes(key)) {
-                            //console.log(entities[key].name + " IS DELETE");
-                            delete entities[key];
-                        } else {
-                            //console.log(entities[key].name + " IS GO");
-                        }
-                    });
-                    //console.log("");
                 }
             }
+            Object.keys(entities).forEach((key) => {
+                if (!ids.includes(key)) {
+                    console.log("removed " + key);
+                    delete entities[key];
+                } else {
+                }
+            });
         }
     }
 }

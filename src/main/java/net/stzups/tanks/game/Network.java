@@ -51,25 +51,28 @@ class Network implements PacketListener {
                     for (int x = (int) (player.x - player.getViewportWidth() / 2.0f) / World.GRID_SIZE; x <= (int) (player.x + player.getViewportWidth() / 2.0f) / World.GRID_SIZE; x++) {
                         for (int y = (int) (player.y - player.getViewportHeight() / 2.0f) / World.GRID_SIZE; y <= (int) (player.y + player.getViewportHeight() / 2.0f) / World.GRID_SIZE; y++) {
                             String key = x + "," + y;
-                            if(grid.has(key)) {
-                                playerGrid.put(key, grid.get(key));
+                            if (grid.has(key)) {
+                                JSONObject g = grid.getJSONObject(key);
+                                if (g.length() > 0) {
+                                    playerGrid.put(key, grid.get(key));
+                                }
                             } else {
                                 JSONObject g = new JSONObject();
                                 JSONArray entities = new JSONArray();
                                 for (Entity entity : game.world.grid.get(x, y)) {
                                     entities.put(new JSONArray(entity.serialize()));
                                 }
-                                if(entities.length() > 0) {
+                                if (entities.length() > 0) {
                                     g.put("entities", entities);
                                 }
                                 grid.put(key, g);
-                                if(g.length() > 0) {
+                                if (g.length() > 0) {
                                     playerGrid.put(key, g);
                                 }
                             }
                         }
                     }
-                    play.put("grid", grid);
+                    play.put("grid", playerGrid);
                     payload.put("play", play);
                     //System.out.print(entry.getKey().getUUID() + ", ");
 
