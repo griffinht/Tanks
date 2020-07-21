@@ -335,7 +335,7 @@ function connect() {
                         } else {
                             entity = Entity.deserialize(rawEntity);
                         }
-                        if (entities.hasOwnProperty(entity.id)) {
+                        if (entity.id !== playerId && entities.hasOwnProperty(entity.id)) {
                             entities[entity.id].set(entity);
                         } else {
                             entities[entity.id] = entity;
@@ -381,14 +381,15 @@ function draw(now) {
     if (drawing) {
         let dt = (now - lastFrame);
         let serverDt = now - server.time;
+        let f = serverDt / server.dt;
 
         lastFrame = now;
 
         Object.keys(entities).forEach((key) => {
             if (key === playerId) {
-                player.update(dt, serverDt);
+                player.update(dt);
             } else {
-                entities[key].update(dt, serverDt);
+                entities[key].update(dt);
             }
         })
         ctx.fillStyle = "black";
@@ -408,9 +409,9 @@ function draw(now) {
         ctx.fillStyle = "green";
         Object.keys(entities).forEach((key) => {
             if (key === playerId) {
-                player.draw();
+                player.draw(f);
             } else {
-                entities[key].draw();
+                entities[key].draw(f);
             }
         });
         
@@ -440,13 +441,15 @@ function resize() {
     ctx.imageSmoothingEnabled = "false";
 }
 
+function lerp(a, b, f) {
+    return a * (1 - f) + b * f;
+}
+
 class Entity {
     constructor(id, x, y, speed, direction, rotation, width, height) {
         this.id = id;
         this.x = x;
         this.y = y;
-        this.lastX = x;
-        this.lastY = y;
         this.targetX = x;
         this.targetY = y;
         this.speed = speed;
@@ -454,32 +457,34 @@ class Entity {
         this.rotation = rotation;
         this.width = width;
         this.height = height;
+        this.lerp = false;
     }
 
-    update(dt, serverDt) {
-        this.x = Entity.lerp(this.lastX, this.targetX, serverDt / server.dt);
-        this.y = Entity.lerp(this.lastY, this.targetY, serverDt / server.dt);
+    update(dt) {
         //this.x += this.speed * Math.acos(this.direction) * dt;
         //this.y += this.speed * Math.asin(this.direction) * dt;
     }
     
-    draw() {
+    draw(f) {
         ctx.save();
         ctx.rotate(this.rotation);
-        ctx.fillRect(this.x, this.y, this.width, this.height);
+        if (this.lerp) {
+            ctx.fillRect(lerp(this.lastX, this.targetX, serverDt / server.dt), lerp(this.lastY, this.targetY, serverDt / server.dt), this.width, this.height);
+        } else {
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+        }
         ctx.restore();
     }
 
     set(entity) {
-        this.lastX = this.x;
-        this.lastY = this.y;
+        this.x = this.targetX;
+        this.y = this.targetY;
         this.targetX = entity.x;
         this.targetY = entity.y;
         this.speed = entity.speed;
         this.direction = entity.direction;
         this.rotation = entity.rotation;
-        this.width = entity.width;
-        this.height = entity.height;
+        this.lerp = true;
     }
     
     serialize() {
@@ -488,10 +493,6 @@ class Entity {
     
     static deserialize(entity) {
         return new Entity(entity[0], entity[1], entity[2], entity[3], entity[4], entity[5], entity[6], entity[7]);
-    }
-
-    static lerp(a, b, f) {
-        return a * (1 - f) + b * f;
     }
 }
 
@@ -503,9 +504,13 @@ class Player extends Entity {
         this.bullets = bullets;
     }
 
-    draw() {
+    draw(f) {
         ctx.save();
-        ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+        if (this.lerp) {
+            ctx.translate(lerp(this.x, this.targetX, f) + this.width / 2, lerp(this.y, this.targetY, f) + this.height / 2);
+        } else {
+            ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+        }
         ctx.fillText(this.name, -ctx.measureText(this.name).width / 2, -fontSize - 5);
 
         ctx.save();
@@ -514,11 +519,7 @@ class Player extends Entity {
         ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
         ctx.restore();
         
-        ctx.save();
-        ctx.fillStyle = "#00ff18";
-        ctx.rotate(this.turret.rotation);
-        ctx.fillRect(-this.turret.width / 2, 0, this.turret.width, this.turret.height);
-        ctx.restore();
+        this.turret.draw(f);
         
         ctx.restore();
         
@@ -535,7 +536,7 @@ class Player extends Entity {
 
     set(entity) {
         super.set(entity);
-        this.turret = entity.turret;
+        this.turret.set(entity.turret);
         this.bullets = entity.bullets;
     }
     
@@ -562,7 +563,7 @@ class ThisPlayer extends Player {
         super(id, x, y, speed, direction, rotation, width, height, name, turret, bullets);
     }
 
-    update(dt, serverDt) {
+    update(dt) {
         this.speed = 10;
         if (keys.includes(87) && keys.includes(68)) {
             this.rotation = 7*Math.PI/4;
@@ -626,8 +627,28 @@ class Bullet extends Entity {
 class Turret {
     constructor(rotation, width, height) {
         this.rotation = rotation;
+        this.rotationTarget = this.rotation;
+        this.lerp = false;
         this.width = width;
         this.height = height;
+    }
+
+    set(turret) {
+        this.rotation = this.rotationTarget;
+        this.rotationTarget = turret.rotation;
+        this.lerp = true;
+    }
+
+    draw(f) {
+        ctx.save();
+        ctx.fillStyle = "#00ff18";
+        if (this.lerp) {
+            ctx.rotate(lerp(this.rotation, this.rotationTarget, f));
+        } else {
+            ctx.rotate(this.rotation);
+        }
+        ctx.fillRect(-this.width / 2, 0, this.width, this.height);
+        ctx.restore();
     }
     
     serialize() {
