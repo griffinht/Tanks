@@ -129,23 +129,30 @@ class Network implements PacketListener {
             //logger.info(player.getName() + ": " + rawPayload);
             try {
                 JSONObject payload = new JSONObject(rawPayload);
-                if (!player.getPingQueue().isEmpty()) {
+                if (!player.getPingQueue().isEmpty()) {//todo this might be exploitable
                     if (payload.has("play")) {
-                        Map.Entry<UUID, Long> poll = player.getPingQueue().poll();
-                        if (poll != null && UUID.fromString(payload.getString("play")).equals(poll.getKey())) {
-                            long ping = System.currentTimeMillis() - poll.getValue();
-                            if (ping < 0) {
-                                logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", replied to pong packet in negative time");
-                            } else {
-                                player.setPing((int) ping);
-                                if ((int) ping > Connection.MAXIMUM_PING) {
-                                    logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", ping too high");//todo will this ever happen if the thing below is already checking?
-                                    connection.close(true);
-                                    return;
+                        UUID uuid = UUID.fromString(payload.getString("play"));
+                        Map.Entry<UUID, Long> poll;
+                        boolean match = false;
+                        while (!player.getPingQueue().isEmpty()) {
+                            poll = player.getPingQueue().poll();
+                            if (poll.getKey().equals(uuid)) {
+                                match = true;
+                                long ping = System.currentTimeMillis() - poll.getValue();
+                                if (ping < 0) {
+                                    logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", replied to pong packet in negative time");
+                                } else {
+                                    player.setPing((int) ping);
+                                    if ((int) ping > Connection.MAXIMUM_PING) {
+                                        logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", ping too high");//todo will this ever happen if the thing below is already checking?
+                                        connection.close(true);
+                                        return;
+                                    }
                                 }
+                                break;
                             }
-                        } else {
-                            System.out.println(player.getPingQueue().size() + ", " + player.getPingQueue().poll());
+                        }
+                        if(!match) {
                             logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", specified the wrong pong packet id");
                             connection.close(true);//todo change to kick with reason method also reason for kick
                             return;
