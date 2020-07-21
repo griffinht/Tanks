@@ -331,12 +331,16 @@ function connect() {
                         let rawEntity = payload.play.grid[key].entities[entityKey];
                         let entity;
                         if (rawEntity[0] === "player") {
-                            entity = Player.deserialize(rawEntity);
+                            if (rawEntity[1][0] === playerId) {
+                                entity = ThisPlayer.deserialize(rawEntity);
+                                if (typeof player === "undefined") {
+                                    player = entity;
+                                }
+                            } else {
+                                entity = Player.deserialize(rawEntity);
+                            }
                         } else {
                             entity = Entity.deserialize(rawEntity);
-                        }
-                        if (typeof player === "undefined" && entity.id == playerId) {
-                            player = entity; //todo setProp
                         }
                         entities[entity.id] = entity;
                         ids.push(entity.id);
@@ -482,41 +486,6 @@ class Player extends Entity {
     }
     
     update(dt) {
-        if (this.id === playerId) {
-            this.speed = 10;
-            if (keys.includes(87) && keys.includes(68)) {
-                this.rotation = 7*Math.PI/4;
-            } else if (keys.includes(68) && keys.includes(83)) {
-                this.rotation = Math.PI/4;
-            } else if (keys.includes(83) && keys.includes(65)) {
-                this.rotation = 3*Math.PI/4;
-            } else if (keys.includes(65) && keys.includes(87)) {
-                this.rotation = 5*Math.PI/4;
-            } else if (keys.includes(87)) {
-                this.rotation = 3*Math.PI/2
-            } else if (keys.includes(68)) {
-                this.rotation = 0;
-            } else if (keys.includes(83)) {
-                this.rotation = Math.PI/2
-            } else if (keys.includes(65)) {
-                this.rotation = Math.PI;
-            } else {
-                this.speed = 0;
-            }
-
-            this.direction = this.rotation;
-
-            if(typeof lastMouse !== "undefined" && viewportWidthScale !== 0 && viewportHeightScale !== 0) {
-                let x = (lastMouse.clientX / viewportWidthScale) + viewportX - this.x - (this.width/2);
-                let y = (lastMouse.clientY / viewportHeightScale) + viewportY - this.y - (this.height/2);
-                if (x < 0) {
-                    this.turret.rotation = Math.atan(y/x) + Math.PI - Math.PI / 2;
-                } else {
-                    this.turret.rotation = Math.atan(y/x) - Math.PI / 2;
-                }
-            }
-        }
-
         this.x += Math.cos(this.direction) * this.speed * dt;
         this.y += Math.sin(this.direction) * this.speed * dt;
     }
@@ -566,6 +535,55 @@ class Player extends Entity {
         }
         let ent = Entity.deserialize(entity[1]);
         return new Player(ent.id, ent.x, ent.y, ent.speed, ent.direction, ent.rotation, ent.width, ent.height, entity[2], Turret.deserialize(entity[3]), bullets);
+    }
+}
+
+class ThisPlayer extends Player {
+    constructor(id, x, y, speed, direction, rotation, width, height, name, turret, bullets) {
+        super(id, x, y, speed, direction, rotation, width, height, name, turret, bullets);
+    }
+
+    update(dt) {
+        this.speed = 10;
+        if (keys.includes(87) && keys.includes(68)) {
+            this.rotation = 7*Math.PI/4;
+        } else if (keys.includes(68) && keys.includes(83)) {
+            this.rotation = Math.PI/4;
+        } else if (keys.includes(83) && keys.includes(65)) {
+            this.rotation = 3*Math.PI/4;
+        } else if (keys.includes(65) && keys.includes(87)) {
+            this.rotation = 5*Math.PI/4;
+        } else if (keys.includes(87)) {
+            this.rotation = 3*Math.PI/2
+        } else if (keys.includes(68)) {
+            this.rotation = 0;
+        } else if (keys.includes(83)) {
+            this.rotation = Math.PI/2
+        } else if (keys.includes(65)) {
+            this.rotation = Math.PI;
+        } else {
+            this.speed = 0;
+        }
+
+        this.direction = this.rotation;
+
+        if(typeof lastMouse !== "undefined" && viewportWidthScale !== 0 && viewportHeightScale !== 0) {
+            let x = (lastMouse.clientX / viewportWidthScale) + viewportX - this.x - (this.width/2);
+            let y = (lastMouse.clientY / viewportHeightScale) + viewportY - this.y - (this.height/2);
+            if (x < 0) {
+                this.turret.rotation = Math.atan(y/x) + Math.PI - Math.PI / 2;
+            } else {
+                this.turret.rotation = Math.atan(y/x) - Math.PI / 2;
+            }
+        }
+
+        this.x += Math.cos(this.direction) * this.speed * dt;
+        this.y += Math.sin(this.direction) * this.speed * dt;
+    }
+
+    static deserialize(entity) {
+        let player = Player.deserialize(entity);
+        return new ThisPlayer(player.id, player.x, player.y, player.speed, player.direction, player.rotation, player.width, player.height, player.name, player.turret, player.bullets);
     }
 }
 
