@@ -145,6 +145,7 @@ class Network implements PacketListener {
                                 }
                             }
                         } else {
+                            System.out.println(player.getPingQueue().size() + ", " + player.getPingQueue().poll());
                             logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", specified the wrong pong packet id");
                             connection.close(true);//todo change to kick with reason method also reason for kick
                             return;

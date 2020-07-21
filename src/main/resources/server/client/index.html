@@ -381,7 +381,9 @@ canvas
 function draw(now) {
     if (drawing) {
         let dt = ((now-lastFrame) / 1000) + offsetDt;
+        lastFrame = now;
         offsetDt = 0;//todo make sure this does something
+
         Object.keys(entities).forEach((key) => {
             if (key === playerId) {
                 player.update(dt);
@@ -405,7 +407,11 @@ function draw(now) {
         
         ctx.fillStyle = "green";
         Object.keys(entities).forEach((key) => {
-            entities[key].draw(dt);
+            if (key === playerId) {
+                player.draw();
+            } else {
+                entities[key].draw();
+            }
         });
         
         ctx.restore();
@@ -415,8 +421,7 @@ function draw(now) {
         ctx.fillText(ping + "ms", 10, 60);
         ctx.fillText(tick + "tick", 10, 90);
         ctx.fillText(serverTps + "tps (server)", 10, 120);
-        
-        lastFrame = window.performance.now();
+        ctx.fillText(Math.round((window.performance.now() - now) * 100) / 100 + " / " + Math.round(dt * 100000) / 100 + "ms frame time", 10, 150);
     } else {
         loader.style.display = "block";
         content.style.display = "none";
