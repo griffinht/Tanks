@@ -29,7 +29,6 @@ class Network implements PacketListener {
 
     void update(int tick, float dt) {
         executorService.submit(() -> {
-            float tps = (Math.round(game.getTps() * 100) / 100F);
             JSONObject grid = new JSONObject();
             //System.out.print("looping through " + game.connectionPlayerMap.size() + ": ");
             try {
@@ -37,8 +36,12 @@ class Network implements PacketListener {
                     Player player = entry.getValue();
                     JSONObject payload = new JSONObject();
                     JSONObject play = new JSONObject();
-                    play.put("tick", tick);
-                    play.put("dt", dt);
+
+                    JSONArray server = new JSONArray();
+                    server.put(tick);
+                    server.put(game.getLastTickTime());
+                    play.put("server", server);
+
                     UUID uuid = UUID.randomUUID();
                     play.put("uuid", uuid);
                     play.put("ping", player.getPing());

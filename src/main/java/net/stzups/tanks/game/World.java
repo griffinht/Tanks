@@ -22,8 +22,8 @@ class World {
             for (Integer rowKey : new TreeSet<>(column.keySet())) {
                 List<Entity> row = column.get(rowKey);
                 for (Entity entity : new ArrayList<>(row)) {
-                    entity.x += entity.speed * Math.cos(entity.direction) * dt;//speed is units per second
-                    entity.y += entity.speed * Math.sin(entity.direction) * dt;
+                    entity.x += entity.speed * Math.cos(entity.direction) * dt / 1000;//speed is units per second
+                    entity.y += entity.speed * Math.sin(entity.direction) * dt / 1000;
                     if (columnKey != (int) entity.x / GRID_SIZE || rowKey != (int) entity.y / GRID_SIZE) {
                         grid.remove(columnKey, rowKey, entity);
                         grid.insert((int) entity.x / GRID_SIZE, (int) entity.y / GRID_SIZE, entity);

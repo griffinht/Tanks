@@ -20,9 +20,8 @@ public class Game implements Runnable {
     private long lastNetworkTick = 0;
     private boolean running;
     private int tick = 0;
-    private float tps = 0;
     private long lastTick = 0;
-
+    private float lastTickTime = 0;
 
     public Game() {
 
@@ -33,13 +32,13 @@ public class Game implements Runnable {
 
         while (running) {
             long now = System.nanoTime();
-            float dt = (now - lastTick) / 1000000000f;//dt is ms since last tick
+            float dt = (now - lastTick) / 1000000f;//dt is ms since last tick
             if (now - lastTick > GAME_TICK_INTERVAL) {
-                tps = 1f / dt;
+                lastTickTime = dt;
 
                 lastTick = now;
 
-                //System.out.print(tick + " ticks, " + (Math.round(tps * 100) / 100.0) + "tps, " + dt + "s per tick\r");// todo fix tickrate reporting
+                //System.out.print(tick + " ticks, " + (Math.round(1 / (dt / 1000) * 100) / 100.0) + "tps, " + Math.round(dt * 100) / 100f + "ms per tick\r");// todo fix tickrate reporting
                 //movement
                 world.update(tick, dt);
                 dt = 0;
@@ -65,7 +64,7 @@ public class Game implements Runnable {
         return connectionPlayerMap;
     }
 
-    double getTps() {
-        return tps;
+    float getLastTickTime() {
+        return lastTickTime;
     }
 }

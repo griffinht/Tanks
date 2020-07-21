@@ -125,12 +125,8 @@ var viewportWidthScale = 0;
 var viewportHeightScale = 0;
 var updateViewport = false;
 
-var tick = 0;
-var offsetDt = 0;
-var lastSentTick = 0;
-var serverTps = 0;
+var server = {tick:0, dt:0, time:0};
 
-var tickRate;
 var fontSize = 20;
 var font = "pt Comic Sans MS";
 
@@ -304,9 +300,6 @@ function connect() {
         if (payload.ping) {
             ping = payload.ping;
         }
-        if (payload.tps) {
-            serverTps = parseFloat(payload.tps);
-        }
         if (payload.viewport) {
             viewportWidth = payload.viewport[0];
             viewportHeight = payload.viewport[1];
@@ -314,8 +307,9 @@ function connect() {
             viewportHeightScale = canvas.height / viewportHeight;
         }
         if (payload.play) {
-            tick = parseInt(payload.play.tick);
-            offsetDt = parseFloat(payload.play.dt);
+            server.tick = parseInt(payload.play.server[0]);
+            server.dt = parseFloat(payload.play.server[1]);
+            server.time = window.performance.now();
             ping = parseInt(payload.play.ping);
             send({play:payload.play.uuid});
             
@@ -326,7 +320,6 @@ function connect() {
                 let y = parseInt(split[1]);
                 if (payload.play.grid[key].entities) {
                     
-                    let name;
                     for (let entityKey in payload.play.grid[key].entities) {
                         let rawEntity = payload.play.grid[key].entities[entityKey];
                         let entity;
@@ -342,15 +335,17 @@ function connect() {
                         } else {
                             entity = Entity.deserialize(rawEntity);
                         }
-                        entities[entity.id] = entity;
+                        if (entities.hasOwnProperty(entity.id)) {
+                            entities[entity.id].set(entity);
+                        } else {
+                            entities[entity.id] = entity;
+                        }
                         ids.push(entity.id);
-                        name = entity.name;
                     }
                 }
             }
             Object.keys(entities).forEach((key) => {
                 if (!ids.includes(key)) {
-                    console.log("removed " + key);
                     delete entities[key];
                 } else {
                 }
@@ -364,7 +359,6 @@ function send(payload) {
         if (Object.keys(payload).length !== 0 && payload.constructor === Object) {
             webSocket.send(JSON.stringify(payload));
         }
-        lastSentTick = tick;
     } else {
         return "Error: Not connected";
     }
@@ -383,16 +377,18 @@ canvas
 */
 
 function draw(now) {
+    now = now;
     if (drawing) {
-        let dt = ((now-lastFrame) / 1000) + offsetDt;
+        let dt = (now - lastFrame);
+        let serverDt = now - server.time;
+
         lastFrame = now;
-        offsetDt = 0;//todo make sure this does something
 
         Object.keys(entities).forEach((key) => {
             if (key === playerId) {
-                player.update(dt);
+                player.update(dt, serverDt);
             } else {
-                entities[key].update(dt);
+                entities[key].update(dt, serverDt);
             }
         })
         ctx.fillStyle = "black";
@@ -421,11 +417,11 @@ function draw(now) {
         ctx.restore();
         ctx.fillStyle = "white";
         ctx.font = fontSize + font;
-        ctx.fillText(Math.round(1/dt) + "fps", 10, 30);
+        ctx.fillText(Math.round(1 / (dt / 1000)) + "fps", 10, 30);
         ctx.fillText(ping + "ms", 10, 60);
-        ctx.fillText(tick + "tick", 10, 90);
-        ctx.fillText(serverTps + "tps (server)", 10, 120);
-        ctx.fillText(Math.round((window.performance.now() - now) * 100) / 100 + " / " + Math.round(dt * 100000) / 100 + "ms frame time", 10, 150);
+        ctx.fillText(server.tick + "tick", 10, 90);
+        ctx.fillText(Math.round(1 / (server.dt / 1000) * 100) / 100 + "tps (server)", 10, 120);
+        ctx.fillText(Math.round((window.performance.now() - now) * 100) / 100 + " / " + Math.round(dt * 100) / 100 + "ms frame time", 10, 150);
     } else {
         loader.style.display = "block";
         content.style.display = "none";
@@ -449,6 +445,10 @@ class Entity {
         this.id = id;
         this.x = x;
         this.y = y;
+        this.lastX = x;
+        this.lastY = y;
+        this.targetX = x;
+        this.targetY = y;
         this.speed = speed;
         this.direction = direction;
         this.rotation = rotation;
@@ -456,9 +456,11 @@ class Entity {
         this.height = height;
     }
 
-    update(dt) {
-        this.x += this.speed * Math.acos(this.direction) * dt;
-        this.y += this.speed * Math.asin(this.direction) * dt;
+    update(dt, serverDt) {
+        this.x = Entity.lerp(this.lastX, this.targetX, serverDt / server.dt);
+        this.y = Entity.lerp(this.lastY, this.targetY, serverDt / server.dt);
+        //this.x += this.speed * Math.acos(this.direction) * dt;
+        //this.y += this.speed * Math.asin(this.direction) * dt;
     }
     
     draw() {
@@ -466,6 +468,18 @@ class Entity {
         ctx.rotate(this.rotation);
         ctx.fillRect(this.x, this.y, this.width, this.height);
         ctx.restore();
+    }
+
+    set(entity) {
+        this.lastX = this.x;
+        this.lastY = this.y;
+        this.targetX = entity.x;
+        this.targetY = entity.y;
+        this.speed = entity.speed;
+        this.direction = entity.direction;
+        this.rotation = entity.rotation;
+        this.width = entity.width;
+        this.height = entity.height;
     }
     
     serialize() {
@@ -475,6 +489,10 @@ class Entity {
     static deserialize(entity) {
         return new Entity(entity[0], entity[1], entity[2], entity[3], entity[4], entity[5], entity[6], entity[7]);
     }
+
+    static lerp(a, b, f) {
+        return a * (1 - f) + b * f;
+    }
 }
 
 class Player extends Entity {
@@ -483,11 +501,6 @@ class Player extends Entity {
         this.name = name;
         this.turret = turret;
         this.bullets = bullets;
-    }
-    
-    update(dt) {
-        this.x += Math.cos(this.direction) * this.speed * dt;
-        this.y += Math.sin(this.direction) * this.speed * dt;
     }
 
     draw() {
@@ -519,6 +532,12 @@ class Player extends Entity {
             ctx.restore();
         });
     }
+
+    set(entity) {
+        super.set(entity);
+        this.turret = entity.turret;
+        this.bullets = entity.bullets;
+    }
     
     serialize() {
         let bullets = [];
@@ -543,7 +562,7 @@ class ThisPlayer extends Player {
         super(id, x, y, speed, direction, rotation, width, height, name, turret, bullets);
     }
 
-    update(dt) {
+    update(dt, serverDt) {
         this.speed = 10;
         if (keys.includes(87) && keys.includes(68)) {
             this.rotation = 7*Math.PI/4;
@@ -577,8 +596,8 @@ class ThisPlayer extends Player {
             }
         }
 
-        this.x += Math.cos(this.direction) * this.speed * dt;
-        this.y += Math.sin(this.direction) * this.speed * dt;
+        this.x += Math.cos(this.direction) * this.speed * dt / 1000;
+        this.y += Math.sin(this.direction) * this.speed * dt / 1000;
     }
 
     static deserialize(entity) {
