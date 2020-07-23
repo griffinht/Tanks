@@ -4,12 +4,15 @@ import net.stzups.tanks.ConfigManager;
 import net.stzups.tanks.FileManager;
 import net.stzups.tanks.Tanks;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -202,14 +205,17 @@ public class Connection implements Runnable {
                                                 String ip = ConfigManager.getConfigProperty("server_ip");
 
                                                 if (ip.equalsIgnoreCase("auto")) {
-                                                    addressStr = "the ip from some api thing";
-                                                } else {
-                                                    InetAddress inetAddress = InetAddress.getByName(ip);
-                                                    if (inetAddress instanceof Inet6Address) {
-                                                        addressStr = "ws://[" + ConfigManager.getConfigProperty("server_ip") + "]";
-                                                    } else {
-                                                        addressStr = "ws://" + ConfigManager.getConfigProperty("server_ip");
+                                                    URL checkip = new URL("http://checkip.amazonaws.com");
+                                                    try (BufferedReader in = new BufferedReader(new InputStreamReader(checkip.openStream()))) {
+                                                        ip = in.readLine();
                                                     }
+                                                }
+
+                                                InetAddress inetAddress = InetAddress.getByName(ip);
+                                                if (inetAddress instanceof Inet6Address) {
+                                                    addressStr = "ws://[" + ip + "]";
+                                                } else {
+                                                    addressStr = "ws://" + ip;
                                                 }
 
                                                 String port = ConfigManager.getConfigProperty("port");
