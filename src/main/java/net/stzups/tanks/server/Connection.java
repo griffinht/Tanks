@@ -11,8 +11,10 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -46,6 +48,44 @@ public class Connection implements Runnable {
     private long lastPing = System.currentTimeMillis();
     private int ping = 0;
     private boolean connected = false;
+
+    private static byte[] SERVER_ADDRESS;
+
+    static {
+        try {//todo make sure this doesnt block
+            String addressStr;
+            String ip = ConfigManager.getConfigProperty("server_ip");
+
+            if (ip.equalsIgnoreCase("auto")) {
+                URL checkip = new URL("http://checkip.amazonaws.com");
+                try (BufferedReader in = new BufferedReader(new InputStreamReader(checkip.openStream()))) {
+                    ip = in.readLine();
+                }
+            }
+
+            InetAddress inetAddress = InetAddress.getByName(ip);
+            if (inetAddress instanceof Inet6Address) {
+                addressStr = "ws://[" + ip + "]";
+            } else {
+                addressStr = "ws://" + ip;
+            }
+
+            String port = ConfigManager.getConfigProperty("port");
+            if (port.length() > 0) {
+                addressStr += ":" + ConfigManager.getConfigProperty("port");
+            }
+
+            SERVER_ADDRESS = addressStr.getBytes();
+        } catch (MalformedURLException e) {
+            logger.warning("Auto IP address API failed");
+            e.printStackTrace();
+        } catch (UnknownHostException e) {
+            logger.warning("Couldn't resolve IP address set in config");
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     Connection(Server server, Socket socket, FileManager fileManager) {
         this.fileManager = fileManager;
@@ -187,7 +227,7 @@ public class Connection implements Runnable {
 
                         byte[] fileContents = fileManager.getFileContents("client/" + foundPath);
 
-                        if (fileContents.length > 0) {//todo make this good and cache
+                        if (fileContents.length > 0) {//todo cache this bad boy with some filemanager thing
                             for (int i = 0; i < fileContents.length; i++)
                             {
                                 if (fileContents[i] == '[' && fileContents[i + 1] == '[' && fileContents[i + 2] == '[')
@@ -201,33 +241,10 @@ public class Connection implements Runnable {
                                             String match = "SERVER_IP";
                                             if (str.equalsIgnoreCase(match))
                                             {
-                                                String addressStr;
-                                                String ip = ConfigManager.getConfigProperty("server_ip");
-
-                                                if (ip.equalsIgnoreCase("auto")) {
-                                                    URL checkip = new URL("http://checkip.amazonaws.com");
-                                                    try (BufferedReader in = new BufferedReader(new InputStreamReader(checkip.openStream()))) {
-                                                        ip = in.readLine();
-                                                    }
-                                                }
-
-                                                InetAddress inetAddress = InetAddress.getByName(ip);
-                                                if (inetAddress instanceof Inet6Address) {
-                                                    addressStr = "ws://[" + ip + "]";
-                                                } else {
-                                                    addressStr = "ws://" + ip;
-                                                }
-
-                                                String port = ConfigManager.getConfigProperty("port");
-                                                if (port.length() > 0) {
-                                                    addressStr += ":" + ConfigManager.getConfigProperty("port");
-                                                }
-
-                                                byte[] address = addressStr.getBytes();
-                                                byte[] first = new byte[fileContents.length + address.length - (match.length() + 6)];
+                                                byte[] first = new byte[fileContents.length + SERVER_ADDRESS.length - (match.length() + 6)];
                                                 System.arraycopy(fileContents, 0, first, 0, x - 3);
-                                                System.arraycopy(address, 0, first, i, address.length);
-                                                System.arraycopy(fileContents, x + 3, first, i + address.length, first.length - (x + address.length));
+                                                System.arraycopy(SERVER_ADDRESS, 0, first, i, SERVER_ADDRESS.length);
+                                                System.arraycopy(fileContents, x + 3, first, i + SERVER_ADDRESS.length, first.length - (x + SERVER_ADDRESS.length));
                                                 fileContents = first;
                                             }
                                             break;
