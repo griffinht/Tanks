@@ -160,12 +160,7 @@ window.onload = function(e) {
         if (typeof player !== "undefined") {
             let x = e.clientX - player.x - (player.width/2);
             let y = e.clientY - player.y - (player.height/2);
-            let rotation;
-            if (x < 0) {
-                rotation = Math.atan(y/x) + Math.PI;
-            } else {
-                rotation = Math.atan(y/x) + Math.PI;
-            }
+            let rotation = Math.atan2(y, x);
             player.bullets.push(new Bullet(player.x + player.width/2 + (Math.cos(player.turret.rotation) * (player.turret.width + 10/2)) - 10/2, player.y + player.height/2 + (Math.sin(player.turret.rotation) * (player.turret.width + 10/2)) - 10/2, 10, 10, rotation, 0));
         }
     });
@@ -588,13 +583,9 @@ class ThisPlayer extends Player {
         this.direction = this.rotation;
 
         if(typeof lastMouse !== "undefined" && viewportWidthScale !== 0 && viewportHeightScale !== 0) {
-            let x = (lastMouse.clientX / viewportWidthScale) + viewportX - this.x - (this.width/2);
-            let y = (lastMouse.clientY / viewportHeightScale) + viewportY - this.y - (this.height/2);
-            if (x < 0) {
-                this.turret.rotation = Math.atan(y/x) + Math.PI - Math.PI / 2;
-            } else {
-                this.turret.rotation = Math.atan(y/x) - Math.PI / 2;
-            }
+            let x = ((lastMouse.clientX / viewportWidthScale) + viewportX) - (this.x + (this.width/2));
+            let y = ((lastMouse.clientY / viewportHeightScale) + viewportY) - (this.y + (this.height/2));
+            this.turret.rotation = Math.atan2(y, x);
         }
 
         this.x += Math.cos(this.direction) * this.speed * dt / 1000;
@@ -643,9 +634,16 @@ class Turret {
         ctx.save();
         ctx.fillStyle = "#00ff18";
         if (this.lerp) {
-            ctx.rotate(lerp(this.rotation, this.rotationTarget, f));
+            let rotDiff = this.rotationTarget - this.rotation;
+            let diff = 0;
+            if (rotDiff > Math.PI) {
+                diff = Math.PI * 2;
+            } else if (rotDiff < -Math.PI) {
+                diff = -Math.PI * 2;
+            }
+            ctx.rotate(lerp(this.rotation + diff, this.rotationTarget, f) - diff - Math.PI / 2);
         } else {
-            ctx.rotate(this.rotation);
+            ctx.rotate(this.rotation - Math.PI / 2);
         }
         ctx.fillRect(-this.width / 2, 0, this.width, this.height);
         ctx.restore();
