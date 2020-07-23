@@ -1,5 +1,6 @@
 package net.stzups.tanks.server;
 
+import net.stzups.tanks.ConfigManager;
 import net.stzups.tanks.FileManager;
 import net.stzups.tanks.Tanks;
 
@@ -7,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Inet6Address;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -182,7 +184,7 @@ public class Connection implements Runnable {
 
                         byte[] fileContents = fileManager.getFileContents("client/" + foundPath);
 
-                        if (fileContents.length > 0) {
+                        if (fileContents.length > 0) {//todo make this good and cache
                             for (int i = 0; i < fileContents.length; i++)
                             {
                                 if (fileContents[i] == '[' && fileContents[i + 1] == '[' && fileContents[i + 2] == '[')
@@ -196,16 +198,30 @@ public class Connection implements Runnable {
                                             String match = "SERVER_IP";
                                             if (str.equalsIgnoreCase(match))
                                             {
-                                                byte[] ip;
-                                                if (socket.getInetAddress() instanceof Inet6Address) {
-                                                    ip = ("ws://[" + socket.getLocalAddress().getHostAddress() + "]:" + socket.getLocalPort()).getBytes();//todo safety
+                                                String addressStr;
+                                                String ip = ConfigManager.getConfigProperty("server_ip");
+
+                                                if (ip.equalsIgnoreCase("auto")) {
+                                                    addressStr = "the ip from some api thing";
                                                 } else {
-                                                    ip = ("ws://" + socket.getLocalAddress().getHostAddress() + ":" + socket.getLocalPort()).getBytes();//todo safety
+                                                    InetAddress inetAddress = InetAddress.getByName(ip);
+                                                    if (inetAddress instanceof Inet6Address) {
+                                                        addressStr = "ws://[" + ConfigManager.getConfigProperty("server_ip") + "]";
+                                                    } else {
+                                                        addressStr = "ws://" + ConfigManager.getConfigProperty("server_ip");
+                                                    }
                                                 }
-                                                byte[] first = new byte[fileContents.length + ip.length - (match.length() + 6)];
+
+                                                String port = ConfigManager.getConfigProperty("port");
+                                                if (port.length() > 0) {
+                                                    addressStr += ":" + ConfigManager.getConfigProperty("port");
+                                                }
+
+                                                byte[] address = addressStr.getBytes();
+                                                byte[] first = new byte[fileContents.length + address.length - (match.length() + 6)];
                                                 System.arraycopy(fileContents, 0, first, 0, x - 3);
-                                                System.arraycopy(ip, 0, first, i, ip.length);
-                                                System.arraycopy(fileContents, x + 3, first, i + ip.length, first.length - (x + ip.length));
+                                                System.arraycopy(address, 0, first, i, address.length);
+                                                System.arraycopy(fileContents, x + 3, first, i + address.length, first.length - (x + address.length));
                                                 fileContents = first;
                                             }
                                             break;
