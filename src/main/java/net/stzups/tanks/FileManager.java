@@ -30,9 +30,9 @@ public class FileManager {
 
             while(enums.hasMoreElements()) {
                 JarEntry entry = (JarEntry) enums.nextElement();
-
                 if (entry.getName().startsWith(SERVER_RESOURCES_PATH)) {
-                    File file = new File("./" + entry.getName().substring(SERVER_RESOURCES_PATH.length()));
+                    String path = entry.getName().substring(SERVER_RESOURCES_PATH.length());
+                    File file = new File("./" + path);
                     if (!file.exists()) {
                         if (file.getName().contains(".")) {
                             if (file.createNewFile()) {
@@ -48,13 +48,12 @@ public class FileManager {
                         } else if (!file.mkdir()) {
                             logger.warning("Couldn't create folder at " + file.getAbsolutePath());
                         }
-                    } else if (file.isFile()) {
+                    } else if (file.isFile() && path.startsWith("/client/")) {
                         try (InputStream existingInputStream = new FileInputStream(file);
                         InputStream originalInputStream = jarFile.getInputStream(entry)) {
                             byte[] existingFile = new byte[existingInputStream.available()];
                             byte[] originalFile = new byte[originalInputStream.available()];
-                            if (existingInputStream.read(existingFile) == -1
-                            ||  originalInputStream.read(originalFile) == -1) {
+                            if ((originalFile.length > 0 && originalInputStream.read(originalFile) == -1)  || (existingFile.length > 0 && existingInputStream.read(existingFile) == -1)) {
                                 throw new EOFException("Couldn't read while checking " + file.getAbsolutePath() + " with existing resources in jar");
                             }
 
