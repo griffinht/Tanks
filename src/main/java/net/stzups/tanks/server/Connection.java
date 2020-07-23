@@ -58,7 +58,7 @@ public class Connection implements Runnable {
 
             if (ip.equalsIgnoreCase("auto")) {
                 URL checkip = new URL("http://checkip.amazonaws.com");
-                try (BufferedReader in = new BufferedReader(new InputStreamReader(checkip.openStream()))) {
+                try (BufferedReader in = new BufferedReader(new InputStreamReader(checkip.openStream()))) {//todo this breaks when server isnt connected to internet
                     ip = in.readLine();
                 }
             }
