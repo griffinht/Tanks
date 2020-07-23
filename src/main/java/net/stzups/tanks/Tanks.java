@@ -19,6 +19,7 @@ public class Tanks {
         logger.info("Starting server on port " + PORT);
 
         FileManager.load();
+        ConfigManager.load();
         new Thread(ConsoleManager::manage).start();
         new Thread(server).start();
         new Thread(game).start();
