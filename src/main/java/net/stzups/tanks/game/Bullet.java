@@ -31,7 +31,6 @@ class Bullet extends Entity {
             jsonArray.getJSONArray(0).put(0, UUID.randomUUID());
         }
         Entity entity = Entity.deserialize(jsonArray.getJSONArray(0));
-        System.out.println(jsonArray.get(1) + ", " + jsonArray.get(2));
         return new Bullet(entity.id, entity.x, entity.y, entity.speed, entity.direction, entity.rotation, entity.width, entity.height, UUID.fromString(jsonArray.getString(1)), jsonArray.getInt(2));
     }
 }

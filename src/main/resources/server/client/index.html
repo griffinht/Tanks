@@ -320,8 +320,6 @@ function connect() {
                                 entity = ThisPlayer.deserialize(rawEntity);
                                 if (typeof player === "undefined") {
                                     player = entity;
-                                } else {
-                                    player.set(entity);
                                 }
                             } else {
                                 entity = Player.deserialize(rawEntity);
@@ -329,7 +327,7 @@ function connect() {
                         } else {
                             entity = Entity.deserialize(rawEntity);
                         }
-                        if (entity.id !== playerId && entities.hasOwnProperty(entity.id)) {
+                        if (entities.hasOwnProperty(entity.id)) {
                             entities[entity.id].set(entity);
                         } else {
                             entities[entity.id] = entity;
@@ -371,7 +369,6 @@ canvas
 */
 
 function draw(now) {
-    now = now;
     if (drawing) {
         let dt = (now - lastFrame);
         let serverDt = now - server.time;
@@ -517,6 +514,7 @@ class Player extends Entity {
         
         ctx.restore();
         
+        console.log(this.bullets);
         this.bullets.forEach((bullet) => {
             ctx.save();
             ctx.translate(bullet.x + bullet.width/2, bullet.y + bullet.height/2);
@@ -538,19 +536,16 @@ class Player extends Entity {
         this.bullets.forEach((bullet) => {
             bullets.push(bullet.serialize());
             if (bullet.id = "newBullet") {
+                console.log("Got a new bullet");
                 this.bullets.splice(this.bullets.indexOf(bullet), 1);
             }
         });
-        console.log(bullets);
         return ["player", super.serialize(), this.name, this.turret.serialize(), bullets];
     }
     
     static deserialize(entity) {
         let bullets = [];
-        console.log(entity);
-        console.log(entity[4]);
         for (let bullet in entity[4]) {
-            console.log(Bullet.deserialize(entity[4][bullet]));
             bullets.push(Bullet.deserialize(entity[4][bullet]));
         }
         let ent = Entity.deserialize(entity[1]);
@@ -598,7 +593,13 @@ class ThisPlayer extends Player {
     }
 
     set(entity) {
-        this.bullets = entity.bullets; //todo other checking and fixing
+        this.bullets.forEach((bullet)=>{
+            console.log(bullet.id);
+            if (bullet.id !== "newBullet") {
+                this.bullets.splice(this.bullets.indexOf(bullet), 1);//todo optimize classic for loop?
+            }
+        });
+        this.bullets.concat(entity.bullets); //todo other checking and fixing
     }
 
     static deserialize(entity) {
@@ -625,9 +626,6 @@ class Bullet extends Entity {
     static deserialize(entity) {
         let bullet = Entity.deserialize(entity[0]);
         let b = new Bullet(bullet.id, bullet.x, bullet.y, bullet.speed, bullet.direction, bullet.rotation, bullet.width, bullet.height, entity[1], entity[2]);
-        console.log("deser");
-        console.log(entity);
-        console.log(b);
         return b;
     }
 }
