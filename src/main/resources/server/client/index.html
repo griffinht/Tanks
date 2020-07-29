@@ -349,15 +349,13 @@ function connect() {
                     }
                 }
             }
-            //todo change to server telling what to delete???
-            /*
             Object.keys(entities).forEach((key) => {
-                if (!ids.includes(key)) {
-                    console.log("delete");
+                if (!ids.includes(key) && !newBullets.includes(key)) {
+                    console.log(entities[key].id);
                     delete entities[key];
                 } else {
                 }
-            });*/
+            });
         }
     }
 }
