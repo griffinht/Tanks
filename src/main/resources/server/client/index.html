@@ -536,7 +536,6 @@ class Player extends Entity {
         this.bullets.forEach((bullet) => {
             bullets.push(bullet.serialize());
             if (bullet.id = "newBullet") {
-                console.log("Got a new bullet");
                 this.bullets.splice(this.bullets.indexOf(bullet), 1);
             }
         });
@@ -593,13 +592,12 @@ class ThisPlayer extends Player {
     }
 
     set(entity) {
-        this.bullets.forEach((bullet)=>{
-            console.log(bullet.id);
-            if (bullet.id !== "newBullet") {
-                this.bullets.splice(this.bullets.indexOf(bullet), 1);//todo optimize classic for loop?
+        for (let i = 0; i < this.bullets.length; i++) {
+            if (this.bullets[i].id === "newBullet") {
+                entity.bullets.push(this.bullets[i]);
             }
-        });
-        this.bullets.concat(entity.bullets); //todo other checking and fixing
+        }
+        this.bullets = entity.bullets; //todo other checking and fixing
     }
 
     static deserialize(entity) {
