@@ -36,7 +36,7 @@ public class Player extends Entity {
 
     private String name;
     private Player.Turret turret;
-    private List<Bullet> bullets;
+    private Map<UUID, Bullet> bullets;
 
     private int viewportWidth;
     private int viewportHeight;
@@ -44,7 +44,7 @@ public class Player extends Entity {
     private Queue<Map.Entry<UUID, Long>> pingQueue = new ArrayDeque<>();
     private int ping;
 
-    Player(UUID id, float x, float y, float speed, float direction, float rotation, float width, float height, String name, int viewportWidth, int viewportHeight, Player.Turret turret, List<Bullet> bullets) {
+    Player(UUID id, float x, float y, float speed, float direction, float rotation, float width, float height, String name, int viewportWidth, int viewportHeight, Player.Turret turret, Map<UUID, Bullet> bullets) {
         super(id, x, y, speed, direction, rotation, width, height);
         this.name = name;
         this.turret = turret;
@@ -102,20 +102,40 @@ public class Player extends Entity {
             return false;
         }
         turret.update(jsonArray.getJSONArray(3));
-        //todo bullets
+        for (Object rawBullet : jsonArray.getJSONArray(4)) {
+            JSONArray jsonBullet = (JSONArray) rawBullet;
+            UUID uuid;
+            try {
+                uuid = UUID.fromString(jsonBullet.getJSONArray(0).getString(0));
+            } catch (IllegalArgumentException e) {
+                uuid = null;
+            }
+            if (uuid != null && bullets.containsKey(uuid)) {
+                if (!bullets.get(uuid).update(jsonBullet)) {
+                    return false;
+                }
+            } else if (jsonBullet.getJSONArray(0).getString(0).equals("newBullet")){
+            //todo check and make sure this is a good bullet and the player is not doing bad things
+                Bullet bullet = Bullet.deserialize(jsonBullet);
+                bullets.put(bullet.id, bullet);
+            } else {
+                return false;
+            }
+        }
         return true;
     }
 
     @Override
     String serialize() {
         StringBuilder bullets = new StringBuilder();
-        for (Bullet bullet : this.bullets) {
-            bullets.append(",");
-            bullets.append(bullet.serialize());
+        for (Map.Entry<UUID, Bullet> entry : this.bullets.entrySet()) {
+            bullets.append(",[");
+            bullets.append(entry.getValue().serialize());
+            bullets.append("]");
         }
         if (bullets.length() == 0) {
-            bullets.append("[]");
+            bullets.append(",[]");
         }
-        return "[player," + super.serialize() + "," + name + "," + turret.serialize() + "," + bullets.toString() + "]";
+        return "[player," + super.serialize() + "," + name + "," + turret.serialize() + bullets.toString() + "]";
     }
 }

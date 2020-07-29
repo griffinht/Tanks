@@ -44,4 +44,8 @@ class Entity {
     String serialize() {
         return "[" + id.toString() + "," + x + "," + y + "," + speed + "," + direction + "," + rotation + "," + width + "," + height + "]";
     }
+
+    static Entity deserialize(JSONArray jsonArray) {
+        return new Entity((UUID) jsonArray.get(0), jsonArray.getFloat(1), jsonArray.getFloat(2), jsonArray.getFloat(3), jsonArray.getFloat(4), jsonArray.getFloat(5), jsonArray.getFloat(6), jsonArray.getFloat(7));
+    }
 }

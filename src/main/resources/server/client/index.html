@@ -158,10 +158,7 @@ window.onload = function(e) {
     
     canvas.addEventListener("click", function(e) {
         if (typeof player !== "undefined") {
-            let x = e.clientX - player.x - (player.width/2);
-            let y = e.clientY - player.y - (player.height/2);
-            let rotation = Math.atan2(y, x);
-            player.bullets.push(new Bullet(player.x + player.width/2 + (Math.cos(player.turret.rotation) * (player.turret.width + 10/2)) - 10/2, player.y + player.height/2 + (Math.sin(player.turret.rotation) * (player.turret.width + 10/2)) - 10/2, 10, 10, rotation, 0));
+            player.bullets.push(new Bullet("newBullet", player.x + player.width/2 + (Math.cos(player.turret.rotation) * (player.turret.height)) - (.5 / 2), player.y + player.height/2 + (Math.sin(player.turret.rotation) * (player.turret.height)) - (.5 / 2), 10, player.turret.rotation, player.turret.rotation, .5, .5, playerId, 0));
         }
     });
     
@@ -323,6 +320,8 @@ function connect() {
                                 entity = ThisPlayer.deserialize(rawEntity);
                                 if (typeof player === "undefined") {
                                     player = entity;
+                                } else {
+                                    player.set(entity);
                                 }
                             } else {
                                 entity = Player.deserialize(rawEntity);
@@ -483,7 +482,7 @@ class Entity {
     }
     
     serialize() {
-        return [this.id, this.x, this.y, this.speed, this.direction, this.rotation, this.width, this.height];
+        return [this.id.toString(), this.x, this.y, this.speed, this.direction, this.rotation, this.width, this.height];
     }
     
     static deserialize(entity) {
@@ -521,8 +520,7 @@ class Player extends Entity {
         this.bullets.forEach((bullet) => {
             ctx.save();
             ctx.translate(bullet.x + bullet.width/2, bullet.y + bullet.height/2);
-            ctx.rotate(0);
-            ctx.fillText(this.name + "'s bullet", 20, 0);
+            //ctx.fillText(this.name + "'s bullet", 20, 0);
             ctx.rotate(bullet.rot);
             ctx.fillRect(-bullet.width/2, -bullet.height/2, bullet.width, bullet.height);
             ctx.restore();
@@ -539,14 +537,21 @@ class Player extends Entity {
         let bullets = [];
         this.bullets.forEach((bullet) => {
             bullets.push(bullet.serialize());
+            if (bullet.id = "newBullet") {
+                this.bullets.splice(this.bullets.indexOf(bullet), 1);
+            }
         });
+        console.log(bullets);
         return ["player", super.serialize(), this.name, this.turret.serialize(), bullets];
     }
     
     static deserialize(entity) {
         let bullets = [];
+        console.log(entity);
+        console.log(entity[4]);
         for (let bullet in entity[4]) {
-            bullets.push(Bullet.deserialize(bullet));
+            console.log(Bullet.deserialize(entity[4][bullet]));
+            bullets.push(Bullet.deserialize(entity[4][bullet]));
         }
         let ent = Entity.deserialize(entity[1]);
         return new Player(ent.id, ent.x, ent.y, ent.speed, ent.direction, ent.rotation, ent.width, ent.height, entity[2], Turret.deserialize(entity[3]), bullets);
@@ -592,6 +597,10 @@ class ThisPlayer extends Player {
         this.y += Math.sin(this.direction) * this.speed * dt / 1000;
     }
 
+    set(entity) {
+        this.bullets = entity.bullets; //todo other checking and fixing
+    }
+
     static deserialize(entity) {
         let player = Player.deserialize(entity);
         return new ThisPlayer(player.id, player.x, player.y, player.speed, player.direction, player.rotation, player.width, player.height, player.name, player.turret, player.bullets);
@@ -600,18 +609,26 @@ class ThisPlayer extends Player {
 
 class Bullet extends Entity {
     constructor(id, x, y, speed, direction, rotation, width, height, owner, hits) {
-        super(id, x, y, speed, direction, rotation, width, height, owner);
+        super(id.toString(), x, y, speed, direction, rotation, width, height);
+        this.owner = owner;
         this.hits = hits;
     }
     
     serialize() {
-        let array = super.serialize();
-        array.push(this.hits);
+        let array = [];
+        array[0] = super.serialize();
+        array[1] = this.owner;
+        array[2] = this.hits;
         return array;
     }
     
     static deserialize(entity) {
-        return new Bullet(entity[0], entity[1], entity[2], entity[3], entity[4], entity[5], entity[6], entity[7], entity[8]);
+        let bullet = Entity.deserialize(entity[0]);
+        let b = new Bullet(bullet.id, bullet.x, bullet.y, bullet.speed, bullet.direction, bullet.rotation, bullet.width, bullet.height, entity[1], entity[2]);
+        console.log("deser");
+        console.log(entity);
+        console.log(b);
+        return b;
     }
 }
 

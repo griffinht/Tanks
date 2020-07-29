@@ -9,6 +9,7 @@ import org.json.JSONObject;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -65,6 +66,8 @@ class Network implements PacketListener {
                                 JSONArray entities = new JSONArray();
                                 for (Entity entity : game.world.grid.get(x, y)) {
                                     entities.put(new JSONArray(entity.serialize()));
+                                    System.out.println(entity.serialize());
+                                    System.out.println(new JSONArray(entity.serialize()).toString() + "\n");
                                 }
                                 if (entities.length() > 0) {
                                     g.put("entities", entities);
@@ -106,7 +109,7 @@ class Network implements PacketListener {
                     String name = newClient.getString(0);
                     int viewportWidth = newClient.getInt(1);
                     int viewportHeight = newClient.getInt(2);
-                    Player player = new Player(UUID.randomUUID(), 0, 0, 0, 0, 0, 5, 2, name, viewportWidth, viewportHeight, new Player.Turret(0, 0.5f, 3f), new ArrayList<>());
+                    Player player = new Player(UUID.randomUUID(), 0, 0, 0, 0, 0, 5, 2, name, viewportWidth, viewportHeight, new Player.Turret(0, 0.5f, 3f), new HashMap<>());
                     game.connectionPlayerMap.put(connection, player);
                     game.world.addEntity(player);
                     logger.info("New player " + player.getName());
