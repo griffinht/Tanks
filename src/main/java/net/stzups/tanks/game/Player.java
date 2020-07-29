@@ -3,7 +3,6 @@ package net.stzups.tanks.game;
 import org.json.JSONArray;
 
 import java.util.ArrayDeque;
-import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.UUID;
@@ -129,13 +128,12 @@ public class Player extends Entity {
     String serialize() {
         StringBuilder bullets = new StringBuilder();
         for (Map.Entry<UUID, Bullet> entry : this.bullets.entrySet()) {
-            bullets.append(",[");
             bullets.append(entry.getValue().serialize());
-            bullets.append("]");
+            bullets.append(",");
         }
-        if (bullets.length() == 0) {
-            bullets.append(",[]");
+        if (bullets.length() > 0) {
+            bullets.substring(0, bullets.length() - 1);
         }
-        return "[player," + super.serialize() + "," + name + "," + turret.serialize() + bullets.toString() + "]";
+        return "[player," + super.serialize() + "," + name + "," + turret.serialize() + ",[" + bullets.toString() + "]]";
     }
 }

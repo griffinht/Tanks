@@ -66,8 +66,6 @@ class Network implements PacketListener {
                                 JSONArray entities = new JSONArray();
                                 for (Entity entity : game.world.grid.get(x, y)) {
                                     entities.put(new JSONArray(entity.serialize()));
-                                    System.out.println(entity.serialize());
-                                    System.out.println(new JSONArray(entity.serialize()).toString() + "\n");
                                 }
                                 if (entities.length() > 0) {
                                     g.put("entities", entities);
