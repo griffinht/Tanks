@@ -289,7 +289,6 @@ function connect() {
         let payload;
         try {
             payload = JSON.parse(event.data);
-            console.log(payload);
         } catch (e) {
             console.log(event.data);
             console.log(e);
@@ -338,7 +337,6 @@ function connect() {
                             }
                         } else if (rawEntity[0] === "bullet") {
                             entity = Bullet.deserialize(rawEntity);
-                            console.log(entity);
                         } else {
                             entity = Entity.deserialize(rawEntity);
                         }
