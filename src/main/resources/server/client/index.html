@@ -338,6 +338,7 @@ function connect() {
             }
             Object.keys(entities).forEach((key) => {
                 if (!ids.includes(key)) {
+                    console.log("delete");
                     delete entities[key];
                 } else {
                 }
@@ -514,7 +515,6 @@ class Player extends Entity {
         
         ctx.restore();
         
-        console.log(this.bullets);
         this.bullets.forEach((bullet) => {
             ctx.save();
             ctx.translate(bullet.x + bullet.width/2, bullet.y + bullet.height/2);
@@ -535,7 +535,7 @@ class Player extends Entity {
         let bullets = [];
         this.bullets.forEach((bullet) => {
             bullets.push(bullet.serialize());
-            if (bullet.id = "newBullet") {
+            if (bullet.id === "newBullet") {
                 this.bullets.splice(this.bullets.indexOf(bullet), 1);
             }
         });
