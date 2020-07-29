@@ -175,6 +175,14 @@ class Network implements PacketListener {
                         return;
                     }
                 }
+                if (payload.has("bullets")) {
+                    JSONArray bullets = payload.getJSONArray("bullets");
+                    for (Object b : bullets) {
+                        Bullet bullet = Bullet.deserialize((JSONArray) b);
+                        game.world.addEntity(bullet);
+                        player.addBullet(bullet);
+                    }
+                }
                 if (payload.has("viewport")) {
                     JSONArray viewport = payload.getJSONArray("viewport");
                     player.setViewport(viewport.getInt(0), viewport.getInt(1));

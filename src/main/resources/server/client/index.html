@@ -112,6 +112,7 @@ var lastFrame = 0;
 var ping = 0;
 
 var entities = {};
+var newBullets = [];
 var player;
 var playerId;
 var keys = [];
@@ -158,7 +159,10 @@ window.onload = function(e) {
     
     canvas.addEventListener("click", function(e) {
         if (typeof player !== "undefined") {
-            player.bullets.push(new Bullet("newBullet", player.x + player.width/2 + (Math.cos(player.turret.rotation) * (player.turret.height)) - (.5 / 2), player.y + player.height/2 + (Math.sin(player.turret.rotation) * (player.turret.height)) - (.5 / 2), 10, player.turret.rotation, player.turret.rotation, .5, .5, playerId, 0));
+            let bullet = new Bullet(Math.random(), player.x + player.width/2 + (Math.cos(player.turret.rotation) * (player.turret.height)) - (.5 / 2), player.y + player.height/2 + (Math.sin(player.turret.rotation) * (player.turret.height)) - (.5 / 2), 10, player.turret.rotation, player.turret.rotation, .5, .5, playerId, 0);
+            entities[bullet.id] = bullet;
+            newBullets.push(bullet.id);
+            player.bullets.push(bullet.id);
         }
     });
     
@@ -233,6 +237,13 @@ class NetworkManager {
                 if (player) {
                     payload.player = player.serialize();
                 }
+                if (newBullets.length > 0) {
+                    payload.bullets = [];
+                    newBullets.forEach((bullet)=>{
+                        payload.bullets.push(entities[bullet].serialize());
+                    });
+                    newBullets = [];
+                }
                 if (updateViewport) {
                     updateViewport = false;
                     payload.viewport = [canvas.width, canvas.height];
@@ -278,6 +289,7 @@ function connect() {
         let payload;
         try {
             payload = JSON.parse(event.data);
+            console.log(payload);
         } catch (e) {
             console.log(event.data);
             console.log(e);
@@ -324,6 +336,9 @@ function connect() {
                             } else {
                                 entity = Player.deserialize(rawEntity);
                             }
+                        } else if (rawEntity[0] === "bullet") {
+                            entity = Bullet.deserialize(rawEntity);
+                            console.log(entity);
                         } else {
                             entity = Entity.deserialize(rawEntity);
                         }
@@ -336,13 +351,15 @@ function connect() {
                     }
                 }
             }
+            //todo change to server telling what to delete???
+            /*
             Object.keys(entities).forEach((key) => {
                 if (!ids.includes(key)) {
                     console.log("delete");
                     delete entities[key];
                 } else {
                 }
-            });
+            });*/
         }
     }
 }
@@ -514,15 +531,6 @@ class Player extends Entity {
         this.turret.draw(f);
         
         ctx.restore();
-        
-        this.bullets.forEach((bullet) => {
-            ctx.save();
-            ctx.translate(bullet.x + bullet.width/2, bullet.y + bullet.height/2);
-            //ctx.fillText(this.name + "'s bullet", 20, 0);
-            ctx.rotate(bullet.rot);
-            ctx.fillRect(-bullet.width/2, -bullet.height/2, bullet.width, bullet.height);
-            ctx.restore();
-        });
     }
 
     set(entity) {
@@ -532,23 +540,12 @@ class Player extends Entity {
     }
     
     serialize() {
-        let bullets = [];
-        this.bullets.forEach((bullet) => {
-            bullets.push(bullet.serialize());
-            if (bullet.id === "newBullet") {
-                this.bullets.splice(this.bullets.indexOf(bullet), 1);
-            }
-        });
-        return ["player", super.serialize(), this.name, this.turret.serialize(), bullets];
+        return ["player", super.serialize(), this.name, this.turret.serialize()];
     }
     
     static deserialize(entity) {
-        let bullets = [];
-        for (let bullet in entity[4]) {
-            bullets.push(Bullet.deserialize(entity[4][bullet]));
-        }
         let ent = Entity.deserialize(entity[1]);
-        return new Player(ent.id, ent.x, ent.y, ent.speed, ent.direction, ent.rotation, ent.width, ent.height, entity[2], Turret.deserialize(entity[3]), bullets);
+        return new Player(ent.id, ent.x, ent.y, ent.speed, ent.direction, ent.rotation, ent.width, ent.height, entity[2], Turret.deserialize(entity[3]), entity[4]);
     }
 }
 
@@ -613,6 +610,20 @@ class Bullet extends Entity {
         this.hits = hits;
     }
     
+    draw(f) {
+        ctx.save();
+        ctx.translate(this.x + this.width/2, this.y + this.height/2);//todo lerp@!!!!!!!!!!!!!!!!!!!!
+        //ctx.fillText(this.name + "'s bullet", 20, 0);
+        ctx.rotate(this.rot);
+        ctx.fillRect(-this.width/2, -this.height/2, this.width, this.height);
+        ctx.restore();
+    }
+
+    set(entity) {
+        super.set(entity);
+        this.hits = entity.hits;
+    }
+    
     serialize() {
         let array = [];
         array[0] = super.serialize();
@@ -622,8 +633,8 @@ class Bullet extends Entity {
     }
     
     static deserialize(entity) {
-        let bullet = Entity.deserialize(entity[0]);
-        let b = new Bullet(bullet.id, bullet.x, bullet.y, bullet.speed, bullet.direction, bullet.rotation, bullet.width, bullet.height, entity[1], entity[2]);
+        let ent = Entity.deserialize(entity[1]);
+        let b = new Bullet(ent.id, ent.x, ent.y, ent.speed, ent.direction, ent.rotation, ent.width, ent.height, entity[2], entity[3]);
         return b;
     }
 }

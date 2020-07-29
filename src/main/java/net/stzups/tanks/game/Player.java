@@ -71,6 +71,10 @@ public class Player extends Entity {
         }
     }
 
+    void addBullet(Bullet bullet) {
+        bullets.put(bullet.id, bullet);
+    }
+
     public String getName() {
         return name;
     }
@@ -96,31 +100,16 @@ public class Player extends Entity {
     }
 
     @Override
+    void move(float dt) {
+
+    }
+
+    @Override
     boolean update(JSONArray jsonArray) {
         if (!super.update(jsonArray.getJSONArray(1))) {
             return false;
         }
         turret.update(jsonArray.getJSONArray(3));
-        for (Object rawBullet : jsonArray.getJSONArray(4)) {
-            JSONArray jsonBullet = (JSONArray) rawBullet;
-            UUID uuid;
-            try {
-                uuid = UUID.fromString(jsonBullet.getJSONArray(0).getString(0));
-            } catch (IllegalArgumentException e) {
-                uuid = null;
-            }
-            if (uuid != null && bullets.containsKey(uuid)) {
-                if (!bullets.get(uuid).update(jsonBullet)) {
-                    return false;
-                }
-            } else if (jsonBullet.getJSONArray(0).getString(0).equals("newBullet")){
-            //todo check and make sure this is a good bullet and the player is not doing bad things
-                Bullet bullet = Bullet.deserialize(jsonBullet);
-                bullets.put(bullet.id, bullet);
-            } else {
-                return false;
-            }
-        }
         return true;
     }
 
@@ -128,7 +117,7 @@ public class Player extends Entity {
     String serialize() {
         StringBuilder bullets = new StringBuilder();
         for (Map.Entry<UUID, Bullet> entry : this.bullets.entrySet()) {
-            bullets.append(entry.getValue().serialize());
+            bullets.append(entry.getValue().id);
             bullets.append(",");
         }
         if (bullets.length() > 0) {

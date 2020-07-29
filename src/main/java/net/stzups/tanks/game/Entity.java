@@ -26,6 +26,12 @@ class Entity {
         this.height = height;
     }
 
+    void move(float dt) {
+        //todo uncomment
+        //this.x += Math.cos(this.direction) * this.speed * dt / 1000;
+        //this.y += Math.sin(this.direction) * this.speed * dt / 1000;
+    }
+
     boolean update(JSONArray jsonArray) {
         if (!UUID.fromString(jsonArray.getString(0)).equals(id)) {
             return false;
@@ -46,6 +52,13 @@ class Entity {
     }
 
     static Entity deserialize(JSONArray jsonArray) {
-        return new Entity((UUID) jsonArray.get(0), jsonArray.getFloat(1), jsonArray.getFloat(2), jsonArray.getFloat(3), jsonArray.getFloat(4), jsonArray.getFloat(5), jsonArray.getFloat(6), jsonArray.getFloat(7));
+        Object rawId = jsonArray.get(0);
+        UUID id;
+        if (rawId instanceof UUID) {
+            id = (UUID) rawId;
+        } else {
+            id = UUID.randomUUID();
+        }
+        return new Entity(id, jsonArray.getFloat(1), jsonArray.getFloat(2), jsonArray.getFloat(3), jsonArray.getFloat(4), jsonArray.getFloat(5), jsonArray.getFloat(6), jsonArray.getFloat(7));
     }
 }

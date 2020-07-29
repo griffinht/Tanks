@@ -23,7 +23,7 @@ class Bullet extends Entity {
 
     @Override
     String serialize() {
-        return "[" + super.serialize() + "," + owner + "," + hits + "]";
+        return "[bullet," + super.serialize() + "," + owner + "," + hits + "]";
     }
 
     static Bullet deserialize(JSONArray jsonArray) {
