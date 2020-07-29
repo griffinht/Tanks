@@ -27,9 +27,8 @@ class Entity {
     }
 
     void move(float dt) {
-        //todo uncomment
-        //this.x += Math.cos(this.direction) * this.speed * dt / 1000;
-        //this.y += Math.sin(this.direction) * this.speed * dt / 1000;
+        this.x += Math.cos(this.direction) * this.speed * dt / 1000;
+        this.y += Math.sin(this.direction) * this.speed * dt / 1000;
     }
 
     boolean update(JSONArray jsonArray) {
