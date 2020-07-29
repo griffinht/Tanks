@@ -57,7 +57,7 @@ public class FileManager {
                                 throw new EOFException("Couldn't read while checking " + file.getAbsolutePath() + " with existing resources in jar");
                             }
 
-                            if (!(existingFile.length == originalFile.length || Arrays.equals(existingFile, originalFile))) {
+                            if (!(existingFile.length == originalFile.length || Arrays.equals(existingFile, originalFile))) {//todo fix?
                                 try (FileOutputStream fileOutputStream = new FileOutputStream(file, false)) {
                                     fileOutputStream.write(originalFile);
                                 }
