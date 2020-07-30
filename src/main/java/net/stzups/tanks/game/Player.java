@@ -2,6 +2,7 @@ package net.stzups.tanks.game;
 
 import org.json.JSONArray;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.Map;
 import java.util.Queue;
@@ -9,10 +10,17 @@ import java.util.UUID;
 
 public class Player extends Entity {
     static class Turret {
-        double rotation;
+        float rotation;
         float width;
         float height;
-        Turret (double rotation, float width, float height) {
+
+        private static byte rotationUpdate = 1;
+        private static byte widthUpdate = 1 << 1;
+        private static byte heightUpdate = 1 << 2;
+
+        private byte updateFlags = (byte) (rotationUpdate | widthUpdate | heightUpdate);
+
+        Turret (float rotation, float width, float height) {
             this.rotation = rotation;
             this.width = width;
             this.height = height;
@@ -24,8 +32,17 @@ public class Player extends Entity {
             height = jsonArray.getFloat(2);
         }
 
-        String serialize() {
-            return "[" + rotation + "," + width + "," + height + "]";
+        byte[] serialize() {
+            boolean rotationU = (updateFlags & rotationUpdate) == rotationUpdate;
+            boolean widthU = (updateFlags & widthUpdate) == widthUpdate;
+            boolean heightU = (updateFlags & heightUpdate) == heightUpdate;
+            ByteBuffer byteBuffer = ByteBuffer.allocate(2 + 1 + 4 * ((rotationU ? 1 : 0) + (widthU ? 1 : 0) + (heightU ? 1 : 0)));
+            byteBuffer.putChar((char) 2);
+            byteBuffer.put(updateFlags);
+            if (rotationU) byteBuffer.putFloat(rotation);
+            if (widthU) byteBuffer.putFloat(width);
+            if (heightU) byteBuffer.putFloat(height);
+            return byteBuffer.array();
         }
     }
 
@@ -35,7 +52,13 @@ public class Player extends Entity {
 
     private String name;
     private Player.Turret turret;
-    private Map<UUID, Bullet> bullets;
+    private Map<Character, Bullet> bullets;
+
+    private static byte nameUpdate = 1;
+    private static byte turretUpdate = 1 << 1;
+    private static byte bulletsUpdate = 1 << 2;
+
+    private byte updateFlags = (byte) (nameUpdate | turretUpdate | bulletsUpdate);
 
     private int viewportWidth;
     private int viewportHeight;
@@ -43,7 +66,7 @@ public class Player extends Entity {
     private Queue<Map.Entry<UUID, Long>> pingQueue = new ArrayDeque<>();
     private int ping;
 
-    Player(UUID id, float x, float y, float speed, float direction, float rotation, float width, float height, String name, int viewportWidth, int viewportHeight, Player.Turret turret, Map<UUID, Bullet> bullets) {
+    Player(char id, float x, float y, float speed, float direction, float rotation, float width, float height, String name, int viewportWidth, int viewportHeight, Player.Turret turret, Map<Character, Bullet> bullets) {
         super(id, x, y, speed, direction, rotation, width, height);
         this.name = name;
         this.turret = turret;
@@ -114,15 +137,36 @@ public class Player extends Entity {
     }
 
     @Override
-    String serialize() {
-        StringBuilder bullets = new StringBuilder();
-        for (Map.Entry<UUID, Bullet> entry : this.bullets.entrySet()) {
-            bullets.append(entry.getValue().id);
-            bullets.append(",");
+    byte[] serialize() {
+        byte[] entity = super.serialize();
+        boolean nameU = (updateFlags & nameUpdate) == nameUpdate;
+        boolean turretU = (updateFlags & turretUpdate) == turretUpdate;
+        boolean bulletsU = (updateFlags & bulletsUpdate) == bulletsUpdate;
+        byte[] name;
+        if (nameU) {
+            name = new byte[0]; //todo
+        } else {
+            name = new byte[0];
         }
-        if (bullets.length() > 0) {
-            bullets.substring(0, bullets.length() - 1);
+        byte[] turret;
+        if (turretU) {
+            turret = this.turret.serialize();
+        } else {
+            turret = new byte[0];
         }
-        return "[player," + super.serialize() + "," + name + "," + turret.serialize() + ",[" + bullets.toString() + "]]";
+        byte[] bullets;
+        if (bulletsU) {
+            bullets = new byte[0];//todo
+        } else {
+            bullets = new byte[0];
+        }
+        ByteBuffer byteBuffer = ByteBuffer.allocate(2 + entity.length + name.length + turret.length + bullets.length);
+        byteBuffer.putChar((char) 1);
+        byteBuffer.put(entity);
+        byteBuffer.put(updateFlags);
+        if (nameU) byteBuffer.put(name);
+        if (turretU) byteBuffer.put(turret);
+        if (bulletsU) byteBuffer.put(bullets);
+        return byteBuffer.array();
     }
 }

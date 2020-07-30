@@ -3,6 +3,7 @@ package net.stzups.tanks.game;
 import net.stzups.util.Grid;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
@@ -11,6 +12,7 @@ class World {
     static final int GRID_SIZE = 16; //todo dynamic grid size???
 
     Grid<Entity> grid = new Grid<>();
+    Map<Character, Entity> entities = new HashMap<>();
 
     World() {
 
@@ -34,9 +36,20 @@ class World {
 
     void addEntity(Entity entity) {
         grid.insert((int) entity.x / GRID_SIZE, (int) entity.y / GRID_SIZE, entity);
+        entities.put(entity.id, entity);
     }
 
     void removeEntity(Entity entity) {
         grid.insert((int) entity.x / GRID_SIZE, (int) entity.y / GRID_SIZE, entity);
+        entities.remove(entity.id);
+    }
+
+    char generateRandomId() {
+        //todo make this good
+        char id = (char) (Math.random() * 65535);
+        while (entities.containsKey(id)) {
+            id = (char) (Math.random() * 65535);
+        }
+        return id;
     }
 }
