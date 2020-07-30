@@ -104,7 +104,7 @@ public class Connection implements Runnable {
             }
             ping = -1;
             lastPing = System.currentTimeMillis();
-            sendPacket((byte) 0x9, "");
+            sendPacket((byte) 0x9);
             try {
                 Thread.sleep(5000);
             } catch (InterruptedException e) {
@@ -148,7 +148,7 @@ public class Connection implements Runnable {
                         outputStream.write(response, 0, response.length);
 
                         if (!ALLOW_MULTIPLE_CONNECTIONS_FROM_SAME_IP_ADDRESS && server.containsInetAddress(socket.getInetAddress())) {
-                            sendPacket((byte) 0x8, "");
+                            sendPacket((byte) 0x8);
                             return;
                         }
 
@@ -344,27 +344,25 @@ public class Connection implements Runnable {
         return decoded;
     }
 
-    private static byte[] getFramedPacket(byte opcode, String payload) {
+    private static byte[] getFramedPacket(byte opcode, byte[] payload) {
         byte[] data;
         int offset;
 
-        if (payload.length() <= 125) {
+        if (payload.length <= 125) {
              offset = 2;
-             data = new byte[offset + payload.length()];
-             data[1] = (byte) (payload.length());
+             data = new byte[offset + payload.length];
+             data[1] = (byte) (payload.length);
         } else {
             offset = 4;
-            data = new byte[offset + payload.length()];
+            data = new byte[offset + payload.length];
             data[1] = 126;
-            data[2] = (byte) (payload.length() >> 8);
-            data[3] = (byte) payload.length();
+            data[2] = (byte) (payload.length >> 8);
+            data[3] = (byte) payload.length;
         }
 
         data[0] = (byte) (0x80 ^ opcode);
 
-        for (int i = 0; i < payload.length(); i++) {
-            data[offset + i] = (byte) payload.charAt(i);
-        }
+        System.arraycopy(payload, 0, data, offset, payload.length);
 
         return data;
     }
@@ -398,12 +396,20 @@ public class Connection implements Runnable {
         return readBytesToString(new byte[]{b});
     }
 
-    private void sendPacket(byte opcode, String payload) {
+    private void sendPacket(byte opcode) {
+        sendPacket(opcode, new byte[0]);
+    }
+
+    private void sendPacket(byte opcode, byte[] payload) {
         queue.add(getFramedPacket(opcode, payload));
     }
 
     public void sendText(String payload) {
-        sendPacket((byte) 0x1, payload);
+        sendPacket((byte) 0x1, payload.getBytes());//todo explicitly specify charset?.
+    }
+
+    public void sendBinary(byte[] payload) {
+        sendPacket((byte) 0x2, payload);
     }
 
     public void close(boolean kick) {
@@ -415,7 +421,7 @@ public class Connection implements Runnable {
             connected = false;
             heartbeat.interrupt();
             if (kick)
-                sendPacket((byte) 0x8, "");
+                sendPacket((byte) 0x8);
 
             try {
                 socket.close();
