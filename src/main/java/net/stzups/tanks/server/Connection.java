@@ -405,7 +405,7 @@ public class Connection implements Runnable {
     }
 
     public void sendText(String payload) {
-        sendPacket((byte) 0x1, payload.getBytes());//todo explicitly specify charset?.
+        sendPacket((byte) 0x1, payload.getBytes(StandardCharsets.UTF_8));
     }
 
     public void sendBinary(byte[] payload) {
