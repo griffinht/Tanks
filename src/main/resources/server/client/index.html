@@ -266,6 +266,7 @@ function connect() {
         loaderManager.update();
     });
     webSocket = new WebSocket("[[[SERVER_IP]]]");
+    webSocket.binaryType = "arraybuffer";
 
     webSocket.onopen = function() {
         window.onbeforeunload = function(){
@@ -359,9 +360,7 @@ function connect() {
                 });
             }
         } else {
-            let buffer = new ArrayBuffer(8);
-            let view = new Int8Array(buffer);
-            console.log(view.buffer);
+            
         }
     }
 }

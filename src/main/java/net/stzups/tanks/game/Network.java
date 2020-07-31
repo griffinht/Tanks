@@ -106,7 +106,7 @@ class Network implements PacketListener {
                     playByteBuffer.put(idByteBuffer.array());
                     playByteBuffer.put(pingByteBuffer.array());
                     playByteBuffer.put(playerGridByteBuffer.array());
-                    
+
                     ByteBuffer payloadByteBuffer = ByteBuffer.allocate(viewportByteBuffer.position() + playByteBuffer.array().length);//todo make this more dynamic add byte buffers to list???
                     payloadByteBuffer.put(viewportByteBuffer.array());
                     payloadByteBuffer.put(playByteBuffer.array());
