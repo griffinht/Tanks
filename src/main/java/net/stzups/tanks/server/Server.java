@@ -92,6 +92,18 @@ public class Server implements Runnable {
         return false;
     }
 
+    void onTextPacket(Connection connection, String payload) {
+        for (PacketListener packetListener : packetListeners) {
+            packetListener.onTextPacket(connection, payload);
+        }
+    }
+
+    void onBinaryPacket(Connection connection, byte[] payload) {
+        for (PacketListener packetListener : packetListeners) {
+            packetListener.onBinaryPacket(connection, payload);
+        }
+    }
+
     void addConnection(Connection connection) {
         connections.add(connection);
         for (PacketListener packetListener : packetListeners) {
@@ -103,18 +115,6 @@ public class Server implements Runnable {
         connections.remove(connection);
         for (PacketListener packetListener : packetListeners) {
             packetListener.removeConnection(connection);
-        }
-    }
-
-    void onTextPacket(Connection connection, String payload) {
-        for (PacketListener packetListener : packetListeners) {
-            packetListener.onTextPacket(connection, payload);
-        }
-    }
-
-    void onBinaryPacket(Connection connection, byte[] payload) {
-        for (PacketListener packetListener : packetListeners) {
-            packetListener.onBinaryPacket(connection, payload);
         }
     }
 
