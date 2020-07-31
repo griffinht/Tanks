@@ -112,10 +112,18 @@ public class Server implements Runnable {
         }
     }
 
+    void onBinaryPacket(Connection connection, byte[] payload) {
+        for (PacketListener packetListener : packetListeners) {
+            packetListener.onBinaryPacket(connection, payload);
+        }
+    }
+
     public void addPacketListener(PacketListener packetListener) {
         packetListeners.add(packetListener);
     }
 
+    //todo remove
+    /*
     void sendText(List<Connection> recipients, String payload) {
         if (recipients == null) {
             for (Connection connection : connections) {
@@ -141,4 +149,5 @@ public class Server implements Runnable {
             }
         }
     }
+     */
 }

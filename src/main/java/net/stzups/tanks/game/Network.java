@@ -40,7 +40,7 @@ class Network implements PacketListener {
 
                     JSONArray server = new JSONArray();
                     server.put(tick);
-                    server.put(game.getLastTickTime());
+                    server.put(game.getLastTickTime());//todo isnt this just dt?
                     play.put("server", server);
 
                     UUID uuid = UUID.randomUUID();
@@ -193,6 +193,10 @@ class Network implements PacketListener {
                 connection.close(true);
             }
         }
+    }
+
+    public void onBinaryPacket(Connection connection, byte[] payload) {
+        //todo
     }
 
     public void removeConnection(Connection connection) {
