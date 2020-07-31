@@ -177,7 +177,7 @@ public class Connection implements Runnable {
                                         server.onTextPacket(this, new String(decoded));
                                         break;
                                     case 0x2: // binary frame
-                                        logger.info("binary frame"); //todo handle
+                                        server.onBinaryPacket(this, decoded);
                                         break;
                                     case 0x8: // connection close
                                         close(false);
