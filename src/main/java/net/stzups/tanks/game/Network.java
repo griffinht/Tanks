@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.util.AbstractMap;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -101,14 +102,14 @@ class Network implements PacketListener {
                     playerGridByteBuffer.put(playerGrid);
                     ByteBuffer playByteBuffer = ByteBuffer.allocate(2 + serverByteBuffer.position() + idByteBuffer.position() + pingByteBuffer.position() + playerGridByteBuffer.position());
                     playByteBuffer.putShort((short) 0);
-                    playByteBuffer.put(serverByteBuffer);
-                    playByteBuffer.put(idByteBuffer);
-                    playByteBuffer.put(pingByteBuffer);
-                    playByteBuffer.put(playerGridByteBuffer);
-
-                    ByteBuffer payloadByteBuffer = ByteBuffer.allocate(2 + viewportByteBuffer.position() + playByteBuffer.position());//todo make this more dynamic add byte buffers to list???
-                    payloadByteBuffer.put(viewportByteBuffer);
-                    payloadByteBuffer.put(playByteBuffer);
+                    playByteBuffer.put(serverByteBuffer.array());
+                    playByteBuffer.put(idByteBuffer.array());
+                    playByteBuffer.put(pingByteBuffer.array());
+                    playByteBuffer.put(playerGridByteBuffer.array());
+                    
+                    ByteBuffer payloadByteBuffer = ByteBuffer.allocate(viewportByteBuffer.position() + playByteBuffer.array().length);//todo make this more dynamic add byte buffers to list???
+                    payloadByteBuffer.put(viewportByteBuffer.array());
+                    payloadByteBuffer.put(playByteBuffer.array());
                     entry.getKey().sendBinary(payloadByteBuffer.array());
                     player.getPingQueue().add(new AbstractMap.SimpleEntry<>(id, System.currentTimeMillis()));//todo java 9 Map.entry(k,v)
                 }
