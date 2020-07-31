@@ -286,6 +286,10 @@ function connect() {
     }
 
     webSocket.onmessage = function() {
+        console.log(typeof event.data === "string", event.data instanceof ArrayBuffer, event.data instanceof Blob);
+        console.log(webSocket.binaryType);
+        console.log(event);
+        
         let payload;
         try {
             payload = JSON.parse(event.data);

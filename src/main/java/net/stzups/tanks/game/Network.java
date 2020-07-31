@@ -7,8 +7,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
 import java.util.AbstractMap;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -30,67 +31,92 @@ class Network implements PacketListener {
 
     void update(int tick, float dt) {
         executorService.submit(() -> {
-            JSONObject grid = new JSONObject();
+            Map<Map.Entry<Integer, Integer>, byte[]> grid = new HashMap<>();
             //System.out.print("looping through " + game.connectionPlayerMap.size() + ": ");
             try {
-                for (Map.Entry<Connection, Player> entry : game.connectionPlayerMap.entrySet()) {
+                for (Map.Entry<Connection, Player> entry : game.connectionPlayerMap.entrySet()) {//todo test with ByteArrayOutputStream
                     Player player = entry.getValue();
-                    JSONObject payload = new JSONObject();
-                    JSONObject play = new JSONObject();
 
-                    JSONArray server = new JSONArray();
-                    server.put(tick);
-                    server.put(game.getLastTickTime());//todo isnt this just dt?
-                    play.put("server", server);
-
-                    UUID uuid = UUID.randomUUID();
-                    play.put("uuid", uuid);
-                    play.put("ping", player.getPing());
+                    ByteBuffer viewportByteBuffer;
                     if (player.updateViewport()) {
-                        JSONArray viewport = new JSONArray();
-                        viewport.put(player.getViewportWidth());
-                        viewport.put(player.getViewportHeight());
-                        payload.put("viewport", viewport);
+                        viewportByteBuffer = ByteBuffer.allocate(2 + 4 + 4);
+                        viewportByteBuffer.putShort((short) 1);
+                        viewportByteBuffer.putInt(player.getViewportWidth());
+                        viewportByteBuffer.putInt(player.getViewportHeight());
+                    } else {
+                        viewportByteBuffer = ByteBuffer.allocate(0);
                     }
-                    JSONObject playerGrid = new JSONObject();
-                    for (int x = (int) (player.x - player.getViewportWidth() / 2.0f) / World.GRID_SIZE; x <= (int) (player.x + player.getViewportWidth() / 2.0f) / World.GRID_SIZE; x++) {
-                        for (int y = (int) (player.y - player.getViewportHeight() / 2.0f) / World.GRID_SIZE; y <= (int) (player.y + player.getViewportHeight() / 2.0f) / World.GRID_SIZE; y++) {
-                            String key = x + "," + y;
-                            if (grid.has(key)) {
-                                JSONObject g = grid.getJSONObject(key);
-                                if (g.length() > 0) {
-                                    playerGrid.put(key, grid.get(key));
-                                }
-                            } else {
-                                JSONObject g = new JSONObject();
-                                JSONArray entities = new JSONArray();
-                                for (Entity entity : game.world.grid.get(x, y)) {
-                                    entities.put(new JSONArray(entity.serialize()));
-                                }
-                                if (entities.length() > 0) {
-                                    g.put("entities", entities);
-                                }
-                                grid.put(key, g);
-                                if (g.length() > 0) {
-                                    playerGrid.put(key, g);
+
+                    ByteBuffer serverByteBuffer = ByteBuffer.allocate(2 + 4 + 4);//todo performance //todo static properties
+                    serverByteBuffer.putShort((short) 0);
+                    serverByteBuffer.putInt(tick);
+                    serverByteBuffer.putFloat(game.getLastTickTime());//todo isnt this just dt?
+
+                    ByteBuffer idByteBuffer = ByteBuffer.allocate(2 + 4);
+                    idByteBuffer.putShort((short) 1);
+                    int id = (int) (Math.random() * 2147483647);//todo this is probably bad
+                    idByteBuffer.putInt(id);
+
+                    ByteBuffer pingByteBuffer = ByteBuffer.allocate(2 + 2);
+                    pingByteBuffer.putShort((short) 2);
+                    pingByteBuffer.putShort((short) player.getPing());
+
+                    byte[] playerGrid;
+                    try (ByteArrayOutputStream playerOutputStream = new ByteArrayOutputStream()) {
+                        for (int x = (int) (player.x - player.getViewportWidth() / 2.0f) / World.GRID_SIZE; x <= (int) (player.x + player.getViewportWidth() / 2.0f) / World.GRID_SIZE; x++) {//todo go from ints to shorts?
+                            for (int y = (int) (player.y - player.getViewportHeight() / 2.0f) / World.GRID_SIZE; y <= (int) (player.y + player.getViewportHeight() / 2.0f) / World.GRID_SIZE; y++) {
+                                Map.Entry<Integer, Integer> key = new AbstractMap.SimpleEntry<>(x, y);
+                                if (grid.containsKey(key)) {//todo performance
+                                    byte[] g = grid.get(key);
+                                    if (g.length > 0) {
+                                        playerOutputStream.write(g);
+                                    }
+                                } else {
+                                    try (ByteArrayOutputStream gridOutputStream = new ByteArrayOutputStream()) {
+                                        for (Entity entity : game.world.grid.get(x, y)) {
+                                            gridOutputStream.write(entity.serialize());
+                                        }
+                                        byte[] entities = gridOutputStream.toByteArray();
+
+                                        ByteBuffer gridByteBuffer = ByteBuffer.allocate(2 + 2 + entities.length);
+                                        gridByteBuffer.putShort((short) x);
+                                        gridByteBuffer.putShort((short) y);
+                                        if (entities.length > 0) {
+                                            gridByteBuffer.put(entities);
+                                        }
+                                        byte[] g = gridByteBuffer.array();
+                                        grid.put(key, g);
+                                        if (g.length > 0) {
+                                            playerOutputStream.write(g);
+                                        }
+                                    }
                                 }
                             }
                         }
+                        playerGrid = playerOutputStream.toByteArray();
                     }
-                    play.put("grid", playerGrid);
-                    payload.put("play", play);
-                    //System.out.print(entry.getKey().getUUID() + ", ");
 
-                    entry.getKey().sendText(payload.toString());
-                    player.getPingQueue().add(new AbstractMap.SimpleEntry<>(uuid, System.currentTimeMillis()));//todo java 9 Map.entry(k,v)
+                    ByteBuffer playerGridByteBuffer = ByteBuffer.allocate(2 + playerGrid.length);//todo this seems really unnecessary
+                    playerGridByteBuffer.putShort((short) 3);
+                    playerGridByteBuffer.put(playerGrid);
+                    ByteBuffer playByteBuffer = ByteBuffer.allocate(2 + serverByteBuffer.position() + idByteBuffer.position() + pingByteBuffer.position() + playerGridByteBuffer.position());
+                    playByteBuffer.putShort((short) 0);
+                    playByteBuffer.put(serverByteBuffer);
+                    playByteBuffer.put(idByteBuffer);
+                    playByteBuffer.put(pingByteBuffer);
+                    playByteBuffer.put(playerGridByteBuffer);
+
+                    ByteBuffer payloadByteBuffer = ByteBuffer.allocate(2 + viewportByteBuffer.position() + playByteBuffer.position());//todo make this more dynamic add byte buffers to list???
+                    payloadByteBuffer.put(viewportByteBuffer);
+                    payloadByteBuffer.put(playByteBuffer);
+                    entry.getKey().sendBinary(payloadByteBuffer.array());
+                    player.getPingQueue().add(new AbstractMap.SimpleEntry<>(id, System.currentTimeMillis()));//todo java 9 Map.entry(k,v)
                 }
             }
             catch(Exception e)
             {
                 e.printStackTrace();
             }
-
-            //System.out.print("\r");
         });
     }
 
@@ -136,7 +162,7 @@ class Network implements PacketListener {
                 if (!player.getPingQueue().isEmpty()) {//todo this might be exploitable
                     if (payload.has("play")) {
                         UUID uuid = UUID.fromString(payload.getString("play"));
-                        Map.Entry<UUID, Long> poll;
+                        Map.Entry<Integer, Long> poll;
                         boolean match = false;
                         while (!player.getPingQueue().isEmpty()) {
                             poll = player.getPingQueue().poll();
@@ -146,11 +172,12 @@ class Network implements PacketListener {
                                 if (ping < 0) {
                                     logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", replied to pong packet in negative time");
                                 } else {
-                                    player.setPing((int) ping);
-                                    if ((int) ping > Connection.MAXIMUM_PING) {
+                                    if (ping > Connection.MAXIMUM_PING) {
                                         logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", ping too high");//todo will this ever happen if the thing below is already checking?
                                         connection.close(true);
                                         return;
+                                    } else {
+                                        player.setPing((short) ping);
                                     }
                                 }
                                 break;

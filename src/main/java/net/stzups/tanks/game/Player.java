@@ -6,7 +6,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.Map;
 import java.util.Queue;
-import java.util.UUID;
 
 public class Player extends Entity {
     static class Turret {
@@ -63,8 +62,8 @@ public class Player extends Entity {
     private int viewportWidth;
     private int viewportHeight;
     private boolean updateViewport = false;
-    private Queue<Map.Entry<UUID, Long>> pingQueue = new ArrayDeque<>();
-    private int ping;
+    private Queue<Map.Entry<Integer, Long>> pingQueue = new ArrayDeque<>();
+    private short ping;
 
     Player(char id, float x, float y, float speed, float direction, float rotation, float width, float height, String name, int viewportWidth, int viewportHeight, Player.Turret turret, Map<Character, Bullet> bullets) {
         super(id, x, y, speed, direction, rotation, width, height);
@@ -114,11 +113,11 @@ public class Player extends Entity {
         return ping;
     }
 
-    Queue<Map.Entry<UUID, Long>> getPingQueue() {
+    Queue<Map.Entry<Integer, Long>> getPingQueue() {
         return pingQueue;
     }
 
-    void setPing(int ping) {
+    void setPing(short ping) {
         this.ping = ping;
     }
 
