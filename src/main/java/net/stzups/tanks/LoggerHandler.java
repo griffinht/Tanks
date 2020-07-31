@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 
 class LoggerHandler {
 
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Tanks.class.getName());
+    private static final Logger logger = Logger.getLogger(Tanks.class.getName());
 
     static Logger setLogger() {
         Handler consoleHandler = new ConsoleHandler();
