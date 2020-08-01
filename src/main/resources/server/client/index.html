@@ -386,6 +386,10 @@ function connect() {
                             offset += 4;
                             send({play:id});
                             console.log("id: " + id);
+                        } else if (playId == 3) {//ping
+                            ping = dataView.getInt16(offset);
+                            console.log("ping: " + ping);
+                            offset += 2;
                         } else {
                             console.log("bad termination");
                             break;
