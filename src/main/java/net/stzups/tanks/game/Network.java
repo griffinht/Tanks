@@ -10,10 +10,8 @@ import org.json.JSONObject;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.util.AbstractMap;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
@@ -166,12 +164,12 @@ class Network implements PacketListener {
                 JSONObject payload = new JSONObject(rawPayload);
                 if (!player.getPingQueue().isEmpty()) {//todo this might be exploitable also doesnt happen sometimes
                     if (payload.has("play")) {
-                        UUID uuid = UUID.fromString(payload.getString("play"));
+                        int id = payload.getInt("play");
                         Map.Entry<Integer, Long> poll;
                         boolean match = false;
                         while (!player.getPingQueue().isEmpty()) {
                             poll = player.getPingQueue().poll();
-                            if (poll.getKey().equals(uuid)) {
+                            if (poll.getKey() == id) {
                                 match = true;
                                 long ping = System.currentTimeMillis() - poll.getValue();
                                 if (ping < 0) {

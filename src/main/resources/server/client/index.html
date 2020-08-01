@@ -369,6 +369,7 @@ function connect() {
                 if (id == 0) {//play
                     while (true) {
                         let playId = dataView.getInt16(offset);
+                        console.log(playId);
                         offset += 2;
                         if (playId == 0) {
                             offset += 2;
@@ -383,6 +384,7 @@ function connect() {
                         } else if (playId == 2) {//id
                             let id = dataView.getInt32(offset);
                             offset += 4;
+                            send({play:id});
                             console.log("id: " + id);
                         } else {
                             console.log("bad termination");
