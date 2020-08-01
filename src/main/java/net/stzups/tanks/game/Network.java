@@ -40,26 +40,27 @@ class Network implements PacketListener {
 
                     ByteBuffer viewportByteBuffer;
                     if (player.updateViewport()) {
-                        viewportByteBuffer = ByteBuffer.allocate(2 + 4 + 4);
+                        viewportByteBuffer = ByteBuffer.allocate(2 + 4 + 4 + 2);
                         viewportByteBuffer.putShort((short) 1);
                         viewportByteBuffer.putInt(player.getViewportWidth());
                         viewportByteBuffer.putInt(player.getViewportHeight());
+                        viewportByteBuffer.putShort((short) 1);
                     } else {
                         viewportByteBuffer = ByteBuffer.allocate(0);
                     }
 
                     ByteBuffer serverByteBuffer = ByteBuffer.allocate(2 + 4 + 4);//todo performance //todo static properties
-                    serverByteBuffer.putShort((short) 0);
+                    serverByteBuffer.putShort((short) 1);
                     serverByteBuffer.putInt(tick);
                     serverByteBuffer.putFloat(game.getLastTickTime());//todo isnt this just dt?
 
                     ByteBuffer idByteBuffer = ByteBuffer.allocate(2 + 4);
-                    idByteBuffer.putShort((short) 1);
+                    idByteBuffer.putShort((short) 2);
                     int id = (int) (Math.random() * 2147483647);//todo this is probably bad
                     idByteBuffer.putInt(id);
 
                     ByteBuffer pingByteBuffer = ByteBuffer.allocate(2 + 2);
-                    pingByteBuffer.putShort((short) 2);
+                    pingByteBuffer.putShort((short) 3);
                     pingByteBuffer.putShort((short) player.getPing());
 
                     byte[] playerGrid;
@@ -98,18 +99,21 @@ class Network implements PacketListener {
                     }
 
                     ByteBuffer playerGridByteBuffer = ByteBuffer.allocate(2 + playerGrid.length);//todo this seems really unnecessary
-                    playerGridByteBuffer.putShort((short) 3);
+                    playerGridByteBuffer.putShort((short) 4);
                     playerGridByteBuffer.put(playerGrid);
-                    ByteBuffer playByteBuffer = ByteBuffer.allocate(2 + serverByteBuffer.position() + idByteBuffer.position() + pingByteBuffer.position() + playerGridByteBuffer.position());
-                    playByteBuffer.putShort((short) 0);
+                    ByteBuffer playByteBuffer = ByteBuffer.allocate(2 + viewportByteBuffer.position() + serverByteBuffer.position() + idByteBuffer.position() + pingByteBuffer.position() + playerGridByteBuffer.position() + 2);
+                    playByteBuffer.putShort((short) 0);//start play
                     playByteBuffer.put(serverByteBuffer.array());
                     playByteBuffer.put(idByteBuffer.array());
                     playByteBuffer.put(pingByteBuffer.array());
                     playByteBuffer.put(playerGridByteBuffer.array());
+                    playByteBuffer.putShort((short) 0);//end play
+                    playByteBuffer.put(viewportByteBuffer.array());
 
-                    ByteBuffer payloadByteBuffer = ByteBuffer.allocate(viewportByteBuffer.position() + playByteBuffer.array().length);//todo make this more dynamic add byte buffers to list???
-                    payloadByteBuffer.put(viewportByteBuffer.array());
+                    ByteBuffer payloadByteBuffer = ByteBuffer.allocate(playByteBuffer.position() + viewportByteBuffer.position());
                     payloadByteBuffer.put(playByteBuffer.array());
+                    payloadByteBuffer.put(viewportByteBuffer.array());
+
                     entry.getKey().sendBinary(payloadByteBuffer.array());
                     player.getPingQueue().add(new AbstractMap.SimpleEntry<>(id, System.currentTimeMillis()));//todo java 9 Map.entry(k,v)
                 }
@@ -160,7 +164,7 @@ class Network implements PacketListener {
             //logger.info(player.getName() + ": " + rawPayload);
             try {
                 JSONObject payload = new JSONObject(rawPayload);
-                if (!player.getPingQueue().isEmpty()) {//todo this might be exploitable
+                if (!player.getPingQueue().isEmpty()) {//todo this might be exploitable also doesnt happen sometimes
                     if (payload.has("play")) {
                         UUID uuid = UUID.fromString(payload.getString("play"));
                         Map.Entry<Integer, Long> poll;

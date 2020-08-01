@@ -360,7 +360,47 @@ function connect() {
                 });
             }
         } else {
-            
+            let dataView = new DataView(event.data);
+            let offset = 0;
+
+            while (offset < dataView.byteLength) {
+                let id = dataView.getInt16(offset);
+                offset += 2;
+                if (id == 0) {//play
+                    while (true) {
+                        let playId = dataView.getInt16(offset);
+                        offset += 2;
+                        if (playId == 0) {
+                            offset += 2;
+                            console.log("good termination");
+                            break;
+                        } else if (playId == 1) {//server
+                            let tick = dataView.getInt32(offset);
+                            offset += 4;
+                            let tickTime = dataView.getFloat32(offset);
+                            offset += 4;
+                            console.log("tick:" + tick + ", ticktime:" + tickTime)
+                        } else if (playId == 2) {//id
+                            let id = dataView.getInt32(offset);
+                            offset += 4;
+                            console.log("id: " + id);
+                        } else {
+                            console.log("bad termination");
+                            break;
+                        }
+                    }
+                } else if (id == 1) {//viewport
+                    let width = dataView.getInt32(offset);
+                    offset += 4;
+                    let height = dataView.getInt32(offset);
+                    offset += 4;
+                    console.log("viewport:" +width + ","+height);
+                } else {
+                    console.log("bad big break");
+                    break;
+                }
+            }
+            console.log("done");
         }
     }
 }
