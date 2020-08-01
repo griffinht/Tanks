@@ -32,7 +32,11 @@ class Bullet extends Entity {
     byte[] serialize() {
         byte[] entity = super.serialize();
         boolean hitU = (updateFlags & hitUpdate) == hitUpdate;
-        ByteBuffer byteBuffer = ByteBuffer.allocate(2 + entity.length + (hitU ? 1 : 0));
+        ByteBuffer byteBuffer = ByteBuffer.allocate(2 + entity.length + 1 + (hitU ? 1 : 0));
+        byteBuffer.putChar((char) 3);
+        byteBuffer.put(entity);
+        byteBuffer.put(updateFlags);
+        if (hitU) byteBuffer.put((byte) hits);
         return byteBuffer.array();
     }
 

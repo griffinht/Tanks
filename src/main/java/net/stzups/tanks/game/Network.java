@@ -78,9 +78,7 @@ class Network implements PacketListener {
                                         }
                                         byte[] entities = gridOutputStream.toByteArray();
 
-                                        ByteBuffer gridByteBuffer = ByteBuffer.allocate(2 + 2 + entities.length);
-                                        gridByteBuffer.putShort((short) x);
-                                        gridByteBuffer.putShort((short) y);
+                                        ByteBuffer gridByteBuffer = ByteBuffer.allocate(entities.length);
                                         if (entities.length > 0) {
                                             gridByteBuffer.put(entities);
                                         }
@@ -96,9 +94,10 @@ class Network implements PacketListener {
                         playerGrid = playerOutputStream.toByteArray();
                     }
 
-                    ByteBuffer playerGridByteBuffer = ByteBuffer.allocate(2 + playerGrid.length);//todo this seems really unnecessary
+                    ByteBuffer playerGridByteBuffer = ByteBuffer.allocate(2 + playerGrid.length + 2);//todo this seems really unnecessary
                     playerGridByteBuffer.putShort((short) 4);
                     playerGridByteBuffer.put(playerGrid);
+                    playerGridByteBuffer.putShort((short) 0);
                     ByteBuffer playByteBuffer = ByteBuffer.allocate(2 + viewportByteBuffer.position() + serverByteBuffer.position() + idByteBuffer.position() + pingByteBuffer.position() + playerGridByteBuffer.position() + 2);
                     playByteBuffer.putShort((short) 0);//start play
                     playByteBuffer.put(serverByteBuffer.array());

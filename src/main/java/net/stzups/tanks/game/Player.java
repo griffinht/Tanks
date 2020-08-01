@@ -160,7 +160,7 @@ public class Player extends Entity {
             bullets = new byte[0];
         }
         ByteBuffer byteBuffer = ByteBuffer.allocate(2 + entity.length + 1 + name.length + turret.length + bullets.length);
-        byteBuffer.putChar((char) 1);
+        byteBuffer.putChar((char) 2);
         byteBuffer.put(entity);
         byteBuffer.put(updateFlags);
         if (nameU) byteBuffer.put(name);
