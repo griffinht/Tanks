@@ -592,13 +592,10 @@ class Entity {
     }
     
     static deserialize(dataView, offset) {
-        console.log("ENTITY ID:" + dataView.getUint16(offset - 2));
-        
         let updateFlags = dataView.getUint8(offset);
         offset += 1;
         let id = dataView.getUint16(offset);
         offset += 2;
-        console.log("ID:" + id);
         let x = null;
         if (updateFlags & Entity.xUpdate) {x = dataView.getFloat32(offset); offset += 4;}
         let y = null;

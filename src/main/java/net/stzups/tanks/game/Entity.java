@@ -24,7 +24,7 @@ class Entity {
     private static byte widthUpdate = 1 << 5;
     private static byte heightUpdate = 1 << 6;
 
-    private byte updateFlags = (byte) ((xUpdate | yUpdate | speedUpdate | directionUpdate | rotationUpdate | widthUpdate | heightUpdate) - 0x80);
+    private byte updateFlags = (byte) ((xUpdate | yUpdate | speedUpdate | directionUpdate | rotationUpdate | widthUpdate | heightUpdate) ^ 0x80);
 
     Entity(char id, float x, float y, float speed, float direction, float rotation, float width, float height) {
         this.id = id;
@@ -66,14 +66,9 @@ class Entity {
         boolean widthU = (updateFlags & widthUpdate) == widthUpdate;
         boolean heightU = (updateFlags & heightUpdate) == heightUpdate;
         ByteBuffer byteBuffer = ByteBuffer.allocate(2 + 1 + 2 + ((xU ? 4 : 0) + (yU ? 4 : 0) + (speedU ? 4 : 0) + (directionU ? 4 : 0) + (rotationU ? 4 : 0) + (widthU ? 4 : 0) + (heightU ? 4 : 0)));
-        byteBuffer.putShort((short) (1)); //entity id is 1
+        byteBuffer.putShort((short) 1); //entity id is 1
         byteBuffer.put(updateFlags);
-        if (id > Short.MAX_VALUE) {
-            byteBuffer.putShort((short) (id - 0x7FFF));
-        } else {
-            byteBuffer.putShort((short) (id));
-        }
-        System.out.println((int)id);
+        byteBuffer.putShort((short) id);
         if (xU) byteBuffer.putFloat(x);
         if (yU) byteBuffer.putFloat(y);
         if (speedU) byteBuffer.putFloat(speed);
@@ -88,4 +83,33 @@ class Entity {
     static Entity deserialize(JSONArray jsonArray) {
         return new Entity((char) jsonArray.getInt(0), jsonArray.getFloat(1), jsonArray.getFloat(2), jsonArray.getFloat(3), jsonArray.getFloat(4), jsonArray.getFloat(5), jsonArray.getFloat(6), jsonArray.getFloat(7));
     }
+/*
+    private static String readBytesToString(byte[] bytes) {
+        StringBuilder string = new StringBuilder();
+
+        for (byte b : bytes) {
+            string.append((b >> 7) & 1);
+            string.append((b >> 6) & 1);
+            string.append((b >> 5) & 1);
+            string.append((b >> 4) & 1);
+            string.append((b >> 3) & 1);
+            string.append((b >> 2) & 1);
+            string.append((b >> 1) & 1);
+            string.append(b & 1);
+            string.append(" ");
+            string.append(" (");
+            string.append(b);
+            string.append(") ");
+        }
+
+        if (string.length() > 0) {
+            return string.substring(0, string.length() - 1);
+        } else {
+            return string.toString();
+        }
+    }
+
+    private static String readBytesToString(byte b) {
+        return readBytesToString(new byte[]{b});
+    }*/
 }
