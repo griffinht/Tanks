@@ -66,9 +66,14 @@ class Entity {
         boolean widthU = (updateFlags & widthUpdate) == widthUpdate;
         boolean heightU = (updateFlags & heightUpdate) == heightUpdate;
         ByteBuffer byteBuffer = ByteBuffer.allocate(2 + 1 + 2 + ((xU ? 4 : 0) + (yU ? 4 : 0) + (speedU ? 4 : 0) + (directionU ? 4 : 0) + (rotationU ? 4 : 0) + (widthU ? 4 : 0) + (heightU ? 4 : 0)));
-        byteBuffer.putChar((char) 1); //entity id is 1
+        byteBuffer.putShort((short) (1)); //entity id is 1
         byteBuffer.put(updateFlags);
-        byteBuffer.putChar(id);
+        if (id > Short.MAX_VALUE) {
+            byteBuffer.putShort((short) (id - 0x7FFF));
+        } else {
+            byteBuffer.putShort((short) (id));
+        }
+        System.out.println((int)id);
         if (xU) byteBuffer.putFloat(x);
         if (yU) byteBuffer.putFloat(y);
         if (speedU) byteBuffer.putFloat(speed);

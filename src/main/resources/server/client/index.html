@@ -324,7 +324,6 @@ function connect() {
                     let x = parseInt(split[0]);
                     let y = parseInt(split[1]);
                     if (payload.play.grid[key].entities) {
-                        
                         for (let entityKey in payload.play.grid[key].entities) {
                             let rawEntity = payload.play.grid[key].entities[entityKey];
                             let entity;
@@ -593,10 +592,13 @@ class Entity {
     }
     
     static deserialize(dataView, offset) {
+        console.log("ENTITY ID:" + dataView.getUint16(offset - 2));
+        
         let updateFlags = dataView.getUint8(offset);
         offset += 1;
-        let id = dataView.getInt8(offset);
-        offset += 1;
+        let id = dataView.getUint16(offset);
+        offset += 2;
+        console.log("ID:" + id);
         let x = null;
         if (updateFlags & Entity.xUpdate) {x = dataView.getFloat32(offset); offset += 4;}
         let y = null;
