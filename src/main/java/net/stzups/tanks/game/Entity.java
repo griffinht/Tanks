@@ -24,7 +24,7 @@ class Entity {
     private static byte widthUpdate = 1 << 5;
     private static byte heightUpdate = 1 << 6;
 
-    private byte updateFlags = (byte) (xUpdate | yUpdate | speedUpdate | directionUpdate | rotationUpdate | widthUpdate | heightUpdate);
+    private byte updateFlags = (byte) ((xUpdate | yUpdate | speedUpdate | directionUpdate | rotationUpdate | widthUpdate | heightUpdate) - 0x80);
 
     Entity(char id, float x, float y, float speed, float direction, float rotation, float width, float height) {
         this.id = id;

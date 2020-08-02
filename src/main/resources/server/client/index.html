@@ -539,6 +539,14 @@ function lerp(a, b, f) {
 }
 
 class Entity {
+    static xUpdate = 1;
+    static yUpdate = 1 << 1;
+    static speedUpdate = 1 << 2;
+    static directionUpdate = 1 << 3;
+    static rotationUpdate = 1 << 4;
+    static widthUpdate = 1 << 5;
+    static heightUpdate = 1 << 6;
+
     constructor(id, x, y, speed, direction, rotation, width, height) {
         this.id = id;
         this.x = x;
@@ -585,7 +593,25 @@ class Entity {
     }
     
     static deserialize(dataView, offset) {
-        return [new Entity(entity[0], entity[1], entity[2], entity[3], entity[4], entity[5], entity[6], entity[7]), offset];
+        let updateFlags = dataView.getUint8(offset);
+        offset += 1;
+        let id = dataView.getInt8(offset);
+        offset += 1;
+        let x = null;
+        if (updateFlags & Entity.xUpdate) {x = dataView.getFloat32(offset); offset += 4;}
+        let y = null;
+        if (updateFlags & Entity.yUpdate) {y = dataView.getFloat32(offset); offset += 4;}
+        let speed = null;
+        if (updateFlags & Entity.speedUpdate) {speed = dataView.getFloat32(offset); offset += 4;}
+        let direction = null;
+        if (updateFlags & Entity.directionUpdate) {direction = dataView.getFloat32(offset); offset += 4;}
+        let rotation = null;
+        if (updateFlags & Entity.rotationUpdate) {rotation = dataView.getFloat32(offset); offset += 4;}
+        let width = null;
+        if (updateFlags & Entity.widthUpdate) {width = dataView.getFloat32(offset); offset += 4;}
+        let height = null;
+        if (updateFlags & Entity.heightUpdate) {height = dataView.getFloat32(offset); offset += 4;}
+        return [new Entity(id, x, y, speed, direction, rotation, width, height), offset];
     }
 }
 
@@ -628,8 +654,12 @@ class Player extends Entity {
     }
     
     static deserialize(dataView, offset) {
-        let ent = Entity.deserialize(entity[1]);
-        return [new Player(ent.id, ent.x, ent.y, ent.speed, ent.direction, ent.rotation, ent.width, ent.height, entity[2], Turret.deserialize(entity[3]), entity[4]), offset];
+        offset += 2;
+        let entityOffsetArray = Entity.deserialize(dataView, offset);
+        let entity = entityOffsetArray[0];
+        console.log(entity);
+        offset = entityOffsetArray[1];
+        return [new Player(entity.id, entity.x, entity.y, entity.speed, entity.direction, entity.rotation, entity.width, entity.height, entity[2], Turret.deserialize(entity[3]), entity[4]), offset];
     }
 }
 
@@ -681,7 +711,7 @@ class ThisPlayer extends Player {
         this.bullets = entity.bullets; //todo other checking and fixing
     }
 
-    static deserialize(entity) {
+    static deserialize(dataView, offset) {
         let playerOffsetArray = Player.deserialize(dataView, offset);
         let player = playerOffsetArray[0];
         return [new ThisPlayer(player.id, player.x, player.y, player.speed, player.direction, player.rotation, player.width, player.height, player.name, player.turret, player.bullets), playerOffsetArray[1]];
@@ -722,7 +752,7 @@ class Bullet extends Entity {
     }
     
     static deserialize(dataView, offset) {
-        let entityOffsetArray = Entity.deserialize(dataView, offset));
+        let entityOffsetArray = Entity.deserialize(dataView, offset);
         offset += entityOffsetArray[1];
         let entity = entityOffsetArray[0];
         let bullet = new Bullet(entity.id, entity.x, entity.y, entity.speed, entity.direction, entity.rotation, entity.width, entity.height, entity[2], entity[3]);
