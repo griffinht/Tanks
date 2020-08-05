@@ -1,8 +1,11 @@
 package net.stzups.tanks.game;
 
+import java.io.ByteArrayOutputStream;
 import org.json.JSONArray;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Map;
 import java.util.Queue;
@@ -36,7 +39,7 @@ public class Player extends Entity {
             boolean widthU = (updateFlags & widthUpdate) == widthUpdate;
             boolean heightU = (updateFlags & heightUpdate) == heightUpdate;
             ByteBuffer byteBuffer = ByteBuffer.allocate(2 + 1 + 4 * ((rotationU ? 1 : 0) + (widthU ? 1 : 0) + (heightU ? 1 : 0)));
-            byteBuffer.putChar((char) 2);
+            byteBuffer.putShort((short) 2);
             byteBuffer.put(updateFlags);
             if (rotationU) byteBuffer.putFloat(rotation);
             if (widthU) byteBuffer.putFloat(width);
@@ -143,7 +146,11 @@ public class Player extends Entity {
         boolean bulletsU = (updateFlags & bulletsUpdate) == bulletsUpdate;
         byte[] name;
         if (nameU) {
-            name = new byte[0]; //todo
+            byte[] n = this.name.getBytes(StandardCharsets.UTF_8);//todo inefficient?
+            ByteBuffer nameByteBuffer = ByteBuffer.allocate(2 + n.length);
+            nameByteBuffer.putShort((short) n.length);
+            nameByteBuffer.put(n);
+            name = nameByteBuffer.array();
         } else {
             name = new byte[0];
         }
@@ -155,12 +162,21 @@ public class Player extends Entity {
         }
         byte[] bullets;
         if (bulletsU) {
-            bullets = new byte[0];//todo
+            try (ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream()) {
+                byteOutputStream.write((short) this.bullets.size());
+                for (Character id : this.bullets.keySet()) {
+                    byteOutputStream.write(id);
+                }
+                bullets = byteOutputStream.toByteArray();
+            } catch (IOException e) {
+                e.printStackTrace();
+                bullets = new byte[0];
+            }
         } else {
             bullets = new byte[0];
         }
         ByteBuffer byteBuffer = ByteBuffer.allocate(2 + entity.length + 1 + name.length + turret.length + bullets.length);
-        byteBuffer.putChar((char) 2);
+        byteBuffer.putShort((short) 2);
         byteBuffer.put(entity);
         byteBuffer.put(updateFlags);
         if (nameU) byteBuffer.put(name);

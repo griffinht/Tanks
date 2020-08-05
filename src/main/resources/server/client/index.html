@@ -615,6 +615,10 @@ class Entity {
 }
 
 class Player extends Entity {
+    static nameUpdate = 1;
+    static turretUpdate = 1 << 1;
+    static bulletsUpdate = 1 << 2;
+
     constructor(id, x, y, speed, direction, rotation, width, height, name, turret, bullets) {
         super(id, x, y, speed, direction, rotation, width, height);
         this.name = name;
@@ -656,9 +660,34 @@ class Player extends Entity {
         offset += 2;
         let entityOffsetArray = Entity.deserialize(dataView, offset);
         let entity = entityOffsetArray[0];
-        console.log(entity);
         offset = entityOffsetArray[1];
-        return [new Player(entity.id, entity.x, entity.y, entity.speed, entity.direction, entity.rotation, entity.width, entity.height, entity[2], Turret.deserialize(entity[3]), entity[4]), offset];
+        let updateFlags = dataView.getUint8(offset);
+        offset += 1;
+        let name = null;
+        if (updateFlags & Player.nameUpdate) {
+            let length = dataView.getUint16(offset);
+            offset += 2;
+            let nameBuffer = dataView.buffer.slice(offset, offset + length);
+            offset += length;
+            name = (new TextDecoder("utf-8")).decode(nameBuffer);
+        }
+        let turret = null;
+        if (updateFlags & Player.turretUpdate) {
+            let turretOffsetArray = Turret.deserialize(dataView, offset);
+            turret = turretOffsetArray[0];
+            offset += 1;
+        }
+        let bullets = null;
+        if (updateFlags & Player.bulletsUpdate) {
+            let size = dataView.getUint16(offset);
+            offset += 2;
+            bullets = [];
+            for (let i = 0; i < size; i++) {
+                bullets.push(dataView.getUint16(offset));
+                offset += 2;
+            }
+        }
+        return [new Player(entity.id, entity.x, entity.y, entity.speed, entity.direction, entity.rotation, entity.width, entity.height, name, turret, bullets), offset];
     }
 }
 
@@ -713,11 +742,15 @@ class ThisPlayer extends Player {
     static deserialize(dataView, offset) {
         let playerOffsetArray = Player.deserialize(dataView, offset);
         let player = playerOffsetArray[0];
+        console.log(player);
         return [new ThisPlayer(player.id, player.x, player.y, player.speed, player.direction, player.rotation, player.width, player.height, player.name, player.turret, player.bullets), playerOffsetArray[1]];
     }
 }
 
 class Bullet extends Entity {
+    static ownerUpdate = 1;
+    static hitUpdate = 1 << 1;
+
     constructor(id, x, y, speed, direction, rotation, width, height, owner, hits) {
         super(id.toString(), x, y, speed, direction, rotation, width, height);
         this.owner = owner;
@@ -754,12 +787,19 @@ class Bullet extends Entity {
         let entityOffsetArray = Entity.deserialize(dataView, offset);
         offset += entityOffsetArray[1];
         let entity = entityOffsetArray[0];
-        let bullet = new Bullet(entity.id, entity.x, entity.y, entity.speed, entity.direction, entity.rotation, entity.width, entity.height, entity[2], entity[3]);
-        return [bullet, offset];
+        let updateFlags = dataView.getInt16(offset);
+        offset += 2;
+        if (updateFlags & Bullet.ownerUpdate) {dataView.getUint16(dataView, offset); offset += 2;}
+        if (updateFlags & Bullet.hitUpdate) {dataView.getInt16(dataView, offset); offset += 2;}
+        return [new Bullet(entity.id, entity.x, entity.y, entity.speed, entity.direction, entity.rotation, entity.width, entity.height, entity[2], entity[3]), offset];
     }
 }
 
 class Turret {
+    static rotationUpdate = 1;
+    static widthUpdate = 1 << 1;
+    static heightUpdate = 1 << 2;
+
     constructor(rotation, width, height) {
         this.rotation = rotation;
         this.rotationTarget = this.rotation;
@@ -798,7 +838,24 @@ class Turret {
     }
     
     static deserialize(dataView, offset) {
-        return [new Turret(turret[0], turret[1], turret[2]), offset];
+        let updateFlags = dataView.getUint8(offset);
+        offset += 1;
+        let rotation = null;
+        if (updateFlags & Turret.rotationUpdate) {
+            rotation = dataView.getFloat32(offset);
+            offset += 4;
+        }
+        let width = null;
+        if (updateFlags & Turret.widthUpdate) {
+            width = dataView.getFloat32(offset);
+            offset += 4;
+        }
+        let height = null;
+        if (updateFlags & Turret.heightUpdate) {
+            height = dataView.getFloat32(offset);
+            offset += 4;
+        }
+        return [new Turret(rotation, width, height), offset];
     }
 }
 
