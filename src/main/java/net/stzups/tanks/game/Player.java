@@ -48,9 +48,9 @@ public class Player extends Entity {
         }
     }
 
-    private static final float MAX_VIEWPORT_WIDTH = 16;
-    private static final float MAX_VIEWPORT_HEIGHT = 9;
-    private static final int VIEWPORT_SCALE = 4;
+    public static final float MAX_VIEWPORT_WIDTH = 16;
+    public static final float MAX_VIEWPORT_HEIGHT = 9;
+    public static final int VIEWPORT_SCALE = 4;
 
     private String name;
     private Player.Turret turret;
@@ -64,7 +64,6 @@ public class Player extends Entity {
 
     private int viewportWidth;
     private int viewportHeight;
-    private boolean updateViewport = false;
     private Queue<Map.Entry<Integer, Long>> pingQueue = new ArrayDeque<>();
     private short ping;
 
@@ -83,16 +82,6 @@ public class Player extends Entity {
         } else {
             this.viewportHeight = (int) (MAX_VIEWPORT_HEIGHT * VIEWPORT_SCALE);
             this.viewportWidth = (int) ((float) this.viewportHeight * ((float) viewportWidth / (float) viewportHeight));
-        }
-        updateViewport = true;
-    }
-
-    boolean updateViewport() {
-        if (updateViewport) {
-            updateViewport = false;
-            return true;
-        } else {
-            return false;
         }
     }
 

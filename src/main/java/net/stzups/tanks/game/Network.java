@@ -36,16 +36,6 @@ class Network implements PacketListener {
                 for (Map.Entry<Connection, Player> entry : game.connectionPlayerMap.entrySet()) {//todo test with ByteArrayOutputStream
                     Player player = entry.getValue();
 
-                    ByteBuffer viewportByteBuffer;
-                    if (player.updateViewport()) {
-                        viewportByteBuffer = ByteBuffer.allocate(2 + 4 + 4);
-                        viewportByteBuffer.putShort((short) 1);
-                        viewportByteBuffer.putInt(player.getViewportWidth());
-                        viewportByteBuffer.putInt(player.getViewportHeight());
-                    } else {
-                        viewportByteBuffer = ByteBuffer.allocate(0);
-                    }
-
                     ByteBuffer serverByteBuffer = ByteBuffer.allocate(2 + 4 + 4);//todo performance //todo static properties
                     serverByteBuffer.putShort((short) 1);
                     serverByteBuffer.putInt(tick);
@@ -104,9 +94,7 @@ class Network implements PacketListener {
                     playByteBuffer.put(pingByteBuffer.array());
                     playByteBuffer.put(playerGridByteBuffer.array());
 
-                    ByteBuffer payloadByteBuffer = ByteBuffer.allocate(playByteBuffer.position() + viewportByteBuffer.position());
-                    payloadByteBuffer.put(playByteBuffer.array());
-                    payloadByteBuffer.put(viewportByteBuffer.array());
+                    ByteBuffer payloadByteBuffer = ByteBuffer.allocate(playByteBuffer.position());
 
                     entry.getKey().sendBinary(payloadByteBuffer.array());
                     player.getPingQueue().add(new AbstractMap.SimpleEntry<>(id, System.currentTimeMillis()));//todo java 9 Map.entry(k,v)
@@ -139,13 +127,8 @@ class Network implements PacketListener {
 
                     JSONArray newP = new JSONArray();
                     newP.put(player.id);
-                    player.updateViewport();
-                    JSONArray viewport = new JSONArray();
-                    viewport.put(player.getViewportWidth());
-                    viewport.put(player.getViewportHeight());
                     JSONObject payloadOut = new JSONObject();
                     payloadOut.put("newPlayer", newP);
-                    payloadOut.put("viewport", viewport);
                     connection.sendText(payloadOut.toString());
                 }
                 //remember to add a return back here

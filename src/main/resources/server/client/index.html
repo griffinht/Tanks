@@ -94,6 +94,9 @@ body {
             <canvas id="canvas" width="100" height="100"></canvas>
         </div>
         <script>
+const maxViewportWidth = [[[MAX_VIEWPORT_WIDTH]]];
+const maxViewportHeight = [[[MAX_VIEWPORT_HEIGHT]]];
+const viewportScale = [[[VIEWPORT_SCALE]]];
 //todo use const
 var webSocket = null;
 var loaderManager;
@@ -305,12 +308,6 @@ function connect() {
             if (payload.ping) {
                 ping = payload.ping;
             }
-            if (payload.viewport) {
-                viewportWidth = payload.viewport[0];
-                viewportHeight = payload.viewport[1];
-                viewportWidthScale = canvas.width / viewportWidth;
-                viewportHeightScale = canvas.height / viewportHeight;
-            }
             if (payload.play) {
                 server.tick = parseInt(payload.play.server[0]);
                 server.dt = parseFloat(payload.play.server[1]);
@@ -441,14 +438,6 @@ function connect() {
                             break;
                         }
                     }
-                } else if (id == 1) {//viewport
-                    console.log("viewport");
-                    viewportWidth = dataView.getInt32(offset);
-                    offset += 4;
-                    viewportHeight = dataView.getInt32(offset);
-                    offset += 4;
-                    viewportWidthScale = canvas.width / viewportWidth;
-                    viewportHeightScale = canvas.height / viewportHeight;
                 } else {
                     console.log("no id" + id);
                     offset -= 2;
@@ -542,6 +531,16 @@ function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     updateViewport = true;
+    if (canvas.width / canvas.height >= maxViewportWidth / maxViewportHeight) {
+        viewportWidth = maxViewportWidth * viewportScale;
+        viewportHeight = viewportWidth * (canvas.height / canvas.width);
+    } else {
+        viewportHeight = maxViewportHeight * viewportScale;
+        viewportWidth = viewportHeight * (canvas.width / canvas.height);
+    }
+
+    viewportWidthScale = canvas.width / viewportWidth;
+    viewportHeightScale = canvas.height / viewportHeight;
     
     ctx.imageSmoothingEnabled = "false";
 }

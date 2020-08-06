@@ -3,6 +3,7 @@ package net.stzups.tanks.server;
 import net.stzups.tanks.ConfigManager;
 import net.stzups.tanks.FileManager;
 import net.stzups.tanks.Tanks;
+import net.stzups.tanks.game.Player;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -24,6 +25,8 @@ import java.util.ArrayDeque;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Scanner;
 import java.util.UUID;
@@ -49,9 +52,12 @@ public class Connection implements Runnable {
     private int ping = 0;
     private boolean connected = false;
 
-    private static byte[] SERVER_ADDRESS;
+    private static Map<String, String> replaceWordsMap = new HashMap<>();
 
     static {
+        replaceWordsMap.put("MAX_VIEWPORT_WIDTH", Player.MAX_VIEWPORT_WIDTH + "");
+        replaceWordsMap.put("MAX_VIEWPORT_HEIGHT", Player.MAX_VIEWPORT_HEIGHT + "");
+        replaceWordsMap.put("VIEWPORT_SCALE", Player.VIEWPORT_SCALE + "");
         try {//todo make sure this doesnt block
             String addressStr;
             String ip = ConfigManager.getConfigProperty("server_ip");
@@ -75,7 +81,7 @@ public class Connection implements Runnable {
                 addressStr += ":" + ConfigManager.getConfigProperty("port");
             }
 
-            SERVER_ADDRESS = addressStr.getBytes();
+            replaceWordsMap.put("SERVER_IP", addressStr);
         } catch (MalformedURLException e) {
             logger.warning("Auto IP address API failed");
             e.printStackTrace();
@@ -228,7 +234,7 @@ public class Connection implements Runnable {
                         byte[] fileContents = fileManager.getFileContents("client/" + foundPath);
 
                         if (fileContents.length > 0) {//todo cache this bad boy with some filemanager thing
-                            for (int i = 0; i < fileContents.length; i++)
+                            for (int i = 0; i < fileContents.length; i++)//todo why did i do the brackets like this lol
                             {
                                 if (fileContents[i] == '[' && fileContents[i + 1] == '[' && fileContents[i + 2] == '[')
                                 {
@@ -236,21 +242,20 @@ public class Connection implements Runnable {
                                     {
                                         if (fileContents[x] == ']' && fileContents[x + 1] == ']' && fileContents[x + 2] == ']')
                                         {
-
                                             String str = new String(fileContents, i + 3, x - i - 3);
-                                            String match = "SERVER_IP";
-                                            if (str.equalsIgnoreCase(match))
+                                            if (replaceWordsMap.containsKey(str))
                                             {
-                                                byte[] first = new byte[fileContents.length + SERVER_ADDRESS.length - (match.length() + 6)];
+                                                byte[] replace = replaceWordsMap.get(str).getBytes(StandardCharsets.UTF_8);
+                                                byte[] first = new byte[fileContents.length + replace.length - (str.length() + 6)];
                                                 System.arraycopy(fileContents, 0, first, 0, x - 3);
-                                                System.arraycopy(SERVER_ADDRESS, 0, first, i, SERVER_ADDRESS.length);
-                                                System.arraycopy(fileContents, x + 3, first, i + SERVER_ADDRESS.length, first.length - (x + SERVER_ADDRESS.length));
+                                                System.arraycopy(replace, 0, first, i, replace.length);
+                                                System.arraycopy(fileContents, x + 3, first, i + replace.length, first.length - (x + replace.length));
                                                 fileContents = first;
+                                                i = x + 3;
                                             }
                                             break;
                                         }
                                     }
-                                    break;
                                 }
                             }
                             outputStream.write(("HTTP/1.1 200 OK\r\n"
