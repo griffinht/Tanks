@@ -163,7 +163,6 @@ public class Player extends Entity {
         byte[] bullets;
         if (bulletsU) {
             try (ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream()) {
-                byteOutputStream.write((short) this.bullets.size());
                 for (Character id : this.bullets.keySet()) {
                     byteOutputStream.write(id);
                 }
@@ -175,13 +174,13 @@ public class Player extends Entity {
         } else {
             bullets = new byte[0];
         }
-        ByteBuffer byteBuffer = ByteBuffer.allocate(2 + entity.length + 1 + name.length + turret.length + bullets.length);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(2 + entity.length + 1 + name.length + turret.length + 2 + bullets.length);
         byteBuffer.putShort((short) 2);
         byteBuffer.put(entity);
         byteBuffer.put(updateFlags);
         if (nameU) byteBuffer.put(name);
         if (turretU) byteBuffer.put(turret);
-        if (bulletsU) byteBuffer.put(bullets);
+        if (bulletsU) {byteBuffer.putShort((short) this.bullets.size()); byteBuffer.put(bullets);}
         return byteBuffer.array();
     }
 }
