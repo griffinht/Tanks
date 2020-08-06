@@ -95,6 +95,7 @@ class Network implements PacketListener {
                     playByteBuffer.put(playerGridByteBuffer.array());
 
                     ByteBuffer payloadByteBuffer = ByteBuffer.allocate(playByteBuffer.position());
+                    payloadByteBuffer.put(playByteBuffer.array());
 
                     entry.getKey().sendBinary(payloadByteBuffer.array());
                     player.getPingQueue().add(new AbstractMap.SimpleEntry<>(id, System.currentTimeMillis()));//todo java 9 Map.entry(k,v)
