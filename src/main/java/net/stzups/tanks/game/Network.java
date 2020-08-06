@@ -38,11 +38,10 @@ class Network implements PacketListener {
 
                     ByteBuffer viewportByteBuffer;
                     if (player.updateViewport()) {
-                        viewportByteBuffer = ByteBuffer.allocate(2 + 4 + 4 + 2);
+                        viewportByteBuffer = ByteBuffer.allocate(2 + 4 + 4);
                         viewportByteBuffer.putShort((short) 1);
                         viewportByteBuffer.putInt(player.getViewportWidth());
                         viewportByteBuffer.putInt(player.getViewportHeight());
-                        viewportByteBuffer.putShort((short) 1);
                     } else {
                         viewportByteBuffer = ByteBuffer.allocate(0);
                     }
@@ -98,13 +97,12 @@ class Network implements PacketListener {
                     playerGridByteBuffer.putShort((short) 4);
                     playerGridByteBuffer.put(playerGrid);
                     playerGridByteBuffer.putShort((short) 0);
-                    ByteBuffer playByteBuffer = ByteBuffer.allocate(2 + serverByteBuffer.position() + idByteBuffer.position() + pingByteBuffer.position() + playerGridByteBuffer.position() + 2);
+                    ByteBuffer playByteBuffer = ByteBuffer.allocate(2 + serverByteBuffer.position() + idByteBuffer.position() + pingByteBuffer.position() + playerGridByteBuffer.position());
                     playByteBuffer.putShort((short) 0);//start play
                     playByteBuffer.put(serverByteBuffer.array());
                     playByteBuffer.put(idByteBuffer.array());
                     playByteBuffer.put(pingByteBuffer.array());
                     playByteBuffer.put(playerGridByteBuffer.array());
-                    playByteBuffer.putShort((short) 0);//end play
 
                     ByteBuffer payloadByteBuffer = ByteBuffer.allocate(playByteBuffer.position() + viewportByteBuffer.position());
                     payloadByteBuffer.put(playByteBuffer.array());

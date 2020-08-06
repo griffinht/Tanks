@@ -363,7 +363,7 @@ function connect() {
             let offset = 0;
 
             while (true) {
-                if (offset > dataView.byteLength) {
+                if (offset + 2 > dataView.byteLength) {
                     console.log("big bad break");
                     break;
                 }
@@ -371,7 +371,7 @@ function connect() {
                 offset += 2;
                 if (id == 0) {//play
                     while (true) {
-                        if (offset > dataView.byteLength) {
+                        if (offset + 2 > dataView.byteLength) {
                             console.log("bad break");
                             break;
                         }
@@ -396,7 +396,7 @@ function connect() {
                         } else if (playId == 4) {//play
                             let ids = [];
                             while (true) {//todo fix
-                                if (offset > dataView.byteLength) {
+                                if (offset + 2 > dataView.byteLength) {
                                     console.log("break");
                                     break;
                                 }
