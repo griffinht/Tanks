@@ -364,23 +364,20 @@ function connect() {
 
             while (true) {
                 if (offset + 2 > dataView.byteLength) {
-                    console.log("big bad break");
                     break;
                 }
                 let id = dataView.getInt16(offset);
                 offset += 2;
                 if (id == 0) {//play
+                console.log("PLay");
                     while (true) {
                         if (offset + 2 > dataView.byteLength) {
-                            console.log("bad break");
+                            console.log("breaking:" + offset);
                             break;
                         }
                         let playId = dataView.getInt16(offset);
                         offset += 2;
-                        if (playId == 0) {
-                            offset += 2;
-                            break;
-                        } else if (playId == 1) {//server
+                        if (playId == 1) {//server
                             server.tick = dataView.getInt32(offset);
                             offset += 4;
                             server.dt = dataView.getFloat32(offset);
@@ -403,6 +400,7 @@ function connect() {
                                 let entityId = dataView.getInt16(offset);
                                 let entityOffsetArray;
                                 if (entityId == 0) {
+                                    offset += 2;
                                     break;
                                 } else if (entityId == 1) {
                                     entityOffsetArray = Entity.deserialize(dataView, offset);
@@ -436,8 +434,11 @@ function connect() {
                                     delete entities[key];
                                 }
                             });
+                            //this is the last packet
+                            break;
                         } else {
-                            console.log("bad termination: "+playId);
+                            console.log("oops");
+                            offset -= 2;
                             break;
                         }
                     }
@@ -448,11 +449,12 @@ function connect() {
                     offset += 4;
                     console.log("viewport:" +width + ","+height);
                 } else {
-                    console.log("done break");
+                    console.log("no id" + id);
+                    offset -= 2;
                     break;
                 }
             }
-            console.log("done");
+            console.log("done: " + offset + "=" + dataView.byteLength);
         }
     }
 }
