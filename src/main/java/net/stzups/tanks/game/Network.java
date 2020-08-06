@@ -98,7 +98,7 @@ class Network implements PacketListener {
                     playerGridByteBuffer.putShort((short) 4);
                     playerGridByteBuffer.put(playerGrid);
                     playerGridByteBuffer.putShort((short) 0);
-                    ByteBuffer playByteBuffer = ByteBuffer.allocate(2 + viewportByteBuffer.position() + serverByteBuffer.position() + idByteBuffer.position() + pingByteBuffer.position() + playerGridByteBuffer.position() + 2);
+                    ByteBuffer playByteBuffer = ByteBuffer.allocate(2 + serverByteBuffer.position() + idByteBuffer.position() + pingByteBuffer.position() + playerGridByteBuffer.position() + 2);
                     playByteBuffer.putShort((short) 0);//start play
                     playByteBuffer.put(serverByteBuffer.array());
                     playByteBuffer.put(idByteBuffer.array());
