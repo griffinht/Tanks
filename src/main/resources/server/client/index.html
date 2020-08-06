@@ -387,9 +387,9 @@ function connect() {
                             ping = dataView.getInt16(offset);
                             offset += 2;
                         } else if (playId == 4) {//play
+                            let ids = [];
                             while (offset < dataView.byteLength) {
                                 let entityId = dataView.getInt16(offset);
-                                offset += 2;
                                 let entityOffsetArray;
                                 if (entityId == 0) {
                                     console.log("good entity termin");
@@ -397,7 +397,7 @@ function connect() {
                                 } else if (entityId == 1) {
                                     entityOffsetArray = Entity.deserialize(dataView, offset);
                                 } else if (entityId == 2) {
-                                    let id = dataView.getInt16(offset + 2 + 1);
+                                    let id = dataView.getInt16(offset + 2 + 2 + 1);
                                     if (id === playerId) {
                                         entityOffsetArray = ThisPlayer.deserialize(dataView, offset);
                                         if (typeof player === "undefined") { //move this into ThisPlayer deserialization?
@@ -412,12 +412,14 @@ function connect() {
                                     console.log("bad entity termin");
                                 }
                                 offset += entityOffsetArray[1];
-                                if (entities.hasOwnProperty(entityOffsetArray[0].id)) {
-                                    entities[entity.id].set(entityOffsetArray[0]);
+                                let entity = entityOffsetArray[0];
+                                if (entities.hasOwnProperty(entity.id)) {
+                                    entities[entity.id].set(entity);
                                 } else {
-                                    entities[entity.id] = entityOffsetArray[0];
+                                    entities[entity.id] = entity;
                                 }
-                                ids.push(entityOffsetArray[0].id);
+                                ids.push(entity.id);
+                                console.log(entity);
                             }
                             Object.keys(entities).forEach((key) => {
                                 if (!ids.includes(key) && !newBullets.includes(key)) {
@@ -592,6 +594,7 @@ class Entity {
     }
     
     static deserialize(dataView, offset) {
+        offset += 2;
         let updateFlags = dataView.getUint8(offset);
         offset += 1;
         let id = dataView.getUint16(offset);
@@ -673,7 +676,6 @@ class Player extends Entity {
         }
         let turret = null;
         if (updateFlags & Player.turretUpdate) {
-            offset += 2; //turret id
             let turretOffsetArray = Turret.deserialize(dataView, offset);
             turret = turretOffsetArray[0];
             offset = turretOffsetArray[1];
@@ -683,7 +685,6 @@ class Player extends Entity {
             let size = dataView.getUint16(offset);
             offset += 2;
             bullets = [];
-            console.log("looping through "+size);
             for (let i = 0; i < size; i += 2) {
                 bullets.push(dataView.getUint16(offset));
                 offset += 2;
@@ -744,7 +745,6 @@ class ThisPlayer extends Player {
     static deserialize(dataView, offset) {
         let playerOffsetArray = Player.deserialize(dataView, offset);
         let player = playerOffsetArray[0];
-        console.log(player);
         return [new ThisPlayer(player.id, player.x, player.y, player.speed, player.direction, player.rotation, player.width, player.height, player.name, player.turret, player.bullets), playerOffsetArray[1]];
     }
 }
@@ -786,6 +786,7 @@ class Bullet extends Entity {
     }
     
     static deserialize(dataView, offset) {
+        offset += 2;
         let entityOffsetArray = Entity.deserialize(dataView, offset);
         offset += entityOffsetArray[1];
         let entity = entityOffsetArray[0];
@@ -840,9 +841,9 @@ class Turret {
     }
     
     static deserialize(dataView, offset) {
+        offset += 2;
         let updateFlags = dataView.getUint8(offset);
         offset += 1;
-        console.log(updateFlags);
         let rotation = null;
         if (updateFlags & Turret.rotationUpdate) {
             rotation = dataView.getFloat32(offset);
