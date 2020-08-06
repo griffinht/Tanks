@@ -362,16 +362,23 @@ function connect() {
             let dataView = new DataView(event.data);
             let offset = 0;
 
-            while (offset < dataView.byteLength) {
+            while (true) {
+                if (offset > dataView.byteLength) {
+                    console.log("big bad break");
+                    break;
+                }
                 let id = dataView.getInt16(offset);
                 offset += 2;
                 if (id == 0) {//play
-                    while (offset < dataView.byteLength) {
+                    while (true) {
+                        if (offset > dataView.byteLength) {
+                            console.log("bad break");
+                            break;
+                        }
                         let playId = dataView.getInt16(offset);
                         offset += 2;
                         if (playId == 0) {
                             offset += 2;
-                            console.log("good termination");
                             break;
                         } else if (playId == 1) {//server
                             server.tick = dataView.getInt32(offset);
@@ -388,11 +395,14 @@ function connect() {
                             offset += 2;
                         } else if (playId == 4) {//play
                             let ids = [];
-                            while (offset < dataView.byteLength) {
+                            while (true) {//todo fix
+                                if (offset > dataView.byteLength) {
+                                    console.log("break");
+                                    break;
+                                }
                                 let entityId = dataView.getInt16(offset);
                                 let entityOffsetArray;
                                 if (entityId == 0) {
-                                    console.log("good entity termin");
                                     break;
                                 } else if (entityId == 1) {
                                     entityOffsetArray = Entity.deserialize(dataView, offset);
@@ -411,7 +421,7 @@ function connect() {
                                 } else {
                                     console.log("bad entity termin");
                                 }
-                                offset += entityOffsetArray[1];
+                                offset = entityOffsetArray[1];
                                 let entity = entityOffsetArray[0];
                                 if (entities.hasOwnProperty(entity.id)) {
                                     entities[entity.id].set(entity);
@@ -440,7 +450,7 @@ function connect() {
                     offset += 4;
                     console.log("viewport:" +width + ","+height);
                 } else {
-                    console.log("bad big break");
+                    console.log("done break");
                     break;
                 }
             }

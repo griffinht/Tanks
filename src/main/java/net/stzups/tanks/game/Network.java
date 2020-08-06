@@ -105,7 +105,6 @@ class Network implements PacketListener {
                     playByteBuffer.put(pingByteBuffer.array());
                     playByteBuffer.put(playerGridByteBuffer.array());
                     playByteBuffer.putShort((short) 0);//end play
-                    playByteBuffer.put(viewportByteBuffer.array());
 
                     ByteBuffer payloadByteBuffer = ByteBuffer.allocate(playByteBuffer.position() + viewportByteBuffer.position());
                     payloadByteBuffer.put(playByteBuffer.array());
@@ -168,7 +167,7 @@ class Network implements PacketListener {
                         boolean match = false;
                         while (!player.getPingQueue().isEmpty()) {
                             poll = player.getPingQueue().poll();
-                            if (poll.getKey() == id) {
+                            if (poll.getKey().equals(id)) {
                                 match = true;
                                 long ping = System.currentTimeMillis() - poll.getValue();
                                 if (ping < 0) {
