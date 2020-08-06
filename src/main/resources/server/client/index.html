@@ -673,16 +673,18 @@ class Player extends Entity {
         }
         let turret = null;
         if (updateFlags & Player.turretUpdate) {
+            offset += 2; //turret id
             let turretOffsetArray = Turret.deserialize(dataView, offset);
             turret = turretOffsetArray[0];
-            offset += 1;
+            offset = turretOffsetArray[1];
         }
         let bullets = null;
         if (updateFlags & Player.bulletsUpdate) {
             let size = dataView.getUint16(offset);
             offset += 2;
             bullets = [];
-            for (let i = 0; i < size; i++) {
+            console.log("looping through "+size);
+            for (let i = 0; i < size; i += 2) {
                 bullets.push(dataView.getUint16(offset));
                 offset += 2;
             }
@@ -840,6 +842,7 @@ class Turret {
     static deserialize(dataView, offset) {
         let updateFlags = dataView.getUint8(offset);
         offset += 1;
+        console.log(updateFlags);
         let rotation = null;
         if (updateFlags & Turret.rotationUpdate) {
             rotation = dataView.getFloat32(offset);
