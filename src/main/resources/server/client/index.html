@@ -369,7 +369,6 @@ function connect() {
                 let id = dataView.getInt16(offset);
                 offset += 2;
                 if (id == 0) {//play
-                console.log("PLay");
                     while (true) {
                         if (offset + 2 > dataView.byteLength) {
                             console.log("breaking:" + offset);
@@ -443,11 +442,13 @@ function connect() {
                         }
                     }
                 } else if (id == 1) {//viewport
-                    let width = dataView.getInt32(offset);
+                    console.log("viewport");
+                    viewportWidth = dataView.getInt32(offset);
                     offset += 4;
-                    let height = dataView.getInt32(offset);
+                    viewportHeight = dataView.getInt32(offset);
                     offset += 4;
-                    console.log("viewport:" +width + ","+height);
+                    viewportWidthScale = canvas.width / viewportWidth;
+                    viewportHeightScale = canvas.height / viewportHeight;
                 } else {
                     console.log("no id" + id);
                     offset -= 2;
