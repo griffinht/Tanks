@@ -428,14 +428,12 @@ function connect() {
                                 } else {
                                     entities[entity.id] = entity;
                                 }
-                                ids.push(entity.id);
+                                ids.push(entity.id + "");
                                 console.log(entity);
                             }
                             Object.keys(entities).forEach((key) => {
                                 if (!ids.includes(key) && !newBullets.includes(key)) {
-                                    console.log(entities[key].id);
                                     delete entities[key];
-                                } else {
                                 }
                             });
                         } else {

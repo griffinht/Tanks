@@ -43,7 +43,7 @@ class Entity {
     }
 
     boolean update(JSONArray jsonArray) {
-        if (jsonArray.getInt(0) == id) {
+        if (jsonArray.getInt(0) != id) {
             return false;
         }
 
