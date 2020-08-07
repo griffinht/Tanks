@@ -12,7 +12,7 @@ class World {
     static final int GRID_SIZE = 16; //todo dynamic grid size???
 
     Grid<Entity> grid = new Grid<>();
-    Map<Character, Entity> entities = new HashMap<>();
+    Map<Integer, Entity> entities = new HashMap<>();
 
     World() {
 
@@ -44,11 +44,11 @@ class World {
         entities.remove(entity.id);
     }
 
-    char generateRandomId() {
+    int generateRandomId() {
         //todo make this good
-        char id = (char) (Math.random() * 65535);
+        int id = (int) (Math.random() * 65535);
         while (entities.containsKey(id)) {
-            id = (char) (Math.random() * 65535);
+            id = (int) (Math.random() * 65535);
         }
         return id;
     }

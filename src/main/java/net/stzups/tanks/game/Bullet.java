@@ -8,7 +8,7 @@ import java.util.UUID;
 class Bullet extends Entity {
     private static final int MAX_HITS = 3;
 
-    final private char owner;
+    final private int owner;
     private short hits;
 
     private static byte ownerUpdate = 1;
@@ -16,7 +16,7 @@ class Bullet extends Entity {
 
     private byte updateFlags = (byte) (ownerUpdate | hitUpdate);
 
-    Bullet(char id, float x, float y, float speed, float direction, float rotation, float width, float height, char owner, short hits) {
+    Bullet(int id, float x, float y, float speed, float direction, float rotation, float width, float height, int owner, short hits) {
         super(id, x, y, speed, direction, rotation, width, height);
         this.owner = owner;
         this.hits = hits;
@@ -38,7 +38,7 @@ class Bullet extends Entity {
         byteBuffer.putShort((short) 3);
         byteBuffer.put(entity);
         byteBuffer.put(updateFlags);
-        if (ownerU) byteBuffer.putChar(owner);
+        if (ownerU) byteBuffer.putShort((short) owner);
         if (hitU) byteBuffer.put((byte) hits);
         return byteBuffer.array();
     }

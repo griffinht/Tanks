@@ -393,7 +393,7 @@ function connect() {
                                     console.log("break");
                                     break;
                                 }
-                                let entityId = dataView.getInt16(offset);
+                                let entityId = dataView.getUint16(offset);
                                 let entityOffsetArray;
                                 if (entityId == 0) {
                                     offset += 2;
@@ -413,6 +413,7 @@ function connect() {
                                 } else if (entityId == 3) {
                                     entityOffsetArray = Bullet.deserialize(dataView, offset);
                                 } else {
+                                    console.log(entityId);
                                     console.log("bad entity termin");
                                 }
                                 offset = entityOffsetArray[1];
@@ -442,7 +443,6 @@ function connect() {
                     break;
                 }
             }
-            console.log("done: " + offset + "=" + dataView.byteLength);
         }
     }
 }
@@ -693,7 +693,7 @@ class Player extends Entity {
             let size = dataView.getUint16(offset);
             offset += 2;
             bullets = [];
-            for (let i = 0; i < size; i += 2) {
+            for (let i = 0; i < size; i++) {
                 bullets.push(dataView.getUint16(offset));
                 offset += 2;
             }
@@ -796,7 +796,7 @@ class Bullet extends Entity {
     static deserialize(dataView, offset) {
         offset += 2;
         let entityOffsetArray = Entity.deserialize(dataView, offset);
-        offset += entityOffsetArray[1];
+        offset = entityOffsetArray[1];
         let entity = entityOffsetArray[0];
         let updateFlags = dataView.getInt16(offset);
         offset += 2;

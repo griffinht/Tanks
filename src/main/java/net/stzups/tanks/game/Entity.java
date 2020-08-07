@@ -3,11 +3,10 @@ package net.stzups.tanks.game;
 import org.json.JSONArray;
 
 import java.nio.ByteBuffer;
-import java.util.UUID;
 
 class Entity {
 
-    final char id;
+    final int id;
     float x;
     float y;
     float speed;
@@ -26,7 +25,7 @@ class Entity {
 
     private byte updateFlags = (byte) ((xUpdate | yUpdate | speedUpdate | directionUpdate | rotationUpdate | widthUpdate | heightUpdate) ^ 0x80);
 
-    Entity(char id, float x, float y, float speed, float direction, float rotation, float width, float height) {
+    Entity(int id, float x, float y, float speed, float direction, float rotation, float width, float height) {
         this.id = id;
         this.x = x;
         this.y = y;

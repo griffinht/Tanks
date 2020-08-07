@@ -54,7 +54,7 @@ public class Player extends Entity {
 
     private String name;
     private Player.Turret turret;
-    private Map<Character, Bullet> bullets;
+    private Map<Integer, Bullet> bullets;
 
     private static byte nameUpdate = 1;
     private static byte turretUpdate = 1 << 1;
@@ -67,7 +67,7 @@ public class Player extends Entity {
     private Queue<Map.Entry<Integer, Long>> pingQueue = new ArrayDeque<>();
     private short ping;
 
-    Player(char id, float x, float y, float speed, float direction, float rotation, float width, float height, String name, int viewportWidth, int viewportHeight, Player.Turret turret, Map<Character, Bullet> bullets) {
+    Player(int id, float x, float y, float speed, float direction, float rotation, float width, float height, String name, int viewportWidth, int viewportHeight, Player.Turret turret, Map<Integer, Bullet> bullets) {
         super(id, x, y, speed, direction, rotation, width, height);
         this.name = name;
         this.turret = turret;
@@ -149,27 +149,23 @@ public class Player extends Entity {
         } else {
             turret = new byte[0];
         }
-        byte[] bullets;
+        ByteBuffer bulletByteBuffer;
         if (bulletsU) {
-            try (ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream()) {
-                for (Character id : this.bullets.keySet()) {
-                    byteOutputStream.write(id);
-                }
-                bullets = byteOutputStream.toByteArray();
-            } catch (IOException e) {
-                e.printStackTrace();
-                bullets = new byte[0];
+            bulletByteBuffer = ByteBuffer.allocate(2 + this.bullets.size() * 2);
+            bulletByteBuffer.putShort((short) this.bullets.size());
+            for (Integer owner : this.bullets.keySet()) {
+                bulletByteBuffer.putShort((short) (int) owner);
             }
         } else {
-            bullets = new byte[0];
+            bulletByteBuffer = ByteBuffer.allocate(0);
         }
-        ByteBuffer byteBuffer = ByteBuffer.allocate(2 + entity.length + 1 + name.length + turret.length + 2 + bullets.length);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(2 + entity.length + 1 + name.length + turret.length + bulletByteBuffer.position());
         byteBuffer.putShort((short) 2);
         byteBuffer.put(entity);
         byteBuffer.put(updateFlags);
         if (nameU) byteBuffer.put(name);
         if (turretU) byteBuffer.put(turret);
-        if (bulletsU) {byteBuffer.putShort((short) this.bullets.size()); byteBuffer.put(bullets);}
+        if (bulletsU) {byteBuffer.put(bulletByteBuffer.array());}
         return byteBuffer.array();
     }
 }
