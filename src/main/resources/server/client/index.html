@@ -380,11 +380,11 @@ function connect() {
                             offset += 4;
                             server.time = event.timeStamp;
                         } else if (playId == 2) {//id
-                            let id = dataView.getInt32(offset);
+                            let id = dataView.getUint32(offset);
                             offset += 4;
                             send({play:id});
                         } else if (playId == 3) {//ping
-                            ping = dataView.getInt16(offset);
+                            ping = dataView.getUint16(offset);
                             offset += 2;
                         } else if (playId == 4) {//play
                             let ids = [];
@@ -401,7 +401,7 @@ function connect() {
                                 } else if (entityId == 1) {
                                     entityOffsetArray = Entity.deserialize(dataView, offset);
                                 } else if (entityId == 2) {
-                                    let id = dataView.getInt16(offset + 2 + 2 + 1);
+                                    let id = dataView.getUint16(offset + 2 + 2 + 1);
                                     if (id === playerId) {
                                         entityOffsetArray = ThisPlayer.deserialize(dataView, offset);
                                         if (typeof player === "undefined") { //move this into ThisPlayer deserialization?
@@ -798,10 +798,10 @@ class Bullet extends Entity {
         let entityOffsetArray = Entity.deserialize(dataView, offset);
         offset = entityOffsetArray[1];
         let entity = entityOffsetArray[0];
-        let updateFlags = dataView.getInt16(offset);
+        let updateFlags = dataView.getUint16(offset);
         offset += 2;
         if (updateFlags & Bullet.ownerUpdate) {dataView.getUint16(dataView, offset); offset += 2;}
-        if (updateFlags & Bullet.hitUpdate) {dataView.getInt16(dataView, offset); offset += 2;}
+        if (updateFlags & Bullet.hitUpdate) {dataView.getUint16(dataView, offset); offset += 2;}
         return [new Bullet(entity.id, entity.x, entity.y, entity.speed, entity.direction, entity.rotation, entity.width, entity.height, entity[2], entity[3]), offset];
     }
 }
