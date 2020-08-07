@@ -44,9 +44,6 @@ class Bullet extends Entity {
     }
 
     static Bullet deserialize(JSONArray jsonArray) {
-        if (jsonArray.getJSONArray(0).getString(0).equals("newBullet")) {
-            jsonArray.getJSONArray(0).put(0, UUID.randomUUID());
-        }
         Entity entity = Entity.deserialize(jsonArray.getJSONArray(0));
         return new Bullet(entity.id, entity.x, entity.y, entity.speed, entity.direction, entity.rotation, entity.width, entity.height, (char) jsonArray.getInt(1), (short) jsonArray.getInt(2));
     }

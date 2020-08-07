@@ -189,6 +189,7 @@ class Network implements PacketListener {
                     JSONArray bullets = payload.getJSONArray("bullets");
                     for (Object b : bullets) {
                         Bullet bullet = Bullet.deserialize((JSONArray) b);
+                        bullet.id = game.world.generateRandomId();
                         game.world.addEntity(bullet);
                         player.addBullet(bullet);
                     }

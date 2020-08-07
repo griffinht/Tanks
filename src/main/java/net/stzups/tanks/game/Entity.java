@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
 
 class Entity {
 
-    final int id;
+    int id;
     float x;
     float y;
     float speed;
@@ -80,7 +80,7 @@ class Entity {
     }
 
     static Entity deserialize(JSONArray jsonArray) {
-        return new Entity((char) jsonArray.getInt(0), jsonArray.getFloat(1), jsonArray.getFloat(2), jsonArray.getFloat(3), jsonArray.getFloat(4), jsonArray.getFloat(5), jsonArray.getFloat(6), jsonArray.getFloat(7));
+        return new Entity(jsonArray.getInt(0), jsonArray.getFloat(1), jsonArray.getFloat(2), jsonArray.getFloat(3), jsonArray.getFloat(4), jsonArray.getFloat(5), jsonArray.getFloat(6), jsonArray.getFloat(7));
     }
 /*
     private static String readBytesToString(byte[] bytes) {
