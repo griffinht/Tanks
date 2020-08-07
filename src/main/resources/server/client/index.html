@@ -164,8 +164,7 @@ window.onload = function(e) {
         if (typeof player !== "undefined") {
             let bullet = new Bullet(Math.random(), player.x + player.width/2 + (Math.cos(player.turret.rotation) * (player.turret.height)) - (.5 / 2), player.y + player.height/2 + (Math.sin(player.turret.rotation) * (player.turret.height)) - (.5 / 2), 10, player.turret.rotation, player.turret.rotation, .5, .5, playerId, 0);
             entities[bullet.id] = bullet;
-            newBullets.push(bullet.id);
-            player.bullets.push(bullet.id);
+            newBullets.push(bullet);
         }
     });
     
@@ -243,7 +242,7 @@ class NetworkManager {
                 if (newBullets.length > 0) {
                     payload.bullets = [];
                     newBullets.forEach((bullet)=>{
-                        payload.bullets.push(entities[bullet].serialize());
+                        payload.bullets.push(bullet.serialize());
                     });
                     newBullets = [];
                 }
