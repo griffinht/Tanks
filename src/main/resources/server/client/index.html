@@ -390,11 +390,11 @@ function connect() {
                             server.dt = dataView.getFloat32(offset);
                             offset += 4;
                             server.time = event.timeStamp;
-                        } else if (playId == 2) {//id
-                            packetId = dataView.getUint32(offset);
-                            offset += 4;
-                        } else if (playId == 3) {//todo remove
-                            
+                        } else if (playId == 2) {//id todo remove
+
+                        } else if (playId == 3) {//ping
+                            ping = dataView.getUint16(offset);
+                            offset += 2; 
                         } else if (playId == 4) {//play
                             let ids = [];
                             while (true) {//todo fix

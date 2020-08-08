@@ -43,11 +43,6 @@ class Network implements PacketListener {
                     serverByteBuffer.putInt(tick);
                     serverByteBuffer.putFloat(game.getLastTickTime());//todo isnt this just dt?
 
-                    ByteBuffer idByteBuffer = ByteBuffer.allocate(2 + 4);
-                    idByteBuffer.putShort((short) 2);
-                    int id = (int) (Math.random() * 2147483647);//todo this is probably bad
-                    idByteBuffer.putInt(id);
-
                     ByteBuffer pingByteBuffer = ByteBuffer.allocate(2 + 2);
                     pingByteBuffer.putShort((short) 3);
                     pingByteBuffer.putShort((short) entry.getKey().getPing());
@@ -89,10 +84,9 @@ class Network implements PacketListener {
                     playerGridByteBuffer.putShort((short) 4);
                     playerGridByteBuffer.put(playerGrid);
                     playerGridByteBuffer.putShort((short) 0);
-                    ByteBuffer playByteBuffer = ByteBuffer.allocate(2 + serverByteBuffer.position() + idByteBuffer.position() + pingByteBuffer.position() + playerGridByteBuffer.position());
+                    ByteBuffer playByteBuffer = ByteBuffer.allocate(2 + serverByteBuffer.position() + pingByteBuffer.position() + playerGridByteBuffer.position());
                     playByteBuffer.putShort((short) 0);//start play
                     playByteBuffer.put(serverByteBuffer.array());
-                    playByteBuffer.put(idByteBuffer.array());
                     playByteBuffer.put(pingByteBuffer.array());
                     playByteBuffer.put(playerGridByteBuffer.array());
 
