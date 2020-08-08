@@ -109,7 +109,7 @@ public class Connection implements Runnable {
     }
 
     private final Thread heartbeat = new Thread(() -> {
-        while(!Thread.currentThread().isInterrupted() && connected) {
+        while(!Thread.currentThread().isInterrupted() && connected) {//todo test
             checkPing();
             sendPing();
             try {
