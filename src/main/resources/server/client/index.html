@@ -780,14 +780,13 @@ class Bullet extends Entity {
     
     draw(f) {
         ctx.save();
-        ctx.rotate(this.rot);
         if (this.lerp) {
-            ctx.fillRect(lerp(this.x, this.targetX, f), lerp(this.y, this.targetY, f), this.width, this.height);
+            ctx.translate(lerp(this.x, this.targetX, f) + this.width / 2, lerp(this.y, this.targetY, f) + this.height / 2);
         } else {
-            ctx.fillRect(this.x, this.y, this.width, this.height);
+            ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
         }
-        //ctx.translate(this.x + this.width/2, this.y + this.height/2);//todo lerp@!!!!!!!!!!!!!!!!!!!!
-        //ctx.fillText(this.name + "'s bullet", 20, 0);
+        ctx.rotate(this.rotation);
+        ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
         ctx.restore();
     }
 
