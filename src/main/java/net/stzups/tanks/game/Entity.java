@@ -6,6 +6,8 @@ import java.nio.ByteBuffer;
 
 class Entity {
 
+    int tick;
+
     int id;
     float x;
     float y;
@@ -36,9 +38,12 @@ class Entity {
         this.height = height;
     }
 
-    void move(float dt) {
-        this.x += Math.cos(this.direction) * this.speed * dt / 1000;
-        this.y += Math.sin(this.direction) * this.speed * dt / 1000;
+    void move(int tick, float dt) {
+        if (tick > this.tick) {
+            this.tick = tick;
+            this.x += Math.cos(this.direction) * this.speed * dt / 1000;
+            this.y += Math.sin(this.direction) * this.speed * dt / 1000;
+        }
     }
 
     boolean update(JSONArray jsonArray) {

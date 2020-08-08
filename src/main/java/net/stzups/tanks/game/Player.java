@@ -98,11 +98,6 @@ public class Player extends Entity {
     }
 
     @Override
-    void move(float dt) {
-
-    }
-
-    @Override
     boolean update(JSONArray jsonArray) {
         if (!super.update(jsonArray.getJSONArray(1))) {
             return false;

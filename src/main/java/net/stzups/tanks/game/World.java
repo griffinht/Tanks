@@ -24,10 +24,13 @@ class World {
             for (Integer rowKey : new TreeSet<>(column.keySet())) {
                 List<Entity> row = column.get(rowKey);
                 for (Entity entity : new ArrayList<>(row)) {
-                    entity.move(dt);
+                    entity.move(tick, dt);
                     if (columnKey != (int) entity.x / GRID_SIZE || rowKey != (int) entity.y / GRID_SIZE) {
                         grid.remove(columnKey, rowKey, entity);
                         grid.insert((int) entity.x / GRID_SIZE, (int) entity.y / GRID_SIZE, entity);
+                    }
+                    if (entity instanceof CollisionHandler) {
+                        //todo
                     }
                 }
             }
