@@ -169,14 +169,26 @@ window.onload = function(e) {
     });
     
     playButton.addEventListener("click", function(e) {
-        newClient();
-        drawing = true;
-        new Promise((resolve, reject) => {
-            loader.style.display = "none";
-            content.style.display = "block";
-        });
+        play();
     });
+
+    document.getElementById("nickname").addEventListener("keypress", function(e) {
+
+        if (e.which === 13) {
+            play();
+        }
+    });
+
     window.addEventListener("resize", resize);
+}
+
+function play() {
+    newClient();
+    drawing = true;
+    new Promise((resolve, reject) => {
+        loader.style.display = "none";
+        content.style.display = "block";
+    });
 }
 
 class LoaderManager { //todo unnecessary class?
