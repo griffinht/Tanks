@@ -34,6 +34,8 @@ class Network implements PacketListener {
             //System.out.print("looping through " + game.connectionPlayerMap.size() + ": ");
             try {
                 for (Map.Entry<Connection, Player> entry : game.connectionPlayerMap.entrySet()) {//todo test with ByteArrayOutputStream
+                    entry.getKey().sendPing();
+
                     Player player = entry.getValue();
 
                     ByteBuffer serverByteBuffer = ByteBuffer.allocate(2 + 4 + 4);//todo performance //todo static properties
@@ -48,7 +50,7 @@ class Network implements PacketListener {
 
                     ByteBuffer pingByteBuffer = ByteBuffer.allocate(2 + 2);
                     pingByteBuffer.putShort((short) 3);
-                    pingByteBuffer.putShort((short) player.getPing());
+                    pingByteBuffer.putShort((short) entry.getKey().getPing());
 
                     byte[] playerGrid;
                     try (ByteArrayOutputStream playerOutputStream = new ByteArrayOutputStream()) {
@@ -98,11 +100,8 @@ class Network implements PacketListener {
                     payloadByteBuffer.put(playByteBuffer.array());
 
                     entry.getKey().sendBinary(payloadByteBuffer.array());
-                    player.getPingQueue().add(new AbstractMap.SimpleEntry<>(id, System.currentTimeMillis()));//todo java 9 Map.entry(k,v)
                 }
-            }
-            catch(Exception e)
-            {
+            } catch(Exception e) {
                 e.printStackTrace();
             }
         });
@@ -142,41 +141,6 @@ class Network implements PacketListener {
             //logger.info(player.getName() + ": " + rawPayload);
             try {
                 JSONObject payload = new JSONObject(rawPayload);
-                if (!player.getPingQueue().isEmpty()) {//todo this might be exploitable also doesnt happen sometimes
-                    if (payload.has("play")) {
-                        int id = payload.getInt("play");
-                        Map.Entry<Integer, Long> poll;
-                        boolean match = false;
-                        while (!player.getPingQueue().isEmpty()) {
-                            poll = player.getPingQueue().poll();
-                            if (poll.getKey().equals(id)) {
-                                match = true;
-                                long ping = System.currentTimeMillis() - poll.getValue();
-                                if (ping < 0) {
-                                    logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", replied to pong packet in negative time");
-                                } else {
-                                    if (ping > Connection.MAXIMUM_PING) {
-                                        logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", ping too high");//todo will this ever happen if the thing below is already checking?
-                                        connection.close(true);
-                                        return;
-                                    } else {
-                                        player.setPing((short) ping);
-                                    }
-                                }
-                                break;
-                            }
-                        }
-                        if(!match) {
-                            logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", specified the wrong pong packet id");
-                            connection.close(true);//todo change to kick with reason method also reason for kick
-                            return;
-                        }
-                    } else if (System.currentTimeMillis() - player.getPingQueue().peek().getValue() > Connection.MAXIMUM_PING) {
-                        logger.warning("Kicking " + connection.getSocket().getInetAddress().getHostAddress() + " after sending " + rawPayload + ", took too long to respond to ping");
-                        connection.close(true);
-                        return;
-                    }
-                }
                 if (payload.has("player")) {
                     JSONArray jsonPlayer = payload.getJSONArray("player");
                     if (!player.update(jsonPlayer)) {

@@ -1,9 +1,7 @@
 package net.stzups.tanks.game;
 
-import java.io.ByteArrayOutputStream;
 import org.json.JSONArray;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
@@ -64,8 +62,6 @@ public class Player extends Entity {
 
     private int viewportWidth;
     private int viewportHeight;
-    private Queue<Map.Entry<Integer, Long>> pingQueue = new ArrayDeque<>();
-    private short ping;
 
     Player(int id, float x, float y, float speed, float direction, float rotation, float width, float height, String name, int viewportWidth, int viewportHeight, Player.Turret turret, Map<Integer, Bullet> bullets) {
         super(id, x, y, speed, direction, rotation, width, height);
@@ -99,18 +95,6 @@ public class Player extends Entity {
 
     int getViewportHeight() {
         return viewportHeight;
-    }
-
-    int getPing() {
-        return ping;
-    }
-
-    Queue<Map.Entry<Integer, Long>> getPingQueue() {
-        return pingQueue;
-    }
-
-    void setPing(short ping) {
-        this.ping = ping;
     }
 
     @Override

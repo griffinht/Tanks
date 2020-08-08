@@ -21,7 +21,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.util.AbstractMap;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
@@ -39,6 +42,7 @@ public class Connection implements Runnable {
     private static final Logger logger = Logger.getLogger(Tanks.class.getName());
     private static final boolean ALLOW_MULTIPLE_CONNECTIONS_FROM_SAME_IP_ADDRESS = true;
     public static final int MAXIMUM_PING = 1000;
+    private static final int HEARTBEAT_INTERVAL = 5000;
 
     private final FileManager fileManager;
 
@@ -48,11 +52,13 @@ public class Connection implements Runnable {
 
     private final UUID uuid = UUID.randomUUID();
 
-    private long lastPing = System.currentTimeMillis();
+    private Queue<Map.Entry<Long, byte[]>> lastPingQueue = new ArrayDeque<>();
     private int ping = 0;
     private boolean connected = false;
 
     private static Map<String, String> replaceWordsMap = new HashMap<>();
+
+    private SecureRandom secureRandom = new SecureRandom();
 
     static {
         replaceWordsMap.put("MAX_VIEWPORT_WIDTH", Player.MAX_VIEWPORT_WIDTH + "");
@@ -104,15 +110,10 @@ public class Connection implements Runnable {
 
     private final Thread heartbeat = new Thread(() -> {
         while(!Thread.currentThread().isInterrupted() && connected) {
-            if (ping == -1 || ping > MAXIMUM_PING) {
-                logger.warning("Closing unresponsive connection...");
-                close(true);
-            }
-            ping = -1;
-            lastPing = System.currentTimeMillis();
-            sendPacket((byte) 0x9);
+            checkPing();
+            sendPing();
             try {
-                Thread.sleep(5000);
+                Thread.sleep(HEARTBEAT_INTERVAL);
             } catch (InterruptedException e) {
                 return;
             }
@@ -191,8 +192,21 @@ public class Connection implements Runnable {
                                     case 0x9: // ping, shouldn't ever receive one
                                         throw new RuntimeException("Client sent ping, server can't handle");
                                     case 0xA: // pong from client
-                                        long time = System.currentTimeMillis();
-                                        ping = (int) (time - lastPing);
+                                        boolean match = false;
+                                        Map.Entry<Long, byte[]> entry;
+                                        while ((entry = lastPingQueue.peek()) != null) {
+                                            if (Arrays.equals(entry.getValue(), decoded)) {
+                                                lastPingQueue.poll();
+                                                ping = (int) (System.currentTimeMillis() - entry.getKey());
+                                                checkPing();
+                                                match = true;
+                                                break;
+                                            }
+                                        }
+                                        if (!match) {
+                                            logger.warning("Closing connection for client from " + socket.getInetAddress().getHostAddress() + " after responding to ping with unknown id");
+                                            close(true);
+                                        }
                                         break;
                                     default: // error
                                         byte[] packet = new byte[inputStream.available()];
@@ -415,6 +429,28 @@ public class Connection implements Runnable {
 
     public void sendBinary(byte[] payload) {
         sendPacket((byte) 0x2, payload);
+    }
+
+    public void sendPing() {
+        byte[] random = new byte[8];
+        secureRandom.nextBytes(random);
+        lastPingQueue.add(new AbstractMap.SimpleEntry<>(System.currentTimeMillis(), random));
+        sendPacket((byte) 0x9, random);
+    }
+
+    private void checkPing() {
+        boolean kick = false;
+        Map.Entry<Long, byte[]> entry;
+        while ((entry = lastPingQueue.peek()) != null) {
+            if (System.currentTimeMillis() - entry.getKey() > MAXIMUM_PING) {
+                kick = true;
+                break;
+            }
+        }
+        if (kick || ping > MAXIMUM_PING) {
+            logger.warning("Closing connection for client from " + socket.getInetAddress().getHostAddress() + " after failing to respond to ping in time");
+            close(true);
+        }
     }
 
     public void close(boolean kick) {
