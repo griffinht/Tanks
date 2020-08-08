@@ -3,7 +3,6 @@ package net.stzups.tanks.game;
 import org.json.JSONArray;
 
 import java.nio.ByteBuffer;
-import java.util.UUID;
 
 class Bullet extends Entity {
     private static final int MAX_HITS = 3;
