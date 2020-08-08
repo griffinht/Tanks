@@ -425,7 +425,6 @@ function connect() {
                                     entities[entity.id] = entity;
                                 }
                                 ids.push(entity.id + "");
-                                console.log(entity);
                             }
                             Object.keys(entities).forEach((key) => {
                                 if (!ids.includes(key) && !newBullets.includes(key)) {
