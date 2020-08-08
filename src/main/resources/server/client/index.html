@@ -418,19 +418,16 @@ function connect() {
                                     offset += 2;
                                     break;
                                 } else if (entityId == 1) {
-                                    entityOffsetArray = Entity.deserialize(dataView, offset);
+                                    entityOffsetArray = Entity.deserialize(dataView, offset, event.timeStamp);
                                 } else if (entityId == 2) {
                                     let id = dataView.getUint16(offset + 2 + 2 + 1);
                                     if (id === playerId) {
-                                        entityOffsetArray = ThisPlayer.deserialize(dataView, offset);
-                                        if (typeof player === "undefined") { //move this into ThisPlayer deserialization?
-                                            player = entityOffsetArray[0];
-                                        }
+                                        entityOffsetArray = ThisPlayer.deserialize(dataView, offset, event.timeStamp);
                                     } else {
-                                        entityOffsetArray = Player.deserialize(dataView, offset);
+                                        entityOffsetArray = Player.deserialize(dataView, offset, event.timeStamp);
                                     }
                                 } else if (entityId == 3) {
-                                    entityOffsetArray = Bullet.deserialize(dataView, offset);
+                                    entityOffsetArray = Bullet.deserialize(dataView, offset, event.timeStamp);
                                 } else {
                                     console.log(entityId);
                                     console.log("bad entity termin");
@@ -439,6 +436,7 @@ function connect() {
                                 }
                                 offset = entityOffsetArray[1];
                                 let entity = entityOffsetArray[0];
+                                entity.lastUpdate = event.timeStamp;
                                 if (entities.hasOwnProperty(entity.id)) {
                                     entities[entity.id].set(entity);
                                 } else {
@@ -494,8 +492,8 @@ canvas
 function draw(now) {
     if (drawing) {
         let dt = (now - lastFrame);
-        let serverDt = now - server.time;
-        let f = serverDt / server.dt;
+        //let serverDt = now - server.time;
+        //let f = serverDt / server.dt;
 
         lastFrame = now;
 
@@ -523,9 +521,9 @@ function draw(now) {
         ctx.fillStyle = "green";
         Object.keys(entities).forEach((key) => {
             if (key === playerId) {
-                player.draw(f);
+                player.draw(now);
             } else {
-                entities[key].draw(f);
+                entities[key].draw(now);
             }
         });
         
@@ -591,6 +589,7 @@ class Entity {
         this.rotation = rotation;
         this.width = width;
         this.height = height;
+        this.lastUpdate = 0;
         this.lerp = false;
     }
 
@@ -599,11 +598,11 @@ class Entity {
         //this.y += this.speed * Math.asin(this.direction) * dt;
     }
     
-    draw(f) {
+    draw(now) {
         ctx.save();
         ctx.rotate(this.rotation);
         if (this.lerp) {
-            ctx.fillRect(lerp(this.x, this.targetX, f), lerp(this.y, this.targetY, f), this.width, this.height);
+            ctx.fillRect(lerp(this.x, this.targetX, (now - this.lastUpdate) / server.dt), lerp(this.y, this.targetY,  (now - this.lastUpdate) / server.dt), this.width, this.height);
         } else {
             ctx.fillRect(this.x, this.y, this.width, this.height);
         }
@@ -615,6 +614,7 @@ class Entity {
         this.y = this.targetY;
         this.targetX = entity.x;
         this.targetY = entity.y;
+        this.lastUpdate = entity.lastUpdate;
         this.speed = entity.speed;
         this.direction = entity.direction;
         this.rotation = entity.rotation;
@@ -661,10 +661,10 @@ class Player extends Entity {
         this.bullets = bullets;
     }
 
-    draw(f) {
+    draw(now) {
         ctx.save();
         if (this.lerp) {
-            ctx.translate(lerp(this.x, this.targetX, f) + this.width / 2, lerp(this.y, this.targetY, f) + this.height / 2);
+            ctx.translate(lerp(this.x, this.targetX,  (now - this.lastUpdate) / server.dt) + this.width / 2, lerp(this.y, this.targetY,  (now - this.lastUpdate) / server.dt) + this.height / 2);
         } else {
             ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
         }
@@ -677,13 +677,14 @@ class Player extends Entity {
         ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
         ctx.restore();
         
-        this.turret.draw(f);
+        this.turret.draw(now);
         
         ctx.restore();
     }
 
     set(entity) {
         super.set(entity);
+        entity.turret.lastUpdate = entity.lastUpdate;
         this.turret.set(entity.turret);
         this.bullets = entity.bullets;
     }
@@ -728,8 +729,8 @@ class Player extends Entity {
 }
 
 class ThisPlayer extends Player {
-    constructor(id, x, y, speed, direction, rotation, width, height, name, turret, bullets) {
-        super(id, x, y, speed, direction, rotation, width, height, name, turret, bullets);
+    constructor(player) {
+        super(player.id, player.x, player.y, player.speed, player.direciton, player.rotation, player.width, player.height, player.name, player.turret, player.bullets);
     }
 
     update(dt) {//           87
@@ -777,8 +778,11 @@ class ThisPlayer extends Player {
 
     static deserialize(dataView, offset) {
         let playerOffsetArray = Player.deserialize(dataView, offset);
-        let player = playerOffsetArray[0];
-        return [new ThisPlayer(player.id, player.x, player.y, player.speed, player.direction, player.rotation, player.width, player.height, player.name, player.turret, player.bullets), playerOffsetArray[1]];
+        playerOffsetArray[0] = new ThisPlayer(playerOffsetArray[0]);
+        if (typeof player === "undefined") {
+            player = playerOffsetArray[0];
+        }
+        return playerOffsetArray;
     }
 }
 
@@ -792,10 +796,10 @@ class Bullet extends Entity {
         this.hits = hits;
     }
     
-    draw(f) {
+    draw(now) {
         ctx.save();
         if (this.lerp) {
-            ctx.translate(lerp(this.x, this.targetX, f) + this.width / 2, lerp(this.y, this.targetY, f) + this.height / 2);
+            ctx.translate(lerp(this.x, this.targetX,  (now - this.lastUpdate) / server.dt) + this.width / 2, lerp(this.y, this.targetY,  (now - this.lastUpdate) / server.dt) + this.height / 2);
         } else {
             ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
         }
@@ -849,9 +853,10 @@ class Turret {
         this.rotation = this.rotationTarget;
         this.rotationTarget = turret.rotation;
         this.lerp = true;
+        this.lastUpdate = turret.lastUpdate;
     }
 
-    draw(f) {
+    draw(now) {
         ctx.save();
         ctx.fillStyle = "#00ff18";
         if (this.lerp) {
@@ -862,7 +867,7 @@ class Turret {
             } else if (rotDiff < -Math.PI) {
                 diff = -Math.PI * 2;
             }
-            ctx.rotate(lerp(this.rotation + diff, this.rotationTarget, f) - diff - Math.PI / 2);
+            ctx.rotate(lerp(this.rotation + diff, this.rotationTarget,  (now - this.lastUpdate) / server.dt) - diff - Math.PI / 2);
         } else {
             ctx.rotate(this.rotation - Math.PI / 2);
         }
