@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
 
 class Entity {
 
-    int tick;
+    private int tick;
 
     int id;
     float x;
