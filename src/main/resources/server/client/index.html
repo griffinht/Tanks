@@ -414,6 +414,8 @@ function connect() {
                                 } else {
                                     console.log(entityId);
                                     console.log("bad entity termin");
+                                    offset += 2;
+                                    continue;
                                 }
                                 offset = entityOffsetArray[1];
                                 let entity = entityOffsetArray[0];
@@ -802,7 +804,7 @@ class Bullet extends Entity {
         let owner = null;
         if (updateFlags & Bullet.ownerUpdate) {owner = dataView.getUint16(dataView, offset); offset += 2;}
         let hit = null;
-        if (updateFlags & Bullet.hitUpdate) {hit = dataView.getUint16(dataView, offset); offset += 2;}
+        if (updateFlags & Bullet.hitUpdate) {hit = dataView.getUint8(dataView, offset); offset += 1;}
         return [new Bullet(entity.id, entity.x, entity.y, entity.speed, entity.direction, entity.rotation, entity.width, entity.height, owner, hit), offset];
     }
 }
