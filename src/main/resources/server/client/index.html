@@ -154,7 +154,7 @@ window.onload = function(e) {
     });
     
     document.addEventListener("keyup", function(e) {
-        let index = keys[e.which];
+        let index = keys.indexOf(e.which);
         if (index !== -1) {
             keys.splice(index, 1);
         }
