@@ -664,7 +664,7 @@ class Player extends Entity {
     draw(now) {
         ctx.save();
         if (this.lerp) {
-            ctx.translate(lerp(this.x, this.targetX,  (now - this.lastUpdate) / server.dt) + this.width / 2, lerp(this.y, this.targetY,  (now - this.lastUpdate) / server.dt) + this.height / 2);
+            ctx.translate(lerp(this.x, this.targetX, (now - this.lastUpdate) / server.dt) + this.width / 2, lerp(this.y, this.targetY, (now - this.lastUpdate) / server.dt) + this.height / 2);
         } else {
             ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
         }
@@ -730,7 +730,7 @@ class Player extends Entity {
 
 class ThisPlayer extends Player {
     constructor(player) {
-        super(player.id, player.x, player.y, player.speed, player.direciton, player.rotation, player.width, player.height, player.name, player.turret, player.bullets);
+        super(player.id, player.x, player.y, player.speed, player.direction, player.rotation, player.width, player.height, player.name, player.turret, player.bullets);
     }
 
     update(dt) {//           87
