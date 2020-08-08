@@ -113,6 +113,10 @@ var ctx = canvas.getContext("2d");
 
 var lastFrame = 0;
 var ping = 0;
+var lastRecieve = 0;
+var recieveRate = 0;
+var lastSend = 0;
+var sendRate = 0;
 
 var entities = {};
 var newBullets = [];
@@ -300,8 +304,11 @@ function connect() {
         reconnect = setTimeout(connect, 1000);
     }
 
-    webSocket.onmessage = function() {//todo this gives timestamp
+    webSocket.onmessage = function() {
         if (typeof event.data === "string") {
+            recieveRate = ((new TextEncoder().encode(event.data)).length * 8 / 1000) / ((event.timeStamp - lastRecieve) / 1000);
+            lastRecieve = event.timeStamp;
+
             let payload;
             try {
                 payload = JSON.parse(event.data);
@@ -367,6 +374,9 @@ function connect() {
                 });
             }
         } else {
+            recieveRate = (event.data.byteLength * 8 / 1000) / ((event.timeStamp - lastRecieve) / 1000);
+            lastRecieve = event.timeStamp;
+
             let dataView = new DataView(event.data);
             let offset = 0;
 
@@ -460,6 +470,8 @@ function connect() {
 function send(payload) {
     if(webSocket.readyState === WebSocket.OPEN) {
         if (Object.keys(payload).length !== 0 && payload.constructor === Object) {
+            sendRate = ((new TextEncoder().encode(payload)).length * 8 / 1000) / ((window.performance.now() - lastSend) / 1000);
+            lastSend = window.performance.now();
             webSocket.send(JSON.stringify(payload));
         }
     } else {
@@ -525,6 +537,8 @@ function draw(now) {
         ctx.fillText(server.tick + "tick", 10, 90);
         ctx.fillText(Math.round(1 / (server.dt / 1000) * 100) / 100 + "tps (server)", 10, 120);
         ctx.fillText(Math.round((window.performance.now() - now) * 100) / 100 + " / " + Math.round(dt * 100) / 100 + "ms frame time", 10, 150);
+        ctx.fillText(Math.round(sendRate * 100) / 100 + " Kbps up", 10, 180);
+        ctx.fillText(Math.round(recieveRate * 100) / 100 + " Kbps down", 10, 210);
     } else {
         loader.style.display = "block";
         content.style.display = "none";
