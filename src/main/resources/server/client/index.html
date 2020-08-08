@@ -719,8 +719,8 @@ class ThisPlayer extends Player {
         super(id, x, y, speed, direction, rotation, width, height, name, turret, bullets);
     }
 
-    update(dt) {//                           87
-        this.speed = 10;//                65 83 68
+    update(dt) {//           87
+        this.speed = 10;//65 83 68
         if (keys.includes(87) && keys.includes(68) && !keys.includes(83) && !keys.includes(65)) {
             this.rotation = 7*Math.PI/4;
         } else if (keys.includes(68) && keys.includes(83) && !keys.includes(65) && !keys.includes(87)) {
