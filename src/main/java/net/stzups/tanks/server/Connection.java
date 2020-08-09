@@ -41,7 +41,7 @@ public class Connection implements Runnable {
 
     private static final Logger logger = Logger.getLogger(Tanks.class.getName());
     private static final boolean ALLOW_MULTIPLE_CONNECTIONS_FROM_SAME_IP_ADDRESS = true;
-    public static final int MAXIMUM_PING = 1000;
+    private static final int MAXIMUM_PING = 1000;
     private static final int HEARTBEAT_INTERVAL = 5000;
 
     private final FileManager fileManager;
