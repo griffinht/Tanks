@@ -6,6 +6,8 @@ import java.nio.ByteBuffer;
 
 class Entity {
 
+    public static final int ID = 1;
+
     private int tick;
 
     int id;
@@ -69,8 +71,7 @@ class Entity {
         boolean rotationU = (updateFlags & rotationUpdate) == rotationUpdate;
         boolean widthU = (updateFlags & widthUpdate) == widthUpdate;
         boolean heightU = (updateFlags & heightUpdate) == heightUpdate;
-        ByteBuffer byteBuffer = ByteBuffer.allocate(2 + 1 + 2 + ((xU ? 4 : 0) + (yU ? 4 : 0) + (speedU ? 4 : 0) + (directionU ? 4 : 0) + (rotationU ? 4 : 0) + (widthU ? 4 : 0) + (heightU ? 4 : 0)));
-        byteBuffer.putShort((short) 1); //entity id is 1
+        ByteBuffer byteBuffer = ByteBuffer.allocate(1 + 2 + ((xU ? 4 : 0) + (yU ? 4 : 0) + (speedU ? 4 : 0) + (directionU ? 4 : 0) + (rotationU ? 4 : 0) + (widthU ? 4 : 0) + (heightU ? 4 : 0)));
         byteBuffer.put(updateFlags);
         byteBuffer.putShort((short) id);
         if (xU) byteBuffer.putFloat(x);

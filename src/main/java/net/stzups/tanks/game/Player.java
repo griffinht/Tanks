@@ -4,11 +4,12 @@ import org.json.JSONArray;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayDeque;
 import java.util.Map;
-import java.util.Queue;
 
 public class Player extends Entity {
+
+    public static final int ID = 2;
+
     static class Turret {
         float rotation;
         float width;
@@ -36,8 +37,7 @@ public class Player extends Entity {
             boolean rotationU = (updateFlags & rotationUpdate) == rotationUpdate;
             boolean widthU = (updateFlags & widthUpdate) == widthUpdate;
             boolean heightU = (updateFlags & heightUpdate) == heightUpdate;
-            ByteBuffer byteBuffer = ByteBuffer.allocate(2 + 1 + 4 * ((rotationU ? 1 : 0) + (widthU ? 1 : 0) + (heightU ? 1 : 0)));
-            byteBuffer.putShort((short) 2);
+            ByteBuffer byteBuffer = ByteBuffer.allocate(1 + 4 * ((rotationU ? 1 : 0) + (widthU ? 1 : 0) + (heightU ? 1 : 0)));
             byteBuffer.put(updateFlags);
             if (rotationU) byteBuffer.putFloat(rotation);
             if (widthU) byteBuffer.putFloat(width);
@@ -138,8 +138,7 @@ public class Player extends Entity {
         } else {
             bulletByteBuffer = ByteBuffer.allocate(0);
         }
-        ByteBuffer byteBuffer = ByteBuffer.allocate(2 + entity.length + 1 + name.length + turret.length + bulletByteBuffer.position());
-        byteBuffer.putShort((short) 2);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(entity.length + 1 + name.length + turret.length + bulletByteBuffer.position());
         byteBuffer.put(entity);
         byteBuffer.put(updateFlags);
         if (nameU) byteBuffer.put(name);

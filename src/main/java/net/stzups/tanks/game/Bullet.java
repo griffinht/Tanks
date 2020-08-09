@@ -5,6 +5,9 @@ import org.json.JSONArray;
 import java.nio.ByteBuffer;
 
 class Bullet extends Entity {
+
+    public static final int ID = 3;
+
     private static final int MAX_HITS = 3;
 
     final private int owner;
@@ -33,8 +36,7 @@ class Bullet extends Entity {
         byte[] entity = super.serialize();
         boolean ownerU = (updateFlags & ownerUpdate) == ownerUpdate;
         boolean hitU = (updateFlags & hitUpdate) == hitUpdate;
-        ByteBuffer byteBuffer = ByteBuffer.allocate(2 + entity.length + 1 + (ownerU ? 2 : 0) + (hitU ? 1 : 0));
-        byteBuffer.putShort((short) 3);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(entity.length + 1 + (ownerU ? 2 : 0) + (hitU ? 1 : 0));
         byteBuffer.put(entity);
         byteBuffer.put(updateFlags);
         if (ownerU) byteBuffer.putShort((short) owner);

@@ -413,36 +413,42 @@ function connect() {
                                     break;
                                 }
                                 let entityId = dataView.getUint16(offset);
-                                let entityOffsetArray;
+                                offset += 2;
                                 if (entityId == 0) {
                                     offset += 2;
                                     break;
-                                } else if (entityId == 1) {
-                                    entityOffsetArray = Entity.deserialize(dataView, offset, event.timeStamp);
-                                } else if (entityId == 2) {
-                                    let id = dataView.getUint16(offset + 2 + 2 + 1);
-                                    if (id === playerId) {
-                                        entityOffsetArray = ThisPlayer.deserialize(dataView, offset, event.timeStamp);
+                                }
+                                let length = dataView.getUint16(offset);
+                                offset += 2;
+                                let entityOffsetArray;
+                                for (let i = 0; i < length; i++) {
+                                    if (entityId == 1) {
+                                        entityOffsetArray = Entity.deserialize(dataView, offset, event.timeStamp);
+                                    } else if (entityId == 2) {
+                                        let id = dataView.getUint16(offset + 1);
+                                        if (id === playerId) {
+                                            entityOffsetArray = ThisPlayer.deserialize(dataView, offset, event.timeStamp);
+                                        } else {
+                                            entityOffsetArray = Player.deserialize(dataView, offset, event.timeStamp);
+                                        }
+                                    } else if (entityId == 3) {
+                                        entityOffsetArray = Bullet.deserialize(dataView, offset, event.timeStamp);
                                     } else {
-                                        entityOffsetArray = Player.deserialize(dataView, offset, event.timeStamp);
+                                        console.log(entityId);
+                                        console.log("bad entity termin");
+                                        offset += 2;
+                                        continue;
                                     }
-                                } else if (entityId == 3) {
-                                    entityOffsetArray = Bullet.deserialize(dataView, offset, event.timeStamp);
-                                } else {
-                                    console.log(entityId);
-                                    console.log("bad entity termin");
-                                    offset += 2;
-                                    continue;
+                                    offset = entityOffsetArray[1];
+                                    let entity = entityOffsetArray[0];
+                                    entity.lastUpdate = event.timeStamp;
+                                    if (entities.hasOwnProperty(entity.id)) {
+                                        entities[entity.id].set(entity);
+                                    } else {
+                                        entities[entity.id] = entity;
+                                    }
+                                    ids.push(entity.id + "");
                                 }
-                                offset = entityOffsetArray[1];
-                                let entity = entityOffsetArray[0];
-                                entity.lastUpdate = event.timeStamp;
-                                if (entities.hasOwnProperty(entity.id)) {
-                                    entities[entity.id].set(entity);
-                                } else {
-                                    entities[entity.id] = entity;
-                                }
-                                ids.push(entity.id + "");
                             }
                             Object.keys(entities).forEach((key) => {
                                 if (!ids.includes(key) && !newBullets.includes(key)) {
@@ -626,7 +632,6 @@ class Entity {
     }
     
     static deserialize(dataView, offset) {
-        offset += 2;
         let updateFlags = dataView.getUint8(offset);
         offset += 1;
         let id = dataView.getUint16(offset);
@@ -694,7 +699,6 @@ class Player extends Entity {
     }
     
     static deserialize(dataView, offset) {
-        offset += 2;
         let entityOffsetArray = Entity.deserialize(dataView, offset);
         let entity = entityOffsetArray[0];
         offset = entityOffsetArray[1];
@@ -822,7 +826,6 @@ class Bullet extends Entity {
     }
     
     static deserialize(dataView, offset) {
-        offset += 2;
         let entityOffsetArray = Entity.deserialize(dataView, offset);
         offset = entityOffsetArray[1];
         let entity = entityOffsetArray[0];
@@ -880,7 +883,6 @@ class Turret {
     }
     
     static deserialize(dataView, offset) {
-        offset += 2;
         let updateFlags = dataView.getUint8(offset);
         offset += 1;
         let rotation = null;

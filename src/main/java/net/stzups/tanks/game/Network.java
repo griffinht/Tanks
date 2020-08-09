@@ -10,7 +10,10 @@ import org.json.JSONObject;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -59,9 +62,27 @@ class Network implements PacketListener {
                                     }
                                 } else {
                                     try (ByteArrayOutputStream gridOutputStream = new ByteArrayOutputStream()) {
+                                        Map<Class<?>, List<Entity>> entityListMap = new HashMap<>();
                                         for (Entity entity : game.world.grid.get(x, y)) {
-                                            gridOutputStream.write(entity.serialize());
+                                            if (entityListMap.containsKey(entity.getClass())) {
+                                                entityListMap.get(entity.getClass()).add(entity);
+                                            } else {
+                                                List<Entity> list = new ArrayList<>();
+                                                list.add(entity);
+                                                entityListMap.put(entity.getClass(), list);
+                                            }
                                         }
+
+                                        for (Map.Entry<Class<?>, List<Entity>> entityListEntry : entityListMap.entrySet()) {
+                                            ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+                                            byteBuffer.putShort((short) entityListEntry.getKey().getField("ID").getInt(null));
+                                            byteBuffer.putShort((short) entityListEntry.getValue().size());//todo make sure no overflow
+                                            gridOutputStream.write(byteBuffer.array());
+                                            for (Entity entity : entityListEntry.getValue()) {
+                                                gridOutputStream.write(entity.serialize());
+                                            }
+                                        }
+
                                         byte[] entities = gridOutputStream.toByteArray();
 
                                         ByteBuffer gridByteBuffer = ByteBuffer.allocate(entities.length);
