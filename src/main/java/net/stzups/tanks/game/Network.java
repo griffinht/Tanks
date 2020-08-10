@@ -65,10 +65,6 @@ class Network implements PacketListener {
                                         if (serialized.length == 0) {
                                             continue;
                                         }
-                                    } else if (entity.getUpdateFlags() == 0) {
-                                        serialized = new byte[0];
-                                        entitiesPartial.put(entity, serialized);
-                                        continue;
                                     } else {
                                         serialized = entity.serialize(false);
                                         entitiesPartial.put(entity, serialized);
@@ -186,7 +182,7 @@ class Network implements PacketListener {
 
                     ByteBuffer payloadByteBuffer = ByteBuffer.allocate(playByteBuffer.position());
                     payloadByteBuffer.put(playByteBuffer.array());
-                    
+
                     entry.getKey().sendBinary(payloadByteBuffer.array());
                 }
             } catch(Exception e) {
