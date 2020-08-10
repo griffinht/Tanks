@@ -144,7 +144,6 @@ class Network implements PacketListener {
                             playerOutputStream.write(byteBuffer.array());
                         } else {
                             for (Map.Entry<Class<?>, List<byte[]>> classListEntry : playerSerializedEntities.entrySet()) {
-
                                 ByteBuffer byteBuffer = ByteBuffer.allocate(4);
                                 byteBuffer.putShort((short) classListEntry.getKey().getField("ID").getInt(null));
                                 byteBuffer.putShort((short) classListEntry.getValue().size());//todo make sure no overflow
@@ -153,6 +152,9 @@ class Network implements PacketListener {
                                     playerOutputStream.write(bytes);
                                 }
                             }
+                            ByteBuffer byteBuffer1 = ByteBuffer.allocate(2);
+                            byteBuffer1.putShort((short) 0);
+                            playerOutputStream.write(byteBuffer1.array());
                         }
                         playerEntities = playerOutputStream.toByteArray();
                     }

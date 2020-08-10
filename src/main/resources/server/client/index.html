@@ -408,9 +408,16 @@ function connect() {
                             let ids = [];
                             let removeIds = [];
 
-                            let entityId = dataView.getUint16(offset);
-                            offset += 2;
-                            if (entityId !== 0) {
+                            while (true) {
+                                if (offset + 2 > dataView.byteLength) {
+                                    console.log("breaking ent:" + offset);
+                                    break;
+                                }
+                                let entityId = dataView.getUint16(offset);
+                                offset += 2;
+                                if (entityId == 0) {
+                                    break;
+                                }
                                 let length = dataView.getUint16(offset);
                                 offset += 2;
                                 let entityOffsetArray;
