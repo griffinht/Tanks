@@ -55,7 +55,7 @@ public class Game implements Runnable {
         }
     }
 
-    public void stop() {
+    public synchronized void stop() {
         running = false;
         network.stop();
     }

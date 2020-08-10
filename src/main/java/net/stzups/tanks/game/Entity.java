@@ -27,7 +27,8 @@ class Entity {
     private static byte widthUpdate = 1 << 5;
     private static byte heightUpdate = 1 << 6;
 
-    private byte updateFlags = (byte) (xUpdate | yUpdate | speedUpdate | directionUpdate | rotationUpdate | widthUpdate | heightUpdate);
+    private byte FULL_UPDATE_FLAGS = (byte) (xUpdate | yUpdate | speedUpdate | directionUpdate | rotationUpdate | widthUpdate | heightUpdate);
+    private byte updateFlags = FULL_UPDATE_FLAGS;
 
     Entity(int id, float x, float y, float speed, float direction, float rotation, float width, float height) {
         this.id = id;
@@ -40,11 +41,15 @@ class Entity {
         this.height = height;
     }
 
+    byte getUpdateFlags() {
+        return updateFlags;
+    }
+
     void move(int tick, float dt) {
         if (tick > this.tick) {
             this.tick = tick;
-            this.x += Math.cos(this.direction) * this.speed * dt / 1000;
-            this.y += Math.sin(this.direction) * this.speed * dt / 1000;
+            x += Math.cos(this.direction) * this.speed * dt / 1000;
+            y += Math.sin(this.direction) * this.speed * dt / 1000;
         }
     }
 
@@ -53,17 +58,53 @@ class Entity {
             return false;
         }
 
-        x = jsonArray.getFloat(1);
-        y = jsonArray.getFloat(2);
-        speed = jsonArray.getFloat(3);
-        direction = jsonArray.getFloat(4);
-        rotation = jsonArray.getFloat(5);
-        width = jsonArray.getFloat(6);
-        height = jsonArray.getFloat(7);
+        float x = jsonArray.getFloat(1);
+        if (this.x != x) {
+            this.x = x;
+            updateFlags |= xUpdate;
+            updateFlags |= yUpdate;
+        }
+        float y = jsonArray.getFloat(2);
+        if (this.y != y) {
+            this.y = y;
+            updateFlags |= xUpdate;
+            updateFlags |= yUpdate;
+        }
+        float speed = jsonArray.getFloat(3);
+        if (this.speed != speed) {
+            this.speed = speed;
+            updateFlags |= speedUpdate;
+        }
+        float direction = jsonArray.getFloat(4);
+        if (this.direction != direction) {
+            this.direction = direction;
+            updateFlags |= directionUpdate;
+        }
+        float rotation = jsonArray.getFloat(5);
+        if (this.rotation != rotation) {
+            this.rotation = rotation;
+            updateFlags |= rotationUpdate;
+        }
+        float width = jsonArray.getFloat(6);
+        if (this.width != width) {
+            this.width = width;
+            updateFlags |= widthUpdate;
+        }
+        float height = jsonArray.getFloat(7);
+        if (this.height != height) {
+            this.height = height;
+            updateFlags |= heightUpdate;
+        }
         return true;
     }
 
-    byte[] serialize() {
+    byte[] serialize(boolean fullUpdate) {
+        byte updateFlags;
+        if (fullUpdate) {
+            updateFlags = FULL_UPDATE_FLAGS;
+        } else {
+            updateFlags = this.updateFlags;
+        }
         boolean xU = (updateFlags & xUpdate) == xUpdate;
         boolean yU = (updateFlags & yUpdate) == yUpdate;
         boolean speedU = (updateFlags & speedUpdate) == speedUpdate;
@@ -82,6 +123,9 @@ class Entity {
         if (widthU) byteBuffer.putFloat(width);
         if (heightU) byteBuffer.putFloat(height);
 
+        if (!fullUpdate) {
+            this.updateFlags = (byte) 0;
+        }
         return byteBuffer.array();
     }
 

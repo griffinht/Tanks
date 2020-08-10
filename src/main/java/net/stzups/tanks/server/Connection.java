@@ -24,11 +24,13 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.AbstractMap;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Scanner;
@@ -52,7 +54,7 @@ public class Connection implements Runnable {
 
     private final UUID uuid = UUID.randomUUID();
 
-    private Queue<Map.Entry<Long, byte[]>> lastPingQueue = new ArrayDeque<>();
+    private List<Map.Entry<Long, byte[]>> lastPingList = new ArrayList<>();
     private int ping = 0;
     private boolean connected = false;
 
@@ -110,7 +112,6 @@ public class Connection implements Runnable {
 
     private final Thread heartbeat = new Thread(() -> {
         while(!Thread.currentThread().isInterrupted() && connected) {//todo test
-            checkPing();
             sendPing();
             try {
                 Thread.sleep(HEARTBEAT_INTERVAL);
@@ -193,14 +194,23 @@ public class Connection implements Runnable {
                                         throw new RuntimeException("Client sent ping, server can't handle");
                                     case 0xA: // pong from client
                                         boolean match = false;
-                                        Map.Entry<Long, byte[]> entry;
-                                        while ((entry = lastPingQueue.peek()) != null) {
+                                        for (Map.Entry<Long, byte[]> entry : lastPingList) {
+                                            if (match) {
+                                                if (System.currentTimeMillis() - entry.getKey() > MAXIMUM_PING) {
+                                                    logger.warning("Closing connection for client from " + socket.getInetAddress().getHostAddress() + " after failing to respond to ping in time");
+                                                    close(true);
+                                                    break;
+                                                }
+                                                continue;
+                                            }
                                             if (Arrays.equals(entry.getValue(), decoded)) {
-                                                lastPingQueue.poll();
                                                 ping = (int) (System.currentTimeMillis() - entry.getKey());
-                                                checkPing();
+                                                if (ping > MAXIMUM_PING) {
+                                                    //todo fix
+                                                    logger.warning("Closing connection for client from " + socket.getInetAddress().getHostAddress() + " after failing to respond to ping in time (" + ping + ")");
+                                                    close(true);
+                                                }
                                                 match = true;
-                                                break;
                                             }
                                         }
                                         if (!match) {
@@ -434,23 +444,8 @@ public class Connection implements Runnable {
     public void sendPing() {
         byte[] random = new byte[8];
         secureRandom.nextBytes(random);
-        lastPingQueue.add(new AbstractMap.SimpleEntry<>(System.currentTimeMillis(), random));
+        lastPingList.add(new AbstractMap.SimpleEntry<>(System.currentTimeMillis(), random));
         sendPacket((byte) 0x9, random);
-    }
-
-    private void checkPing() {
-        boolean kick = false;
-        Map.Entry<Long, byte[]> entry;
-        while ((entry = lastPingQueue.peek()) != null) {
-            if (System.currentTimeMillis() - entry.getKey() > MAXIMUM_PING) {
-                kick = true;
-                break;
-            }
-        }
-        if (kick || ping > MAXIMUM_PING) {
-            logger.warning("Closing connection for client from " + socket.getInetAddress().getHostAddress() + " after failing to respond to ping in time");
-            close(true);
-        }
     }
 
     public void close(boolean kick) {

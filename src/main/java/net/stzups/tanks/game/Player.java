@@ -4,6 +4,8 @@ import org.json.JSONArray;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class Player extends Entity {
@@ -19,7 +21,8 @@ public class Player extends Entity {
         private static byte widthUpdate = 1 << 1;
         private static byte heightUpdate = 1 << 2;
 
-        private byte updateFlags = (byte) (rotationUpdate | widthUpdate | heightUpdate);
+        private static byte FULL_UPDATE_FLAGS = (byte) (rotationUpdate | widthUpdate | heightUpdate);
+        private byte updateFlags = FULL_UPDATE_FLAGS;
 
         Turret (float rotation, float width, float height) {
             this.rotation = rotation;
@@ -28,12 +31,30 @@ public class Player extends Entity {
         }
 
         void update(JSONArray jsonArray) {
-            rotation = jsonArray.getFloat(0);
-            width = jsonArray.getFloat(1);
-            height = jsonArray.getFloat(2);
+            float rotation = jsonArray.getFloat(0);
+            if (this.rotation != rotation) {
+                this.rotation = rotation;
+                updateFlags |= rotationUpdate;
+            }
+            float width = jsonArray.getFloat(1);
+            if (this.width != width) {
+                this.width = width;
+                updateFlags |= widthUpdate;
+            }
+            float height = jsonArray.getFloat(2);
+            if (this.height != height) {
+                this.height = height;
+                updateFlags |= heightUpdate;
+            }
         }
 
-        byte[] serialize() {
+        byte[] serialize(boolean fullUpdate) {
+            byte updateFlags;
+            if (fullUpdate) {
+                updateFlags = FULL_UPDATE_FLAGS;
+            } else {
+                updateFlags = this.updateFlags;
+            }
             boolean rotationU = (updateFlags & rotationUpdate) == rotationUpdate;
             boolean widthU = (updateFlags & widthUpdate) == widthUpdate;
             boolean heightU = (updateFlags & heightUpdate) == heightUpdate;
@@ -42,6 +63,10 @@ public class Player extends Entity {
             if (rotationU) byteBuffer.putFloat(rotation);
             if (widthU) byteBuffer.putFloat(width);
             if (heightU) byteBuffer.putFloat(height);
+
+            if (!fullUpdate) {
+                this.updateFlags = (byte) 0;
+            }
             return byteBuffer.array();
         }
     }
@@ -58,7 +83,10 @@ public class Player extends Entity {
     private static byte turretUpdate = 1 << 1;
     private static byte bulletsUpdate = 1 << 2;
 
-    private byte updateFlags = (byte) (nameUpdate | turretUpdate | bulletsUpdate);
+    private static byte FULL_UPDATE_FLAGS = (byte) (nameUpdate | turretUpdate | bulletsUpdate);
+    private byte updateFlags = (byte) 0;
+
+    List<Entity> knownEntities = new ArrayList<>();
 
     private int viewportWidth;
     private int viewportHeight;
@@ -83,6 +111,7 @@ public class Player extends Entity {
 
     void addBullet(Bullet bullet) {
         bullets.put(bullet.id, bullet);
+        updateFlags |= bulletsUpdate;
     }
 
     public String getName() {
@@ -98,17 +127,31 @@ public class Player extends Entity {
     }
 
     @Override
+    byte getUpdateFlags() {
+        return updateFlags;
+    }
+
+    @Override
     boolean update(JSONArray jsonArray) {
         if (!super.update(jsonArray.getJSONArray(1))) {
             return false;
         }
         turret.update(jsonArray.getJSONArray(3));
+        if (turret.updateFlags != 0) {
+            updateFlags |= turretUpdate;
+        }
         return true;
     }
 
     @Override
-    byte[] serialize() {
-        byte[] entity = super.serialize();
+    byte[] serialize(boolean fullUpdate) {
+        byte[] entity = super.serialize(fullUpdate);
+        byte updateFlags;
+        if (fullUpdate) {
+            updateFlags = FULL_UPDATE_FLAGS;
+        } else {
+            updateFlags = this.updateFlags;
+        }
         boolean nameU = (updateFlags & nameUpdate) == nameUpdate;
         boolean turretU = (updateFlags & turretUpdate) == turretUpdate;
         boolean bulletsU = (updateFlags & bulletsUpdate) == bulletsUpdate;
@@ -124,7 +167,7 @@ public class Player extends Entity {
         }
         byte[] turret;
         if (turretU) {
-            turret = this.turret.serialize();
+            turret = this.turret.serialize(fullUpdate);
         } else {
             turret = new byte[0];
         }
