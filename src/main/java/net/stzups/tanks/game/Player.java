@@ -77,7 +77,6 @@ public class Player extends Entity {
 
     private String name;
     private Player.Turret turret;
-    private Map<Integer, Bullet> bullets;
 
     private static byte nameUpdate = 1;
     private static byte turretUpdate = 1 << 1;
@@ -91,11 +90,10 @@ public class Player extends Entity {
     private int viewportWidth;
     private int viewportHeight;
 
-    Player(int id, float x, float y, float speed, float direction, float rotation, float width, float height, String name, int viewportWidth, int viewportHeight, Player.Turret turret, Map<Integer, Bullet> bullets) {
+    Player(int id, float x, float y, float speed, float direction, float rotation, float width, float height, String name, int viewportWidth, int viewportHeight, Player.Turret turret) {
         super(id, x, y, speed, direction, rotation, width, height);
         this.name = name;
         this.turret = turret;
-        this.bullets = bullets;
         setViewport(viewportWidth, viewportHeight);
     }
 
@@ -107,11 +105,6 @@ public class Player extends Entity {
             this.viewportHeight = (int) (MAX_VIEWPORT_HEIGHT * VIEWPORT_SCALE);
             this.viewportWidth = (int) ((float) this.viewportHeight * ((float) viewportWidth / (float) viewportHeight));
         }
-    }
-
-    void addBullet(Bullet bullet) {
-        bullets.put(bullet.id, bullet);
-        updateFlags |= bulletsUpdate;
     }
 
     public String getName() {
@@ -152,11 +145,8 @@ public class Player extends Entity {
         } else {
             updateFlags = this.updateFlags;
         }
-        boolean nameU = (updateFlags & nameUpdate) == nameUpdate;
-        boolean turretU = (updateFlags & turretUpdate) == turretUpdate;
-        boolean bulletsU = (updateFlags & bulletsUpdate) == bulletsUpdate;
         byte[] name;
-        if (nameU) {
+        if ((updateFlags & nameUpdate) == nameUpdate) {
             byte[] n = this.name.getBytes(StandardCharsets.UTF_8);//todo inefficient?
             ByteBuffer nameByteBuffer = ByteBuffer.allocate(2 + n.length);
             nameByteBuffer.putShort((short) n.length);
@@ -166,27 +156,20 @@ public class Player extends Entity {
             name = new byte[0];
         }
         byte[] turret;
-        if (turretU) {
+        if ((updateFlags & turretUpdate) == turretUpdate) {
             turret = this.turret.serialize(fullUpdate);
         } else {
             turret = new byte[0];
         }
-        ByteBuffer bulletByteBuffer;
-        if (bulletsU) {
-            bulletByteBuffer = ByteBuffer.allocate(2 + this.bullets.size() * 2);
-            bulletByteBuffer.putShort((short) this.bullets.size());
-            for (Integer owner : this.bullets.keySet()) {
-                bulletByteBuffer.putShort((short) (int) owner);
-            }
-        } else {
-            bulletByteBuffer = ByteBuffer.allocate(0);
-        }
-        ByteBuffer byteBuffer = ByteBuffer.allocate(entity.length + 1 + name.length + turret.length + bulletByteBuffer.position());
+        ByteBuffer byteBuffer = ByteBuffer.allocate(entity.length + 1 + name.length + turret.length);
         byteBuffer.put(entity);
         byteBuffer.put(updateFlags);
-        if (nameU) byteBuffer.put(name);
-        if (turretU) byteBuffer.put(turret);
-        if (bulletsU) {byteBuffer.put(bulletByteBuffer.array());}
+        byteBuffer.put(name);
+        byteBuffer.put(turret);
+
+        if (!fullUpdate) {
+            this.updateFlags = (byte) 0;
+        }
         return byteBuffer.array();
     }
 }

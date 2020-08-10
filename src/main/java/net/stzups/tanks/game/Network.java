@@ -186,7 +186,7 @@ class Network implements PacketListener {
 
                     ByteBuffer payloadByteBuffer = ByteBuffer.allocate(playByteBuffer.position());
                     payloadByteBuffer.put(playByteBuffer.array());
-
+                    
                     entry.getKey().sendBinary(payloadByteBuffer.array());
                 }
             } catch(Exception e) {
@@ -208,7 +208,7 @@ class Network implements PacketListener {
                     String name = newClient.getString(0);
                     int viewportWidth = newClient.getInt(1);
                     int viewportHeight = newClient.getInt(2);
-                    Player player = new Player(game.world.generateRandomId(), 0, 0, 0, 0, 0, 5, 2, name, viewportWidth, viewportHeight, new Player.Turret(0, 0.5f, 3f), new HashMap<>());
+                    Player player = new Player(game.world.generateRandomId(), 0, 0, 0, 0, 0, 5, 2, name, viewportWidth, viewportHeight, new Player.Turret(0, 0.5f, 3f));
                     game.connectionPlayerMap.put(connection, player);
                     game.world.addEntity(player);
                     logger.info("New player " + player.getName());
@@ -242,8 +242,8 @@ class Network implements PacketListener {
                     for (Object b : bullets) {
                         Bullet bullet = Bullet.deserialize((JSONArray) b);
                         bullet.id = game.world.generateRandomId();
+                        bullet.owner = player.id;
                         game.world.addEntity(bullet);
-                        player.addBullet(bullet);
                     }
                 }
                 if (payload.has("viewport")) {

@@ -10,14 +10,14 @@ class Bullet extends Entity {
 
     private static final int MAX_HITS = 3;
 
-    final private int owner;
-    private short hits;
+    int owner;
+    short hits;
 
     private static byte ownerUpdate = 1;
     private static byte hitUpdate = 1 << 1;
 
     private static byte FULL_UPDATE_FLAGS = (byte) (ownerUpdate | hitUpdate);
-    byte updateFlags = FULL_UPDATE_FLAGS;
+    private byte updateFlags = FULL_UPDATE_FLAGS;
 
     Bullet(int id, float x, float y, float speed, float direction, float rotation, float width, float height, int owner, short hits) {
         super(id, x, y, speed, direction, rotation, width, height);

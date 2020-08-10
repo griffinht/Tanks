@@ -675,13 +675,11 @@ class Entity {
 class Player extends Entity {
     static nameUpdate = 1;
     static turretUpdate = 1 << 1;
-    static bulletsUpdate = 1 << 2;
 
-    constructor(id, x, y, speed, direction, rotation, width, height, name, turret, bullets) {
+    constructor(id, x, y, speed, direction, rotation, width, height, name, turret) {
         super(id, x, y, speed, direction, rotation, width, height);
         this.name = name;
         this.turret = turret;
-        this.bullets = bullets;
     }
 
     draw(now) {
@@ -711,9 +709,6 @@ class Player extends Entity {
             entity.turret.lastUpdate = entity.lastUpdate;
             this.turret.set(entity.turret);
         }
-        if (entity.bullets !== null) {
-            this.bullets = entity.bullets;
-        }
     }
     
     serialize() {
@@ -740,26 +735,16 @@ class Player extends Entity {
             turret = turretOffsetArray[0];
             offset = turretOffsetArray[1];
         }
-        let bullets = null;
-        if (updateFlags & Player.bulletsUpdate) {
-            let size = dataView.getUint16(offset);
-            offset += 2;
-            bullets = [];
-            for (let i = 0; i < size; i++) {
-                bullets.push(dataView.getUint16(offset));
-                offset += 2;
-            }
-        }
-        return [new Player(entity.id, entity.x, entity.y, entity.speed, entity.direction, entity.rotation, entity.width, entity.height, name, turret, bullets), offset];
+        return [new Player(entity.id, entity.x, entity.y, entity.speed, entity.direction, entity.rotation, entity.width, entity.height, name, turret), offset];
     }
 }
 
 class ThisPlayer extends Player {
     constructor(player) {
-        super(player.id, player.x, player.y, player.speed, player.direction, player.rotation, player.width, player.height, player.name, player.turret, player.bullets);
+        super(player.id, player.x, player.y, player.speed, player.direction, player.rotation, player.width, player.height, player.name, player.turret);
     }
 
-    update(now, dt) {//           87
+    update(now, dt) {//      87
         this.speed = 10;//65 83 68
         if (keys.includes(87) && keys.includes(68) && !keys.includes(83) && !keys.includes(65)) {
             this.rotation = 7*Math.PI/4;
