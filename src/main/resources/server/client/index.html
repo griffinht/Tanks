@@ -167,7 +167,6 @@ window.onload = function(e) {
     canvas.addEventListener("click", function(e) {
         if (typeof player !== "undefined") {
             let bullet = new Bullet(Math.random(), player.x + player.width/2 + (Math.cos(player.turret.rotation) * (player.turret.height)) - (.5 / 2), player.y + player.height/2 + (Math.sin(player.turret.rotation) * (player.turret.height)) - (.5 / 2), 10, player.turret.rotation, player.turret.rotation, .5, .5, playerId, 0);
-            entities[bullet.id] = bullet;
             newBullets.push(bullet);
         }
     });
@@ -798,11 +797,7 @@ class ThisPlayer extends Player {
         if (entity.bullets === null) {
             entity.bullets = [];
         }
-        for (let i = 0; i < this.bullets.length; i++) {
-            if (this.bullets[i].id === "newBullet") {
-                entity.bullets.push(this.bullets[i]);
-            }
-        }
+
         this.bullets = entity.bullets; //todo other checking and fixing
     }
 
