@@ -56,6 +56,9 @@ class Network implements PacketListener {
                             for (Entity entity : game.world.grid.get(x, y)) {
                                 playerKnownEntities.add(entity);
                                 if (player.knownEntities.contains(entity)) {
+                                    if (entity.id == player.id) {
+                                        continue;
+                                    }
                                     byte[] serialized;
                                     if (entitiesPartial.containsKey(entity)) {
                                         //partial
