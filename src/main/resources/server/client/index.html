@@ -590,6 +590,9 @@ class Entity {
     static widthUpdate = 1 << 5;
     static heightUpdate = 1 << 6;
 
+    static fullUpdateFlags = Entity.xUpdate | Entity.yUpdate | Entity.speedUpdate | Entity.directionUpdate | Entity.rotationUpdate | Entity.widthUpdate | Entity.heightUpdate;
+    updateFlags = Entity.fullUpdateFlags;
+
     constructor(id, x, y, speed, direction, rotation, width, height) {
         this.id = id;
         this.x = x;
@@ -654,7 +657,31 @@ class Entity {
     }
     
     serialize() {
-        return [this.id.toString(), this.x, this.y, this.speed, this.direction, this.rotation, this.width, this.height];
+        let serialized = [this.id.toString(), this.updateFlags];
+
+        if (this.updateFlags & Entity.xUpdate) {
+            serialized.push(this.x);
+        }
+        if (this.updateFlags & Entity.yUpdate) {
+            serialized.push(this.y);
+        }
+        if (this.updateFlags & Entity.speedUpdate) {
+            serialized.push(this.speed);
+        }
+        if (this.updateFlags & Entity.directionUpdate) {
+            serialized.push(this.direction);
+        }
+        if (this.updateFlags & Entity.rotationUpdate) {
+            serialized.push(this.rotation);
+        }
+        if (this.updateFlags & Entity.widthUpdate) {
+            serialized.push(this.width);
+        }
+        if (this.updateFlags & Entity.heightUpdate) {
+            serialized.push(this.height);
+        }
+        this.updateFlags = 0;
+        return serialized;
     }
     
     static deserialize(dataView, offset) {
@@ -753,8 +780,10 @@ class ThisPlayer extends Player {
         super(player.id, player.x, player.y, player.speed, player.direction, player.rotation, player.width, player.height, player.name, player.turret);
     }
 
-    update(now, dt) {//      87
-        this.speed = 10;//65 83 68
+    update(now, dt) {
+        let oldPlayer = {};
+        Object.assign(oldPlayer, this);
+        this.speed = 10;
         if (keys.includes(87) && keys.includes(68) && !keys.includes(83) && !keys.includes(65)) {
             this.rotation = 7*Math.PI/4;
         } else if (keys.includes(68) && keys.includes(83) && !keys.includes(65) && !keys.includes(87)) {
@@ -785,6 +814,16 @@ class ThisPlayer extends Player {
 
         this.x += Math.cos(this.direction) * this.speed * dt / 1000;
         this.y += Math.sin(this.direction) * this.speed * dt / 1000;
+
+        if (this.speed !== oldPlayer.speed) {
+            this.updateFlags |= (Entity.speedUpdate | Entity.xUpdate | Entity.yUpdate);
+        }
+        if (this.rotation !== oldPlayer.rotation) {
+            this.updateFlags |= Entity.rotationUpdate;
+        }
+        if (this.direction !== oldPlayer.direction) {
+            this.updateFlags |= Entity.directionUpdate;
+        }
     }
 
     set(entity) {

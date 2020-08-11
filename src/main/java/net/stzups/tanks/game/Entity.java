@@ -57,43 +57,64 @@ class Entity {
         if (jsonArray.getInt(0) != id) {
             return false;
         }
-
-        float x = jsonArray.getFloat(1);
-        if (this.x != x) {
-            this.x = x;
-            updateFlags |= xUpdate;
-            updateFlags |= yUpdate;
+        byte uUpdateFlags = (byte) jsonArray.getInt(1);
+        int offset = 2;
+        if ((uUpdateFlags & Entity.xUpdate) == Entity.xUpdate) {
+            float x = jsonArray.getFloat(offset);
+            offset += 1;
+            if (this.x != x) {
+                this.x = x;
+                updateFlags |= xUpdate;
+                updateFlags |= yUpdate;
+            }
         }
-        float y = jsonArray.getFloat(2);
-        if (this.y != y) {
-            this.y = y;
-            updateFlags |= xUpdate;
-            updateFlags |= yUpdate;
+        if ((uUpdateFlags & Entity.yUpdate) == Entity.yUpdate) {
+            float y = jsonArray.getFloat(offset);
+            offset += 1;
+            if (this.y != y) {
+                this.y = y;
+                updateFlags |= xUpdate;
+                updateFlags |= yUpdate;
+            }
         }
-        float speed = jsonArray.getFloat(3);
-        if (this.speed != speed) {
-            this.speed = speed;
-            updateFlags |= speedUpdate;
+        if ((uUpdateFlags & Entity.speedUpdate) == Entity.speedUpdate) {
+            float speed = jsonArray.getFloat(offset);
+            offset += 1;
+            if (this.speed != speed) {
+                this.speed = speed;
+                updateFlags |= speedUpdate;
+            }
         }
-        float direction = jsonArray.getFloat(4);
-        if (this.direction != direction) {
-            this.direction = direction;
-            updateFlags |= directionUpdate;
+        if ((uUpdateFlags & Entity.directionUpdate) == Entity.directionUpdate) {
+            float direction = jsonArray.getFloat(offset);
+            offset += 1;
+            if (this.direction != direction) {
+                this.direction = direction;
+                updateFlags |= directionUpdate;
+            }
         }
-        float rotation = jsonArray.getFloat(5);
-        if (this.rotation != rotation) {
-            this.rotation = rotation;
-            updateFlags |= rotationUpdate;
+        if ((uUpdateFlags & Entity.rotationUpdate) == Entity.rotationUpdate) {
+            float rotation = jsonArray.getFloat(offset);
+            offset += 1;
+            if (this.rotation != rotation) {
+                this.rotation = rotation;
+                updateFlags |= rotationUpdate;
+            }
         }
-        float width = jsonArray.getFloat(6);
-        if (this.width != width) {
-            this.width = width;
-            updateFlags |= widthUpdate;
+        if ((uUpdateFlags & Entity.widthUpdate) == Entity.widthUpdate) {
+            float width = jsonArray.getFloat(offset);
+            offset += 1;
+            if (this.width != width) {
+                this.width = width;
+                updateFlags |= widthUpdate;
+            }
         }
-        float height = jsonArray.getFloat(7);
-        if (this.height != height) {
-            this.height = height;
-            updateFlags |= heightUpdate;
+        if ((uUpdateFlags & Entity.heightUpdate) == Entity.heightUpdate) {
+            float height = jsonArray.getFloat(offset);
+            if (this.height != height) {
+                this.height = height;
+                updateFlags |= heightUpdate;
+            }
         }
         return true;
     }
@@ -130,7 +151,7 @@ class Entity {
     }
 
     static Entity deserialize(JSONArray jsonArray) {
-        return new Entity(jsonArray.getInt(0), jsonArray.getFloat(1), jsonArray.getFloat(2), jsonArray.getFloat(3), jsonArray.getFloat(4), jsonArray.getFloat(5), jsonArray.getFloat(6), jsonArray.getFloat(7));
+        return new Entity(jsonArray.getInt(0), jsonArray.getFloat(2), jsonArray.getFloat(3), jsonArray.getFloat(4), jsonArray.getFloat(5), jsonArray.getFloat(6), jsonArray.getFloat(7), jsonArray.getFloat(8));
     }
 /*
     private static String readBytesToString(byte[] bytes) {
