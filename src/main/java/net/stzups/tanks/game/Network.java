@@ -95,46 +95,6 @@ class Network implements PacketListener {
                                     }
                                 }
                             }
-                            /*
-                            try (ByteArrayOutputStream gridOutputStream = new ByteArrayOutputStream()) {
-                                Map<Class<?>, List<Entity>> entityListMap = new HashMap<>();
-                                for (Entity entity : game.world.grid.get(x, y)) {
-                                    if (entityListMap.containsKey(entity.getClass())) {
-                                        entityListMap.get(entity.getClass()).add(entity);
-                                    } else {
-                                        List<Entity> list = new ArrayList<>();
-                                        list.add(entity);
-                                        entityListMap.put(entity.getClass(), list);
-                                    }
-                                }
-
-                                for (Map.Entry<Class<?>, List<Entity>> entityListEntry : entityListMap.entrySet()) {
-                                    ByteBuffer byteBuffer = ByteBuffer.allocate(4);
-                                    byteBuffer.putShort((short) entityListEntry.getKey().getField("ID").getInt(null));
-                                    byteBuffer.putShort((short) entityListEntry.getValue().size());//todo make sure no overflow
-                                    gridOutputStream.write(byteBuffer.array());
-                                    for (Entity entity : entityListEntry.getValue()) {
-                                        gridOutputStream.write(entity.serialize(fullUpdate));
-                                    }
-                                }
-
-                                byte[] entities = gridOutputStream.toByteArray();
-
-                                ByteBuffer gridByteBuffer = ByteBuffer.allocate(entities.length);
-                                if (entities.length > 0) {
-                                    gridByteBuffer.put(entities);
-                                }
-                                byte[] g = gridByteBuffer.array();
-                                if (fullUpdate) {
-                                    gridFull.put(key, g);
-                                } else {
-                                    grid.put(key, g);
-                                }
-                                if (g.length > 0) {
-                                    playerOutputStream.write(g);
-                                }
-                            }
-                            */
                         }
                     }
                     byte[] playerEntities;
