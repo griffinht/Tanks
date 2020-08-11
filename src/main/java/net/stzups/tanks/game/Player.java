@@ -6,7 +6,6 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class Player extends Entity {
 
@@ -122,6 +121,11 @@ public class Player extends Entity {
     @Override
     byte getUpdateFlags() {
         return updateFlags;
+    }
+
+    @Override
+    void move(int tick, float dt) {
+
     }
 
     @Override

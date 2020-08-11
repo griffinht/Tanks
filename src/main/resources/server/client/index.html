@@ -606,11 +606,13 @@ class Entity {
     }
 
     update(now, dt) {
-        if ((now - this.lastUpdate) / server.dt > 1) {//interpolate to extrapolate
+        let thisDt = (now - this.lastUpdate);
+        if (thisDt / server.dt > 1) {//interpolate to extrapolate
             this.x = this.targetX;
             this.y = this.targetY;
-            this.targetX += this.speed * Math.cos(this.direction) * dt / 1000;
-            this.targetY += this.speed * Math.sin(this.direction) * dt / 1000;
+            this.targetX += this.speed * Math.cos(this.direction) * thisDt / 1000;
+            this.targetY += this.speed * Math.sin(this.direction) * thisDt / 1000;
+            this.lastUpdate = now;
         }
     }
     
